@@ -32,7 +32,7 @@ HEAD = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Dopamine Property: the property auction game</title>
+<title>Dopamine Property</title>
 <meta name="description" content="Bid against rival investors, build a property empire and climb the rich list. A fast, free browser game about Aussie property auctions.">
 <meta name="theme-color" content="#13203a">
 <meta property="og:type" content="website">
