@@ -94,6 +94,7 @@ with sync_playwright() as p:
     for i in range(1, 21):
         s = subs[i % 3]; v = random.uniform(250e3, 420e3)
         props.append(dict(id=i, addr=f"{i} Banksia Street", street="Banksia Street", sub=s[0], st=s[1], ti=0, style="cottage", seed=i * 7919, rare=False, paid=v, duty=v * .03, prem=0, heat=0, age=20, value=v, vacant=0, boughtAt=0, loan=0))
+    props[0].update(land=700, value=585e3, paid=560e3)  # first card: room for a pool, close to the Family line
     seed = dict(cash=500000, props=props, wins=20, rules=3, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
     pg = page(b, "light", seed)
     pg.wait_for_timeout(1500)
@@ -104,6 +105,22 @@ with sync_playwright() as p:
     pg.click("#tE"); pg.wait_for_timeout(800)
     print("sets:", pg.inner_text("#setList").replace("\n", " "), "| pager:", pg.inner_text("#pgTxt"))
     pg.locator("#setsBox").scroll_into_view_if_needed(); pg.screenshot(path=str(out / "v11-sets.png"))
+    # ---------- upgrades: pool, then a makeover that pushes it into Family ----------
+    pg.evaluate("window.scrollTo(0,0)"); pg.locator('[data-up="1"]').scroll_into_view_if_needed()
+    pg.screenshot(path=str(out / "v14-portfolio.png"))
+    pg.click('[data-up="1"]'); pg.wait_for_timeout(300)
+    pg.screenshot(path=str(out / "v14-upgrade-sheet.png"))
+    print("upgrade sheet:", pg.inner_text("#sheet").replace("\n", " | ")[:300])
+    pg.click('[data-upk="pool"]'); pg.wait_for_timeout(1500)
+    card = '.prop[data-id="1"]'
+    print("during works:", pg.inner_text(card + ' [data-k="r"]'))
+    pg.locator(card).screenshot(path=str(out / "v14-works.png"))
+    pg.wait_for_timeout(6500); close_sheets(pg)
+    print("after pool:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
+    pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-upk="reno"]'); pg.wait_for_timeout(13500); close_sheets(pg)
+    print("after makeover:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
+    assert "Family" in pg.inner_text(card + " .psub"), "makeover should push it into Family"
+    pg.locator(card).screenshot(path=str(out / "v14-upgraded.png"))
     pg.close()
     b.close()
 

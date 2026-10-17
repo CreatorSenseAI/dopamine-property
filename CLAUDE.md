@@ -26,6 +26,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).
 - Market tab: swipe deck (`renderDeck`), buyer offers (`renderOffers`), off-market pop-ups (`offMarketTick`), globe (`gdraw`).
+- Upgrades (`UPG`, `upgradeSheet`, `startWorks`, `finishWorks`): Makeover, Pool (needs 600 m² land, no units/towers, no existing pool), Extension (450 m²). Paid in game cash, cost goes into `p.capex` (part of `basis()`), works use `p.vacant` with `p.works` set, value lift lands when works finish. Passing `classLine(ti)` moves the home up a category (`p.ti0` keeps the original tier so rent yield stays put) with a 6% premium. Each upgrade once per home.
 - Telemetry (`T`, `sessionDoc()`, `playerDoc()`, `flushPlay`): inside a Claude artifact it writes to the artifact db; on the web (`WEB_STATS`) it POSTs to `/api/play`, which `server.js` stores as JSON in `DATA_DIR` and summarises at `/admin?key=ADMIN_KEY`. Add new counters to `T.c` and new per-auction fields in `recordAuction()`; add a tile in `adminPage()` to see them.
 
 ## UX principles from the v10 overhaul

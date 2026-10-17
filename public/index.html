@@ -191,6 +191,16 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .pill.vac{background:var(--red);color:var(--on-red)}
 .pill.hot{background:var(--gold-fill);color:var(--on-gold)}
 .sell{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:8px 10px;font-weight:700;font-size:13px;max-width:110px;line-height:1.15}
+.pbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.upbtn{border:1px solid var(--gold);background:transparent;color:var(--ink);border-radius:8px;padding:6px 10px;font-weight:700;font-size:12px}
+.pill.works{background:var(--gold-fill);color:var(--on-gold)}
+.upg{text-align:left}.upg h3,.upg>p{text-align:center}
+.uprow{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:10px 0}
+.uprow.off{opacity:.55}
+.uptxt{min-width:0}.uptxt b{display:block;font-size:15px}.uptxt small{display:block;color:var(--muted);font-size:12px;line-height:1.35;margin-top:2px}
+.sheet .uprow button{width:auto;flex:none;font-family:var(--f-mono);font-size:14px;padding:9px 12px;letter-spacing:0;text-transform:none}
+.sheet .uprow button:disabled{opacity:.4}
+.sheet p.upnote{font-size:12px;margin:8px 0 4px}
 .sell.armed{background:var(--red);color:var(--on-red);border-color:var(--red)}
 .empty{color:var(--muted);font-size:14px;padding:18px;text-align:center;border:1px dashed var(--line);border-radius:12px}
 .rich{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -745,7 +755,8 @@ let setC={sig:'',sub:{},street:{}};
 function sets(){let n=S.props.length,h=0;for(const p of S.props)h=(h*31+p.id)|0;const sig=n+':'+h;if(setC.sig===sig)return setC;
  const sub={},street={};for(const p of S.props){sub[p.sub]=(sub[p.sub]||0)+1;const k=p.sub+'|'+streetOf(p);street[k]=(street[k]||0)+1;}setC={sig,sub,street};return setC;}
 const setMult=p=>{const c=sets();return 1+(c.sub[p.sub]>=SET_N?0.1:0)+(c.street[p.sub+'|'+streetOf(p)]>=2?0.05:0);};
-const rentOf=p=>p.value*RENT[p.ti]*(1+0.1*(S.legacy||0))*(S.props.includes(p)?setMult(p):1);
+const baseTi=p=>p.ti0!=null?p.ti0:p.ti;/* a house keeps its original rent yield after an upgrade moves it up a category */
+const rentOf=p=>p.value*RENT[baseTi(p)]*(1+0.1*(S.legacy||0))*(S.props.includes(p)?setMult(p):1);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
 const DUTY=[0.03,0.04,0.05,0.06,0.07],COUNCIL=0.00025,UPKEEP=0.0004,STRATA=0.0004,BASEG=0.0008;
@@ -786,11 +797,11 @@ let S=load();
 RIVALS.forEach(r=>{if(!(r.name in S.board))S.board[r.name]=r.worth;});
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v13-web';
+const VERSION='v14-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
- c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
+ c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
  auctions:[],log:[],curve:[],flags:{},tab:{},firstBidSec:null,firstWinSec:null,dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
 const tnow=()=>Math.round((Date.now()-T.start)/1000);
 function tlog(type,d){T.log.push(Object.assign({t:tnow(),type},d||{}));if(T.log.length>150)T.log.shift();T.dirty=true;}
@@ -815,7 +826,7 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
   counters:Object.assign({},T.c),flags:Object.assign({},T.flags),
   derived:{winRate:T.c.auctionsJoined?+(T.c.wins/T.c.auctionsJoined).toFixed(3):null,avgEquityPct:wins.length?+(wins.reduce((a,x)=>a+x.equityPct,0)/wins.length).toFixed(2):null,autoShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bidsAuto/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,bigShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bigBids/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,tapsPerMin:T.activeSec?+(T.taps/(T.activeSec/60)).toFixed(1):null},
   snapshot:{cash:Math.round(S.cash),worth:Math.round(w),props:S.props.length,maxTier:S.maxTier,tier:S.tier,rentBanked:Math.round(S.rentTotal),paidOut:Math.round(S.paidOut||0),legacy:S.legacy||0,dynasties:S.dynasties||0,skipStreak:S.skipStreak||0,overdraft:!!S.od,debt:Math.round(debt()),calm:S.calm||0,listings:LST.length,offers:OFF.length,aucCity:AUC_CITY?AUC_CITY.place[0]:null,nemesis:S.nemesis||null,h2h:S.h2h||{},autoPay:!!S.autoPay,billsPerMonth:Math.round(bills().total),autoOn:S.autoOn,muted:S.muted,tour:S.tour,
-   holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction'}))},
+   holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction',up:p.up?Object.keys(p.up):[],works:p.works?p.works.k:null,capex:Math.round(p.capex||0),from:p.ti0!=null?p.ti0:null}))},
   funnel:{firstBidSec:T.firstBidSec,firstWinSec:T.firstWinSec,newPlayer:S.sessions<=1,coachSeen:Object.keys(S.coach||{}),marketOpen:mktOpen()},
   tabSec:Object.assign({},T.tab),
   meta:{tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
@@ -844,9 +855,41 @@ function payFor(n,ti){const duty=n*DUTY[ti],loan=loanFor(n,ti);return{out:n+duty
 function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=p.value;council+=p.value*COUNCIL;upkeep+=p.value*UPKEEP;if(isStrata(p))strata+=p.value*STRATA;}
  const land=0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8),interest=debt()*INTEREST,od=S.cash<0?-S.cash*0.005:0;return{council,strata,upkeep,land,interest,od,total:council+strata+upkeep+land+interest+od,landRate:h?land/h:0};}
 const propCost=(p,lr)=>p.value*(COUNCIL+UPKEEP+(isStrata(p)?STRATA:0)+lr);
-const basis=p=>p.paid+(p.duty||0);
+const basis=p=>p.paid+(p.duty||0)+(p.capex||0);
 const held=p=>p.age==null||p.age>=12;
 function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis(p),tax=gain>0?gain*(held(p)?0.15:0.30):0,loan=p.loan||0;return{net,tax,loan,bank:net-tax-loan,profit:net-tax-basis(p)};}
+/* ---------- upgrades: spend game cash to lift a home's value; works pause the rent; a big enough lift moves it up a category ---------- */
+const hasPool=p=>baseTi(p)>=2||!!(p.up&&p.up.pool)||(p.feats||[]).some(f=>/pool/i.test(f));
+const UPG=[
+ {k:'reno',name:'Makeover',tag:'Renovated',desc:'New kitchen, bathrooms, floors and paint.',cost:0.08,lift:[0.12,0.20],mo:12,why:p=>null},
+ {k:'pool',name:'Add a pool',tag:'Pool',desc:'In-ground pool and landscaping.',cost:0.05,lift:[0.08,0.11],mo:6,why:p=>isStrata(p)?'No yard to put one in':hasPool(p)?'Already has a pool':(p.land||0)<600?`Won't fit. Needs 600 m² of land, this has ${p.land||0} m².`:null},
+ {k:'ext',name:'Extension',tag:'Extended',desc:'An extra bedroom and a second living area.',cost:0.08,lift:[0.12,0.17],mo:10,why:p=>isStrata(p)?'Strata won’t approve it':(p.land||0)<450?`Won't fit. Needs 450 m² of land, this has ${p.land||0} m².`:null}
+];
+/* a home moves up a category once its value passes halfway between its market and the next */
+const classLine=ti=>ti<TIERS.length-1?(TIERS[ti].max+TIERS[ti+1].min)/2:Infinity;
+const upCost=(p,u)=>roundTo(p.value*u.cost,1000);
+const upgAvail=p=>UPG.filter(u=>!(p.up&&p.up[u.k])&&!u.why(p));
+/* the card only offers Upgrade when there is something left to do and you can pay for it */
+const upgOpen=p=>!p.works&&upgAvail(p).some(u=>S.cash>=upCost(p,u));
+function startWorks(p,k){const u=UPG.find(x=>x.k===k);if(!u||p.works||(p.up&&p.up[k])||u.why(p)||!S.props.includes(p))return;const c=upCost(p,u);
+ if(S.cash<c){toast('Not enough cash for the '+u.name.toLowerCase()+'. It costs '+money(c)+'.','down');return;}
+ S.cash-=c;p.capex=(p.capex||0)+c;p.works={k,lift:rnd(u.lift[0],u.lift[1])};p.vacant=u.mo;OFF=OFF.filter(o=>o.pid!==p.id);
+ T.c.upgrades++;T.c.upgradeSpend+=Math.round(c);tlog('upgrade_start',{k,tier:p.ti,style:p.style,land:p.land||0,cost:Math.round(c),value:Math.round(p.value),cashAfter:Math.round(S.cash)});
+ toast(u.name+' started at '+p.addr+'. '+money(-c)+'. No rent for '+u.mo+' months while the works run.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
+function finishWorks(p,quiet){const w=p.works;if(!w)return;const u=UPG.find(x=>x.k===w.k);p.works=null;p.up=p.up||{};p.up[w.k]=1;if(w.k==='ext')p.beds=(p.beds||3)+1;
+ const before=p.value;p.value*=1+w.lift;let moved=false;
+ while(p.ti<TIERS.length-1&&p.value>=classLine(p.ti)){if(p.ti0==null)p.ti0=p.ti;p.ti++;moved=true;}
+ if(moved){p.value*=1.06;T.c.reclassed++;award('new_class');}
+ T.c.upgradesDone++;award('reno');tlog('upgrade_done',{k:w.k,tier:p.ti,from:baseTi(p),liftPct:+(w.lift*100).toFixed(1),moved,valueBefore:Math.round(before),valueAfter:Math.round(p.value)});
+ if(!quiet){toast((u?u.name:'Works')+' done at '+p.addr+'. Now worth '+money(p.value)+', up '+money(p.value-before)+(moved?'. It is a '+TIERS[p.ti].name+' home now.':'.'),'up');sfx(moved?'rare':'win');if(moved)confetti(false);}
+ builtIds='';}
+function upgradeSheet(p){const nl=classLine(p.ti);
+ const rows=UPG.map(u=>{const done=p.up&&p.up[u.k],why=u.why(p),c=upCost(p,u),lo=p.value*u.lift[0],hi=p.value*u.lift[1];
+  return `<div class="uprow${done||why?' off':''}"><div class="uptxt"><b>${u.name}${done?' ✓':''}</b><small>${done?'Done':why?esc(why):`${esc(u.desc)} Adds ${money(lo)} to ${money(hi)} to the value. ${u.mo} months of works, no rent.`}</small></div>${done||why?'':`<button data-upk="${u.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
+ $('#sheet').innerHTML=`<div class="upg"><h3>Upgrade</h3><p>${esc(p.addr)}, ${esc(p.sub)}<br>Worth ${money(p.value)}${p.land?' · '+p.land+' m² of land':''} · you have ${money(S.cash)}</p>${rows}${nl<Infinity?`<p class="upnote">Lift it past ${money(nl)} and it becomes a ${TIERS[p.ti+1].name} home, worth 6% more.</p>`:''}<button class="sec" id="upClose">Close</button></div>`;
+ $('#modal').hidden=false;$('#upClose').onclick=()=>{$('#modal').hidden=true;};
+ $('#sheet').querySelectorAll('[data-upk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startWorks(p,b.dataset.upk);});
+ T.c.upgradeViews++;tlog('upgrade_view',{tier:p.ti,options:upgAvail(p).length,cash:Math.round(S.cash)});}
 const cost=n=>n*(1+DUTY[A.lot.ti]);
 const maxBid=L=>Math.max(0,Math.floor(S.cash/(1-LVR+DUTY[L.ti])/L.inc)*L.inc);
 function syncTier(){const w=worth();for(let i=TIERS.length-1;i>=0;i--){if(w>=TIERS[i].unlock){if(i>S.maxTier){S.maxTier=i;if(i>0){T.c.unlocks++;tlog('tier_unlock',{tier:i,worth:Math.round(w),playSec:S.playSec});toast(TIERS[i].name+' auctions unlocked','up');sfx('rare');if(i>=1)award('family');if(i>=2)award('prestige');track('Tier unlock',{tier:TIERS[i].name,minutes:Math.round(S.playSec/60)});}}break;}}buildChips();}
@@ -859,15 +902,16 @@ function houseSVG(p){
  const skies=[['#9fd3ff','#eaf6ff',0],['#ffc49c','#ffe9c7',1],['#2e3a6b','#f0936a',1],['#b8e1ff','#fdf2d8',0],['#6f56a3','#ffb38a',1]];
  const sk=R(skies),dusk=sk[2];
  const coast=/Heads|Palm|Bondi|Cottesloe|Burleigh|Malibu|Jumeirah|Monte|Piper|Vaucluse|Noosa|Fremantle|Newcastle|Wollongong/.test(p.sub);
- const wall=R(['#f6f0e6','#eadac6','#ffffff','#dbe3ec','#cbb59c','#f3e3d6','#d3ddd5']);
- const roof=R(['#34314a','#7c3f2e','#55636e','#2c3a42','#9a5a3c']);
+ let wall=R(['#f6f0e6','#eadac6','#ffffff','#dbe3ec','#cbb59c','#f3e3d6','#d3ddd5']);
+ const roof=R(['#34314a','#7c3f2e','#55636e','#2c3a42','#9a5a3c']);if(p.up&&p.up.reno)wall='#fbfaf6';
  const win=dusk?'#ffd47f':'#a8d4ec',frame='#2b2b35',door=R(['#7a4b2f','#2f4858','#9b2f2f','#3d3d3d']);
  let g=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sk[0]}"/><stop offset="1" stop-color="${sk[1]}"/></linearGradient></defs><rect width="400" height="300" fill="url(#${id})"/>`;
  g+=`<circle cx="${(40+r()*320).toFixed(0)}" cy="${(48+r()*30).toFixed(0)}" r="${dusk?18:22}" fill="${dusk?'#ffe6a8':'#fff6c9'}" opacity=".9"/>`;
  if(coast)g+=`<rect y="196" width="400" height="34" fill="#3e8fc4"/><rect y="196" width="400" height="4" fill="#bfe3f7" opacity=".7"/>`;
  else g+=`<path d="M0 205 Q 80 168 160 200 T 320 188 T 400 200 V 232 H0Z" fill="#8fbd80" opacity=".75"/>`;
  g+=`<rect y="228" width="400" height="72" fill="${coast?'#e6d3a1':'#7fae66'}"/>`;
- if(p.ti>=2){g+=`<rect x="236" y="246" width="128" height="24" rx="8" fill="#4cc4ea"/><rect x="242" y="250" width="116" height="5" rx="2" fill="#c4f0fd" opacity=".85"/>`;}
+ if(p.up&&p.up.ext&&!isStrata(p))g+=`<rect x="292" y="176" width="80" height="54" fill="${wall}" stroke="${frame}" stroke-width="1.5"/><rect x="288" y="170" width="88" height="8" fill="${roof}"/><rect x="316" y="190" width="34" height="24" fill="${win}" stroke="${frame}" stroke-width="1.2"/>`;
+ if(hasPool(p)){g+=`<rect x="236" y="246" width="128" height="24" rx="8" fill="#4cc4ea"/><rect x="242" y="250" width="116" height="5" rx="2" fill="#c4f0fd" opacity=".85"/>`;}
  const W=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${win}" stroke="${frame}" stroke-width="1.5"/>`;
  const st=p.style;
  if(st==='cottage'){const x=118,w=170,y=152,h=78;
@@ -901,6 +945,7 @@ function houseSVG(p){
   if(coast){g+=`<path d="M${tx} 232 q ${-4+r()*8} -40 ${-2+r()*4} -78" stroke="#7a5a3a" stroke-width="5" fill="none"/>`;const cy=154;for(let k=0;k<5;k++){const a=-160+k*35;g+=`<ellipse cx="${tx}" cy="${cy}" rx="26" ry="6" fill="#2f8a4c" transform="rotate(${a} ${tx} ${cy}) translate(18 0)"/>`;}}
   else{g+=`<rect x="${tx-3}" y="188" width="6" height="44" fill="#6b4a2e"/><circle cx="${tx}" cy="178" r="22" fill="#3f8a4a"/><circle cx="${tx+10}" cy="190" r="14" fill="#357a40"/>`;}
  }
+ if(p.works)g+=`<g stroke="#e8902a" stroke-width="5" opacity=".9" fill="none"><path d="M104 232V112M200 232V100M296 232V112M98 146H302M98 190H302"/></g><rect x="150" y="236" width="100" height="26" rx="4" fill="#e8902a"/><text x="200" y="255" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1a1a1a">WORKS</text>`;
  if(p.rare){for(let k=0;k<4;k++){const sx=60+r()*280,sy=30+r()*80,s=6+r()*6;g+=`<path d="M${sx} ${sy-s}L${sx+s*.28} ${sy-s*.28}L${sx+s} ${sy}L${sx+s*.28} ${sy+s*.28}L${sx} ${sy+s}L${sx-s*.28} ${sy+s*.28}L${sx-s} ${sy}L${sx-s*.28} ${sy-s*.28}Z" fill="#ffd34d"/>`;}}
  return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of ${esc(p.addr)}">${g}</svg>`;
 }
@@ -1155,7 +1200,7 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((BASEG+(p.heat||0))*damp*ageDamp(p)+0.007*gauss());
   if(p.heat){if(p.heat>=0.0015&&Math.random()<0.004){p.value*=0.75;p.heat=0;T.c.bubblePops++;tlog('bubble_pop',{tier:p.ti,value:Math.round(p.value)});note('bubble','Bubble bursts at '+p.addr+'. Down 25%.','down',true);}else p.heat*=0.985;}
   if(Math.random()<0.003){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
-  if(p.vacant>0){p.vacant--;if(p.vacant===0)note('ten','New tenant signed at '+p.addr,'up');}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
+  if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
  if(S.cash<0){if(!S.od){S.od=true;T.c.overdrafts++;tlog('overdraft',{cash:Math.round(S.cash),worth:Math.round(worth()),props:S.props.length});toast('Cash is below zero. Bills are going on the overdraft at 6% a year. Sell a house or wait for rent.','down');}}else S.od=false;
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()){const p=S.props.slice().sort((a,b)=>(b.loan||0)-(a.loan||0)||b.value-a.value)[0];T.c.foreclosures++;tlog('foreclosure',{tier:p.ti,value:Math.round(p.value),loan:Math.round(p.loan||0),cash:Math.round(S.cash),debt:Math.round(debt())});sellProp(p,p.value*0.85,'repossessed');sfx('lose');}
@@ -1176,7 +1221,7 @@ function marketEvent(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm|
  else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.12);sfx('cash');
   toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
- for(let i=0;i<n;i++){costs+=bills().total;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0)p.vacant--;else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
+ for(let i=0;i<n;i++){costs+=bills().total;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
 function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag('clock_backwards',{secs:Math.round(secs)});if(secs>30*86400)tflag('away_over_30_days',{secs:Math.round(secs)});
  const n=Math.min(Math.floor(secs/20),120);if(n<3||!S.props.length)return;
@@ -1198,8 +1243,9 @@ function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf
  $('#psort').hidden=S.props.length<4;$('#psort').querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===psort));
  $('#pager').hidden=all.length<=PAGE;$('#pgTxt').textContent=`${pg*PAGE+1}–${Math.min(all.length,pg*PAGE+PAGE)} of ${all.length}`;$('#pgPrev').disabled=pg<=0;$('#pgNext').disabled=pg>=pages-1;
  $('#pfilter').hidden=!nRare;$('#pfAllN').textContent=S.props.length;$('#pfRareN').textContent=nRare;$('#pfAll').setAttribute('aria-pressed',pf==='all');$('#pfRare').setAttribute('aria-pressed',pf==='rare');
- $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><button class="sell" data-sell="${p.id}">Sell</button></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
- const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;renderSets();renderBadges();updEmpire();}
+ $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
+ const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;renderSets();renderBadges();updEmpire();
+ if(view==='e'&&S.props.length>=2&&S.props.some(upgOpen))setTimeout(()=>{if(view==='e')coach('upgrade','Tap Upgrade on a home to renovate, extend or add a pool. It costs cash now and lifts the value and the rent.');},600);}
 function updGoal(){const w=worth(),nt=S.maxTier+1;
  if(nt<TIERS.length){const lo=TIERS[S.maxTier].unlock,hi=TIERS[nt].unlock,p=Math.max(0,Math.min(100,(w-lo)/(hi-lo)*100));$('#goalTxt').innerHTML=`<b>${money(hi)}</b> net worth unlocks <b>${TIERS[nt].name}</b>`;$('#goalPct').textContent=Math.floor(p)+'%';$('#goalBar').style.width=p+'%';}
  else{const rows=[w,...Object.values(S.board)].sort((a,b)=>b-a),rk=rows.indexOf(w)+1;$('#goalTxt').innerHTML=`Every market open. Top the rich list`;$('#goalPct').textContent='#'+rk;$('#goalBar').style.width=Math.max(4,100-(rk-1)*12)+'%';}}
@@ -1223,7 +1269,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
   el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');
-  const rp=el.querySelector('[data-k="r"]');if(p.vacant>0){rp.textContent='Vacant '+p.vacant+'s';rp.className='pill vac';}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*INTEREST;rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
+  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?'Works ':'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*INTEREST;rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');if(armed===p.id){sb.classList.add('armed');sb.textContent='Bank '+money(saleOf(p).bank)+' after tax'+(p.loan?' and loan':'')+'?';}else{sb.classList.remove('armed');sb.textContent='Sell';}}
  const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
@@ -1242,7 +1288,7 @@ function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{ne
  if(how==='repossessed')toast(`The bank repossessed ${p.addr} and sold it for ${money(net)}. ${bank>=0?'You kept '+money(bank):'You still owe '+money(-bank)}.`,'down');
  else{toast(`Sold ${p.addr} for ${money(net)}. ${profit>=0?'Profit +'+money(profit):'Loss '+money(profit)}${tax>0?' after '+money(tax)+' capital gains tax':''}${loan>0?'. Loan of '+money(loan)+' repaid':''}.`,profit>=0?'up':'down');sfx('cash');if(profit>0)confetti(false);}
  buildEmpire();updAuction();if(view==='m'){offSig='';renderMarket();}save();soonFlush();}
-$('#plist').onclick=e=>{const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
+$('#plist').onclick=e=>{const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
  if(armed===id){const p=S.props.find(q=>q.id===id);if(p)sellProp(p,null,'empire');}
  else{armed=id;clearTimeout(armTimer);armTimer=setTimeout(()=>{armed=null;updEmpire();},3500);updEmpire();}};
 function bankrupt(){const owed=-S.cash;T.c.bankruptcies++;tlog('bankrupt',{owed:Math.round(owed),sessionPlaySec:T.playSec,legacy:S.legacy||0});
@@ -1285,7 +1331,7 @@ function marketTick(){
  for(const l of LST){l.ttl--;if(WATCH.has(l.mid)&&l.ttl===5&&view!=='m')toast(`Watched ${l.sub} listing goes in 5s. Tap to see it.`,'down',()=>show('m'));}LST=LST.filter(l=>l.ttl>0);
  for(const o of OFF)o.ttl--;const exp=OFF.filter(o=>o.ttl<=0||!S.props.some(p=>p.id===o.pid));if(exp.length){T.c.offersExpired+=exp.length;OFF=OFF.filter(o=>!exp.includes(o));}
  if(S.props.length>=3){S.offerIn=(S.offerIn==null?15:S.offerIn)-1;
-  if(S.offerIn<=0&&OFF.length<1){S.offerIn=Math.round(rnd(80,140));const cand=S.props.filter(p=>!OFF.some(o=>o.pid===p.id)&&p.value>basis(p)*1.08);
+  if(S.offerIn<=0&&OFF.length<1){S.offerIn=Math.round(rnd(80,140));const cand=S.props.filter(p=>!p.works&&!OFF.some(o=>o.pid===p.id)&&p.value>basis(p)*1.08);
    if(cand.length){/* buyers chase your best houses: pick weighted by value */let r=Math.random()*cand.reduce((a,q)=>a+q.value,0),p=cand[0];for(const q of cand){r-=q.value;if(r<=0){p=q;break;}}
     const roll=Math.random(),war=roll<0.2,hi=war||roll<0.85,amt=roundTo(p.value*(war?rnd(1.18,1.25):hi?rnd(1.03,1.12):rnd(0.9,0.98)),niceInc(p.value)),ttl=war?12:15;
     OFF.push({oid:mid++,pid:p.id,amt,ttl,ttl0:ttl,war});T.c.offersMade++;if(war){T.c.offerWars++;sfx('cash');}
@@ -1478,7 +1524,7 @@ function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]
  $('#setList').innerHTML=subs.map(([s,n])=>`<span class="${n>=SET_N?'done':''}">${esc(s)} ${Math.min(n,SET_N)}/${SET_N}${n>SET_N?' +'+(n-SET_N):''}</span>`).join('');}
 
 /* ---------- badges ---------- */
-const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
+const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
 function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({block:'start'});});sfx('cash');},1800);if(view==='e')renderBadges();}
 const BQ=[];
 function renderBadges(){const got=S.badges||{};$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
