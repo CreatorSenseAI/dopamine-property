@@ -4,7 +4,7 @@
 Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS + one IIFE script). Served by `server.js` on Railway; pushing to `main` deploys.
 
 ## Working rules
-- Edit `public/index.html` directly. `tools/build.py`, `tools/v11_patch.py` and `original/` are finished one-off migrations; never re-run them.
+- Edit `public/index.html` directly. `tools/build.py`, `tools/v11_patch.py`, `tools/v12_patch.py` and `original/` are finished one-off migrations; never re-run them.
 - Keep it dependency-free and single-file unless there's a strong reason.
 - Design for a 390×844 phone first. The bid dock (`#dock`) must stay visible; check there's no horizontal scroll.
 - After changes run `python3 tools/smoke.py` and look at the screenshots in `shots/` (light + dark).
@@ -34,3 +34,8 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 2. When do I stop? (walk-away line)
 3. What does it do to my month? (cash flow, income before → after)
 4. What am I working towards? (goal strip)
+
+## Declutter rules (v12, from playtest feedback)
+- One notification on screen at a time (`toast()` queues; swipe sideways or tap to clear). Coach tips hold the queue.
+- Only show what matters now: details sit behind a tap (`<details>` for If you win, ledger, badges, play stats); tier chips appear once a second tier unlocks; auto-bid limit shows only when auto is on.
+- Header = net worth (+ income/mo under it), cash, menu. Nothing else.

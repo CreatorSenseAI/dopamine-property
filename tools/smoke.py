@@ -61,7 +61,7 @@ with sync_playwright() as p:
             pg.screenshot(path=str(out / f"v11-live-{scheme}.png"))
             pg.locator(".lvmain").last.click(); pg.wait_for_timeout(400)
             print(scheme, "focused lot:", pg.inner_text("#addr"))
-        pg.click(".hotbtn") if pg.is_visible(".hotbtn") else None
+        pg.click("#lvStrip .hotbtn") if pg.is_visible("#lvStrip .hotbtn") else None
         pg.wait_for_timeout(200)
         # a few more lots to exercise background resolution
         for _ in range(2):
@@ -75,6 +75,7 @@ with sync_playwright() as p:
                 print(scheme, "watching rows:", pg.locator(".wrow").count())
             pg.screenshot(path=str(out / f"v11-market-{scheme}.png"))
         pg.click("#tE"); pg.wait_for_timeout(800)
+        pg.evaluate("document.getElementById('badgeFold').open=true")
         pg.locator("#badges").scroll_into_view_if_needed()
         pg.screenshot(path=str(out / f"v11-empire-{scheme}.png"))
         print(scheme, "badges:", pg.inner_text("#bCount"))
@@ -99,6 +100,7 @@ with sync_playwright() as p:
     pg.screenshot(path=str(out / "v11-streak.png"))
     print("streak sheet:", pg.inner_text("#sheet")[:80].replace("\n", " ") if pg.is_visible("#modal") else "none")
     close_sheets(pg)
+    pg.screenshot(path=str(out / "v11-header.png"))
     pg.click("#tE"); pg.wait_for_timeout(800)
     print("sets:", pg.inner_text("#setList").replace("\n", " "), "| pager:", pg.inner_text("#pgTxt"))
     pg.locator("#setsBox").scroll_into_view_if_needed(); pg.screenshot(path=str(out / "v11-sets.png"))
