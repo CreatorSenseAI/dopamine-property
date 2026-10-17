@@ -459,6 +459,12 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hinc.pos{color:#17804f}:root:not([data-theme="light"]) .hinc.neg{color:#c21f35}}
 :root[data-theme="dark"] .hinc.pos{color:#17804f}:root[data-theme="dark"] .hinc.neg{color:#c21f35}
 .pill.pos{color:var(--green)}.pill.neg{color:var(--red)}
+/* portfolio paging */
+.psort{margin-top:-4px}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px}
+.pager button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:9px 14px;font-weight:700;font-size:14px;min-width:92px}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager span{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -542,7 +548,9 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
     </section>
     <section class="unlock" id="unlock"><p id="unlockTxt"></p><div class="bar"><i id="unlockBar"></i></div></section>
     <div class="phead"><h2>Portfolio</h2><div class="pfilter" id="pfilter" role="group" aria-label="Show properties" hidden><button class="chip" id="pfAll" data-pf="all" aria-pressed="true">All <small id="pfAllN">0</small></button><button class="chip" id="pfRare" data-pf="rare" aria-pressed="false">Rare <small id="pfRareN">0</small></button></div></div>
+    <div class="chips psort" id="psort" role="group" aria-label="Sort properties" hidden><button class="chip" data-ps="new" aria-pressed="true">Newest</button><button class="chip" data-ps="value" aria-pressed="false">Value</button><button class="chip" data-ps="flow" aria-pressed="false">Cash flow</button><button class="chip" data-ps="gain" aria-pressed="false">Gain</button><button class="chip" data-ps="loss" aria-pressed="false">Losing money</button></div>
     <div class="plist" id="plist"></div>
+    <nav class="pager" id="pager" aria-label="Portfolio pages" hidden><button id="pgPrev" aria-label="Previous page">&lsaquo; Prev</button><span id="pgTxt" aria-live="polite"></span><button id="pgNext" aria-label="Next page">Next &rsaquo;</button></nav>
     <section class="bills"><h2>Monthly ledger</h2><div id="billRows"></div><div class="bnote" id="billNote"></div><div class="debtbox" id="debtBox" hidden><button class="repay" id="repayBtn"></button><button class="toggle" id="autoPayBtn" aria-pressed="false">Auto-pay: off</button><p class="bnote" id="debtNote"></p></div></section>
     <section class="legacy" id="legacy"><div><h2>Dynasty</h2><p id="legacyTxt"></p></div><button class="legbtn" id="legacyBtn">Cash out</button></section>
     <h2>Rich list</h2>
@@ -986,10 +994,18 @@ function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag(
  syncTier();updEmpire();save();}
 
 /* ---------- empire ---------- */
-let builtIds='',armed=null,armTimer=null,resetArmed=false,legArmed=false,pf='all';
-const sig=()=>pf+':'+S.props.map(p=>p.id).join(',');
-function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf='all';builtIds=sig();
- const list=pf==='rare'?S.props.filter(p=>p.rare):S.props;
+let builtIds='',armed=null,armTimer=null,resetArmed=false,legArmed=false,pf='all',psort='new',pg=0;
+const PAGE=8;
+const flowOf=p=>p.vacant>0?-propCost(p,bills().landRate)-(p.loan||0)*INTEREST:rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*INTEREST;
+/* order is fixed when the list is built, so rows never jump while values tick */
+const SORTS={new:null,value:(a,b)=>b.value-a.value,flow:(a,b)=>flowOf(b)-flowOf(a),gain:(a,b)=>(b.value/basis(b))-(a.value/basis(a)),loss:(a,b)=>flowOf(a)-flowOf(b)};
+const sig=()=>pf+':'+psort+':'+pg+':'+S.props.map(p=>p.id).join(',');
+function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf='all';
+ let all=pf==='rare'?S.props.filter(p=>p.rare):S.props.slice();if(SORTS[psort])all.sort(SORTS[psort]);
+ const pages=Math.max(1,Math.ceil(all.length/PAGE));pg=Math.min(pg,pages-1);builtIds=sig();
+ const list=all.slice(pg*PAGE,pg*PAGE+PAGE);
+ $('#psort').hidden=S.props.length<4;$('#psort').querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===psort));
+ $('#pager').hidden=all.length<=PAGE;$('#pgTxt').textContent=`${pg*PAGE+1}–${Math.min(all.length,pg*PAGE+PAGE)} of ${all.length}`;$('#pgPrev').disabled=pg<=0;$('#pgNext').disabled=pg>=pages-1;
  $('#pfilter').hidden=!nRare;$('#pfAllN').textContent=S.props.length;$('#pfRareN').textContent=nRare;$('#pfAll').setAttribute('aria-pressed',pf==='all');$('#pfRare').setAttribute('aria-pressed',pf==='rare');
  $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${houseSVG(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><button class="sell" data-sell="${p.id}">Sell</button></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
  const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;updEmpire();}
@@ -1023,7 +1039,10 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  $('#pDays').textContent=S.days.length;$('#pSess').textContent=S.sessions;const pm=Math.round(S.playSec/60);$('#pTime').textContent=pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m';
  const joined=S.wins+S.losses;$('#pRate').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
  $('#rich').innerHTML=rows.map((r,i)=>`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
-$('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset.pf===pf)return;pf=b.dataset.pf;buildEmpire();};
+$('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset.pf===pf)return;pf=b.dataset.pf;pg=0;buildEmpire();};
+$('#psort').onclick=e=>{const b=e.target.closest('[data-ps]');if(!b||b.dataset.ps===psort)return;psort=b.dataset.ps;pg=0;tlog('portfolio_sort',{by:psort});buildEmpire();};
+function goPage(d){pg+=d;buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+$('#pgPrev').onclick=()=>goPage(-1);$('#pgNext').onclick=()=>goPage(1);
 function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,bank,profit,loan}=saleOf(p,price);
  const holdSec=p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,sinceMkt=T.lastMarket?Math.round((Date.now()-T.lastMarket.at)/1000):null;
  T.c.sells++;T.c.sellProfit+=Math.round(profit);if(holdSec!==null&&holdSec<20&&profit>0){T.c.quickFlips++;if(T.c.quickFlips>=3)tflag('quick_flip_pattern',{holdSec,profit:Math.round(profit),how});}
