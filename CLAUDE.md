@@ -4,7 +4,7 @@
 Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS + one IIFE script). Served by `server.js` on Railway; pushing to `main` deploys.
 
 ## Working rules
-- Edit `public/index.html` directly. `tools/build.py`, `tools/v11_patch.py`, `tools/v12_patch.py` and `original/` are finished one-off migrations; never re-run them.
+- Edit `public/index.html` directly. `tools/build.py`, `tools/v11_patch.py`, `tools/v12_patch.py`, `tools/v13_patch.py`, `tools/v13b_patch.py` and `original/` are finished one-off migrations; never re-run them.
 - Keep it dependency-free and single-file unless there's a strong reason.
 - Design for a 390×844 phone first. The bid dock (`#dock`) must stay visible; check there's no horizontal scroll.
 - After changes run `python3 tools/smoke.py` and look at the screenshots in `shots/` (light + dark).
@@ -26,7 +26,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).
 - Market tab: swipe deck (`renderDeck`), buyer offers (`renderOffers`), off-market pop-ups (`offMarketTick`), globe (`gdraw`).
-- Telemetry (`T`, `flushPlay`) only writes when running inside a Claude artifact (`window.claude`); it's a no-op on the web.
+- Telemetry (`T`, `sessionDoc()`, `playerDoc()`, `flushPlay`): inside a Claude artifact it writes to the artifact db; on the web (`WEB_STATS`) it POSTs to `/api/play`, which `server.js` stores as JSON in `DATA_DIR` and summarises at `/admin?key=ADMIN_KEY`. Add new counters to `T.c` and new per-auction fields in `recordAuction()`; add a tile in `adminPage()` to see them.
 
 ## UX principles from the v10 overhaul
 Players were confused about why to bid, which stats matter, and how a lot affects their portfolio. Every decision screen should answer:

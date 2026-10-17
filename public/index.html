@@ -748,12 +748,12 @@ const setMult=p=>{const c=sets();return 1+(c.sub[p.sub]>=SET_N?0.1:0)+(c.street[
 const rentOf=p=>p.value*RENT[p.ti]*(1+0.1*(S.legacy||0))*(S.props.includes(p)?setMult(p):1);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
-const DUTY=[0.03,0.04,0.05,0.06,0.07],COUNCIL=0.00025,UPKEEP=0.0004,STRATA=0.0004,BASEG=0.0015;
+const DUTY=[0.03,0.04,0.05,0.06,0.07],COUNCIL=0.00025,UPKEEP=0.0004,STRATA=0.0004,BASEG=0.0008;
 const isStrata=p=>p.style==='unit'||p.style==='tower';
 /* paying over the guide buys growth: up to +0.3% a month at 50% over */
 /* growth slows as an empire gets huge and as a house ages, so values cannot snowball forever */
 const growthDamp=()=>1/(1+holdings()/1e8),ageDamp=p=>1/(1+(p.age||0)/120);
-const heatOf=(price,guide)=>guide?Math.max(0,Math.min(0.5,price/guide-1))*0.006:0;
+const heatOf=(price,guide)=>guide?Math.max(0,Math.min(0.5,price/guide-1))*0.004:0;
 const gradeOf=prem=>prem<0?'Bargain':prem<0.1?'Fair price':prem<0.25?'Hot buy':'Record price';
 const growPct=h=>((BASEG+(h||0))*1200).toFixed(1);
 /* ---------- deal reading: zones on the meter and what a house does to your month ---------- */
@@ -786,12 +786,12 @@ let S=load();
 RIVALS.forEach(r=>{if(!(r.name in S.board))S.board[r.name]=r.worth;});
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v12-web';
+const VERSION='v13-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
  c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
- auctions:[],log:[],curve:[],flags:{},dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
+ auctions:[],log:[],curve:[],flags:{},tab:{},firstBidSec:null,firstWinSec:null,dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
 const tnow=()=>Math.round((Date.now()-T.start)/1000);
 function tlog(type,d){T.log.push(Object.assign({t:tnow(),type},d||{}));if(T.log.length>150)T.log.shift();T.dirty=true;}
 function tflag(name,d){T.flags[name]=(T.flags[name]||0)+1;tlog('flag_'+name,d);}
@@ -803,7 +803,7 @@ function playTick(){const now=Date.now(),perf=performance.now();
  const drift=(now-T.lastWall)-(perf-T.lastPerf);if(Math.abs(drift)>60000)tflag('clock_jump',{driftSec:Math.round(drift/1000)});
  T.lastWall=now;T.lastPerf=perf;
  if(document.hidden){T.hiddenSec++;return;}
- T.playSec++;S.playSec++;T.dirty=true;if(now-T.lastInput<30000)T.activeSec++;else T.idleSec++;
+ T.playSec++;S.playSec++;T.dirty=true;T.tab[view]=(T.tab[view]||0)+1;if(now-T.lastInput<30000)T.activeSec++;else T.idleSec++;
  if(T.playSec%30===0){T.curve.push({t:tnow(),worth:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,tier:S.maxTier});if(T.curve.length>240)T.curve.shift();T.dirty=true;}
  if(worth()>S.bestWorth)S.bestWorth=worth();}
 let DB=null,flushing=false;
@@ -816,11 +816,18 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
   derived:{winRate:T.c.auctionsJoined?+(T.c.wins/T.c.auctionsJoined).toFixed(3):null,avgEquityPct:wins.length?+(wins.reduce((a,x)=>a+x.equityPct,0)/wins.length).toFixed(2):null,autoShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bidsAuto/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,bigShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bigBids/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,tapsPerMin:T.activeSec?+(T.taps/(T.activeSec/60)).toFixed(1):null},
   snapshot:{cash:Math.round(S.cash),worth:Math.round(w),props:S.props.length,maxTier:S.maxTier,tier:S.tier,rentBanked:Math.round(S.rentTotal),paidOut:Math.round(S.paidOut||0),legacy:S.legacy||0,dynasties:S.dynasties||0,skipStreak:S.skipStreak||0,overdraft:!!S.od,debt:Math.round(debt()),calm:S.calm||0,listings:LST.length,offers:OFF.length,aucCity:AUC_CITY?AUC_CITY.place[0]:null,nemesis:S.nemesis||null,h2h:S.h2h||{},autoPay:!!S.autoPay,billsPerMonth:Math.round(bills().total),autoOn:S.autoOn,muted:S.muted,tour:S.tour,
    holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction'}))},
+  funnel:{firstBidSec:T.firstBidSec,firstWinSec:T.firstWinSec,newPlayer:S.sessions<=1,coachSeen:Object.keys(S.coach||{}),marketOpen:mktOpen()},
+  tabSec:Object.assign({},T.tab),
+  meta:{tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
   auctions:T.auctions.slice(-80),log:T.log.slice(-150),curve:T.curve.slice(-240)};}
-function playerDoc(){return{installId,version:VERSION,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid};}
+function playerDoc(){return{installId,version:VERSION,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
 function soonFlush(){clearTimeout(soonFlush.t);soonFlush.t=setTimeout(flushPlay,2000);}
-async function flushPlay(){if(!DB||flushing||!T.dirty)return;flushing=true;T.dirty=false;
- try{await DB.doc('sessions/'+T.sid).set(sessionDoc());await DB.doc('players/'+installId).set(playerDoc());}
+/* on the web, play logs go to our own server (anonymous install id, no personal data); inside Claude they go to the artifact database */
+const WEB_STATS=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname);
+const statsOn=()=>!S.noStats;
+async function flushPlay(){if(flushing||!T.dirty||!statsOn())return;if(!DB&&!WEB_STATS)return;flushing=true;T.dirty=false;
+ try{if(DB){await DB.doc('sessions/'+T.sid).set(sessionDoc());await DB.doc('players/'+installId).set(playerDoc());}
+  else{const res=await fetch('/api/play',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session:sessionDoc(),player:playerDoc()})});if(!res.ok&&res.status>=500)T.dirty=true;}}
  catch(e){if(!e||e.code==='unavailable')T.dirty=true;else if(['not_granted','capability_disabled','capability_removed','revoked'].includes(e.code))DB=null;}
  finally{flushing=false;}}
 
@@ -996,7 +1003,11 @@ function rivalReact(who,prev,amt,big){
  else if(!big&&!A.war&&Math.random()<0.3)rivalSay(who,'bid');}
 function showCall(st){if(A&&A.bg)return;const el=$('#callBig');if(!el)return;el.textContent=['','Going once…','Going twice…','Last chance!'][st];el.className='callbig s'+st;void el.offsetWidth;el.classList.add('on');}
 function flashReset(){if(A&&A.bg)return;const el=$('#callBig');if(!el)return;el.textContent='Clock reset';el.className='callbig reset';void el.offsetWidth;el.classList.add('on');clearTimeout(flashReset.t);flashReset.t=setTimeout(()=>{if(el.classList.contains('reset'))el.className='callbig';},900);}
-function startAuction(){A=newAuction(S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false);renderLot();if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
+/* auto tier: the highest unlocked tier where a typical opening bid is affordable (deposit + duty), sometimes one lower for variety */
+const typicalOpen=i=>TIERS[i].min*0.78;
+function affordTier(){let best=0;for(let i=0;i<=S.maxTier;i++)if(S.cash>=depositFor(typicalOpen(i),i))best=i;return best;}
+function pickTier(bg){if(S.tierAuto===false)return bg&&Math.random()<0.3?Math.floor(Math.random()*(S.maxTier+1)):S.tier;const a=affordTier();return a>0&&Math.random()<(bg?0.35:0.2)?a-1:a;}
+function startAuction(){if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();A=newAuction(S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false);renderLot();if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
 function newAuction(ti,place,bg){const L=makeLot(ti,{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(S.nemesis&&Math.random()<0.45&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):L.value*(r.style==='aggro'?rnd(0.92,1.16):r.style==='cautious'?rnd(0.78,1.0):rnd(0.88,1.1))*(r.name===S.nemesis?1.06:1)}));
@@ -1010,10 +1021,11 @@ function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',pre
  T.auctions.push({t:tnow(),no:L.no,tier:L.ti,rare:L.rare,style:L.style,value:Math.round(L.value),guide:Math.round(L.guide),hammer:Math.round(A.bid),winner,rival:rival||null,
   rivals:A.rivals.map(r=>r.style),rivalBids:s.rivalBids,bidders:A.rivals.filter(r=>r.bids>0).length,outs:s.outs,thinks:s.thinks,counters:s.counters,war:A.warUsed,nemesis:A.rivals.some(r=>r.name===S.nemesis)?S.nemesis:null,yourHand:s.hand,yourAuto:s.auto,yourBig:s.big,folds:s.folds,snipes:s.snipes,firstBidClock:s.firstClock,lastBidClock:s.lastClock,maxYou:Math.round(s.maxYou),
   autoOn:!!A.auto,bg:!!A.bg,autoMax:Math.round(A.autoMax),cashAt:s.cashAt,couldAfford:s.couldAfford,durSec:Math.round((Date.now()-s.t0)/1000),
+  estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,
   overGuidePct:prem===null?null:+(prem*100).toFixed(2),growPctYr:you?+growPct(heatOf(A.bid,L.guide)):null,duty:you?Math.round(A.bid*DUTY[L.ti]):null,
   equityPct:you?+((L.value/A.bid-1)*100).toFixed(2):null,hammerVsValuePct:A.bid?+((A.bid/L.value-1)*100).toFixed(2):null});
  if(T.auctions.length>200)T.auctions.shift();T.dirty=true;}
-function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;if(who==='you'){S.skipStreak=0;A.war=null;const s=A.st;if(src==='auto'){s.auto++;T.c.bidsAuto++;}else if(big){s.big++;T.c.bigBids++;}else{s.hand++;T.c.bidsHand++;}if(src!=='auto'&&A.clock<1.5){s.snipes++;T.c.snipes++;}if(s.firstClock===null)s.firstClock=+A.clock.toFixed(1);s.lastClock=+A.clock.toFixed(1);s.maxYou=amt;}else{A.st.rivalBids++;who.bids=(who.bids||0)+1;rivalReact(who,prevLeader,amt,big);}A.bid=amt;A.leader=who;A.feed.unshift({who:who==='you'?(big?'You · big bid':'You'):who.name,amt,you:who==='you'});A.feed=A.feed.slice(0,4);if(A.clock<7)A.clock=7;A.stage=0;A.lastSec=null;if(prevClock<4)flashReset();
+function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;if(who==='you'){S.skipStreak=0;A.war=null;const s=A.st;if(T.firstBidSec==null)T.firstBidSec=tnow();if(src==='auto'){s.auto++;T.c.bidsAuto++;}else if(big){s.big++;T.c.bigBids++;}else{s.hand++;T.c.bidsHand++;}if(src!=='auto'&&A.clock<1.5){s.snipes++;T.c.snipes++;}if(s.firstClock===null)s.firstClock=+A.clock.toFixed(1);s.lastClock=+A.clock.toFixed(1);s.maxYou=amt;}else{A.st.rivalBids++;who.bids=(who.bids||0)+1;rivalReact(who,prevLeader,amt,big);}A.bid=amt;A.leader=who;A.feed.unshift({who:who==='you'?(big?'You · big bid':'You'):who.name,amt,you:who==='you'});A.feed=A.feed.slice(0,4);if(A.clock<7)A.clock=7;A.stage=0;A.lastSec=null;if(prevClock<4)flashReset();
  if(who==='you')hideCoach('bid');if(A.bg)return;const b=$('#bidNow');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');sfx(who==='you'?'bid':'rival',A.est?amt/A.est.hi:0.5);renderFeed();updAuction();}
 function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
  if(A.ended){A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').textContent='Next lot '+Math.ceil(A.nextIn)+'s';return;}
@@ -1045,7 +1057,7 @@ function endAuction(){A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
  if(ui&&A.leader&&A.leader!=='you')rivalSay(A.leader,'win');
  SESS.lots+=youBidAny||ui?1:0;
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
- if(A.leader==='you'){T.c.wins++;SESS.wins++;if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
+ if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
   const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
   const eq=L.value-A.bid,z=zoneOf(A.bid,L,A.est),k={steal:1.8,good:1.3,fair:1,over:0.6}[z]||1;SESS.best=Math.max(SESS.best==null?-Infinity:SESS.best,eq);
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
@@ -1073,8 +1085,8 @@ function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastW
 function affiliateHTML(L){if(!CONFIG.affiliate.enabled||!AU_STATES.includes(L.st))return '';const slug=L.sub.toLowerCase().replace(/\s+/g,'+');const url=CONFIG.affiliate.au.replace('{slug}',encodeURIComponent(slug).replace(/%2B/g,'+')).replace('{st}',L.st.toLowerCase());return `<br><a class="aff" href="${esc(url)}" target="_blank" rel="sponsored noopener" data-aff="${esc(L.sub)}">See real homes for sale in ${esc(L.sub)} &rsaquo;</a>`;}
 document.addEventListener('click',e=>{const a=e.target.closest('[data-aff]');if(a){T.c.affClicks=(T.c.affClicks||0)+1;tlog('aff_click',{sub:a.dataset.aff});track('Affiliate click',{suburb:a.dataset.aff});}});
 
-function buildChips(){$('#chips').hidden=S.maxTier<1&&!AUC_CITY;$('#chips').innerHTML=TIERS.map((t,i)=>{const locked=i>S.maxTier;return `<button class="chip" data-t="${i}" aria-pressed="${i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join('')+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');}
-$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&(A.ended||A.leader!=='you'))startAuction();save();};
+function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY;$('#chips').hidden=S.maxTier<1&&!AUC_CITY;$('#chips').innerHTML=`<button class="chip" data-auto="1" aria-pressed="${auto}">Auto <small>what you can afford</small></button>`+TIERS.map((t,i)=>{const locked=i>S.maxTier;return `<button class="chip" data-t="${i}" aria-pressed="${!auto&&i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join('')+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');}
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
  $('#art').innerHTML=artOf(L)+`<span class="tag">Lot ${L.no} · ${T.name}</span>`+(L.rare?'<span class="rare">Rare</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
@@ -1155,13 +1167,16 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  if(S.props.length){S.eventIn--;if(S.eventIn<=0){S.eventIn=Math.round(rnd(40,80));marketEvent();}}
  syncTier();updEmpire();updAuction();}
 /* after a downturn the market stays calm for 150 months, so crashes cannot stack */
-function marketEvent(){const roll=Math.random();if(roll<0.4&&(S.calm||0)>0){T.c.calmSaves++;tlog('market',{kind:'quiet'});return;}if(roll<0.4)S.calm=150;const before=holdings();T.c.marketEvents++;T.lastMarket={at:Date.now(),down:roll<0.4};setTimeout(()=>tlog('market',{kind:roll<0.1?'correction':roll<0.4?'rate_hike':roll<0.7?'rate_cut':'suburb_boom',before:Math.round(before),after:Math.round(holdings())}),0);
- if(roll<0.1){S.props.forEach(p=>p.value*=0.78);toast('Market correction. Values down 22%. Hold your nerve.','down');sfx('lose');}
- else if(roll<0.4){S.props.forEach(p=>p.value*=0.91);toast('Rates up. Buyers pull back, values slide 9%.','down');}
- else if(roll<0.7){S.props.forEach(p=>p.value*=1.07);toast('Rate cut. Buyers flood back, values up 7%.','up');sfx('cash');}
- else{const p=pick(S.props);const sub=p.sub;S.props.filter(q=>q.sub===sub).forEach(q=>q.value*=1.18);toast(sub+' is booming. Your holdings there jump 18%.','up');sfx('cash');}}
+/* market events: roughly balanced up and down; a downturn buys 60 months of calm so crashes can't stack */
+function marketEvent(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm||0)>0){T.c.calmSaves++;tlog('market',{kind:'quiet'});return;}if(down)S.calm=60;if(roll>=0.9){tlog('market',{kind:'quiet'});return;}
+ const before=holdings();T.c.marketEvents++;T.lastMarket={at:Date.now(),down};const kind=roll<0.08?'correction':roll<0.42?'rate_hike':roll<0.66?'rate_cut':'suburb_boom';setTimeout(()=>tlog('market',{kind,before:Math.round(before),after:Math.round(holdings())}),0);
+ if(kind==='correction'){S.props.forEach(p=>p.value*=0.8);toast('Market correction. Values down 20%. Hold your nerve.','down');sfx('lose');}
+ else if(kind==='rate_hike'){S.props.forEach(p=>p.value*=0.93);toast('Rates up. Buyers pull back, values slide 7%.','down');}
+ else if(kind==='rate_cut'){S.props.forEach(p=>p.value*=1.05);toast('Rate cut. Values up 5%.','up');sfx('cash');}
+ else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.12);sfx('cash');
+  toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
- for(let i=0;i<n;i++){costs+=bills().total;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0012+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0)p.vacant--;else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
+ for(let i=0;i<n;i++){costs+=bills().total;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0)p.vacant--;else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
 function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag('clock_backwards',{secs:Math.round(secs)});if(secs>30*86400)tflag('away_over_30_days',{secs:Math.round(secs)});
  const n=Math.min(Math.floor(secs/20),120);if(n<3||!S.props.length)return;
@@ -1207,7 +1222,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  else{$('#unlockTxt').textContent='Every market is open. Chase the top of the rich list.';$('#unlockBar').style.width='100%';}
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
-  el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=0?'up':'down');
+  el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');
   const rp=el.querySelector('[data-k="r"]');if(p.vacant>0){rp.textContent='Vacant '+p.vacant+'s';rp.className='pill vac';}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*INTEREST;rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');if(armed===p.id){sb.classList.add('armed');sb.textContent='Bank '+money(saleOf(p).bank)+' after tax'+(p.loan?' and loan':'')+'?';}else{sb.classList.remove('armed');sb.textContent='Sell';}}
@@ -1270,9 +1285,9 @@ function marketTick(){
  for(const l of LST){l.ttl--;if(WATCH.has(l.mid)&&l.ttl===5&&view!=='m')toast(`Watched ${l.sub} listing goes in 5s. Tap to see it.`,'down',()=>show('m'));}LST=LST.filter(l=>l.ttl>0);
  for(const o of OFF)o.ttl--;const exp=OFF.filter(o=>o.ttl<=0||!S.props.some(p=>p.id===o.pid));if(exp.length){T.c.offersExpired+=exp.length;OFF=OFF.filter(o=>!exp.includes(o));}
  if(S.props.length>=3){S.offerIn=(S.offerIn==null?15:S.offerIn)-1;
-  if(S.offerIn<=0&&OFF.length<3){S.offerIn=Math.round(rnd(45,80));const cand=S.props.filter(p=>!OFF.some(o=>o.pid===p.id));
+  if(S.offerIn<=0&&OFF.length<1){S.offerIn=Math.round(rnd(80,140));const cand=S.props.filter(p=>!OFF.some(o=>o.pid===p.id)&&p.value>basis(p)*1.08);
    if(cand.length){/* buyers chase your best houses: pick weighted by value */let r=Math.random()*cand.reduce((a,q)=>a+q.value,0),p=cand[0];for(const q of cand){r-=q.value;if(r<=0){p=q;break;}}
-    const roll=Math.random(),war=roll<0.15,hi=war||roll<0.75,amt=roundTo(p.value*(war?rnd(1.18,1.25):hi?rnd(1.03,1.12):rnd(0.9,0.98)),niceInc(p.value)),ttl=war?12:15;
+    const roll=Math.random(),war=roll<0.2,hi=war||roll<0.85,amt=roundTo(p.value*(war?rnd(1.18,1.25):hi?rnd(1.03,1.12):rnd(0.9,0.98)),niceInc(p.value)),ttl=war?12:15;
     OFF.push({oid:mid++,pid:p.id,amt,ttl,ttl0:ttl,war});T.c.offersMade++;if(war){T.c.offerWars++;sfx('cash');}
     if(hi&&view!=='m')toast(`${war?'Bidding war on':'Offer on'} ${p.addr}: ${money(amt)}, ${Math.round((amt/p.value-1)*100)}% over value. Tap to see it.`,'up',()=>show('m'));}}}
  refill();
@@ -1343,7 +1358,7 @@ $('#offers').onclick=e=>{const a=e.target.closest('[data-acc]'),d=e.target.close
 /* ---------- off-market deals: a seller needs a quick sale, on whatever tab you're on ---------- */
 let OM=null;
 function offMarketTick(){if(OM){OM.ttl--;if(OM.ttl<=0){T.c.offmktMissed++;tlog('offmkt_missed',{tier:OM.ti,ask:Math.round(OM.ask),value:Math.round(OM.value)});OM=null;renderOM();}else renderOMtick();return;}
- if(!S.props.length)return;S.dealIn=(S.dealIn==null?20:S.dealIn)-1;if(S.dealIn>0||!$('#modal').hidden)return;S.dealIn=Math.round(rnd(30,55));
+ if(!S.props.length)return;S.dealIn=(S.dealIn==null?20:S.dealIn)-1;if(S.dealIn>0||!$('#modal').hidden)return;S.dealIn=Math.round(rnd(60,110));
  /* only deals you can actually take: try your tiers from the top down until one is affordable */
  let l=null;for(let ti=S.maxTier;ti>=0&&!l;ti--){for(let k=0;k<3&&!l;k++){const c=makeListing({ti,deal:true});if(!c)continue;c.ask=roundTo(c.value*rnd(0.82,0.88),c.inc);if(canPay(c.ask,c.ti))l=c;}}
  if(!l)return;l.ttl=l.ttl0=10;l.offmkt=true;OM=l;T.c.offmktShown++;sfx('cash');renderOM();}
@@ -1431,7 +1446,7 @@ function headLoop(){const tc=S.cash,tw=worth();dCash+=(tc-dCash)*0.18;dWorth+=(t
 /* ---------- live strip: other auctions running at once ---------- */
 let LIVE=[],lvSig='';
 const liveCap=()=>!S.wins?0:S.wins<10?2:3;
-function spawnLive(){const ti=Math.random()<0.7?S.tier:Math.floor(Math.random()*(S.maxTier+1));const x=newAuction(ti,null,true);x.total=x.clock=rnd(16,30);LIVE.push(x);}
+function spawnLive(){const ti=pickTier(true);const x=newAuction(ti,null,true);x.total=x.clock=rnd(16,30);LIVE.push(x);}
 function liveTick(dt){const keep=A;try{for(const x of LIVE){A=x;auctionTick(dt);}}finally{A=keep;}
  LIVE=LIVE.filter(x=>!x.dead);const cap=liveCap();let g=0;while(LIVE.length<cap&&g++<3&&!(A&&A.ended&&!LIVE.length))spawnLive();
  if(cap&&!S.coach?.live&&LIVE.length&&A&&!A.ended&&$('#coach').hidden)coach('live','More auctions are running. Tap Auto on one to bid on it while you play this lot.');renderLive();}
@@ -1485,7 +1500,7 @@ function dailyCheck(){const td=today();if(S.lastDay===td)return;if(S.freezes==nu
 
 /* ---------- coach marks: one line, at the moment it matters ---------- */
 function coach(key,msg){S.coach=S.coach||{};if(S.coach[key])return;const c=$('#coach');c.dataset.key=key;c.innerHTML=esc(msg)+'<button aria-label="Dismiss">&times;</button>';if(tCur&&tCur.el){tCur.el.remove();TQ.unshift({msg:tCur.msg,kind:'',at:Date.now()});tCur=null;}c.hidden=false;$('#toasts').classList.add('coached');clearTimeout(coach.t);coach.t=setTimeout(()=>hideCoach(key),9000);}
-function hideCoach(key){const c=$('#coach');if(c.hidden||(key&&c.dataset.key!==key))return;S.coach=S.coach||{};S.coach[c.dataset.key]=1;c.hidden=true;$('#toasts').classList.remove('coached');save();if(!tCur)setTimeout(nextToast,250);}
+function hideCoach(key){const c=$('#coach');if(c.hidden||(key&&c.dataset.key!==key))return;tlog('coach_done',{key:c.dataset.key,by:key?'action':'tap'});S.coach=S.coach||{};S.coach[c.dataset.key]=1;c.hidden=true;$('#toasts').classList.remove('coached');save();if(!tCur)setTimeout(nextToast,250);}
 $('#coach').onclick=()=>hideCoach();
 
 /* ---------- progressive unlocks ---------- */
@@ -1510,9 +1525,9 @@ function initAnalytics(){const d=CONFIG.analytics.plausibleDomain;if(!d)return;t
 function track(name,props){try{if(window.plausible)window.plausible(name,{props});}catch(e){}}
 
 /* ---------- menu ---------- */
-function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button><button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
+function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button><button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
  $('#mnTour').onclick=()=>tour(0);$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
- $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnTour').focus();}
+ $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
 
 /* ---------- walkthrough ---------- */
 const DEMO=`<div class="demo"><div class="meter"><div class="track"><i class="z-steal" style="left:0;width:24%"></i><i class="z-good" style="left:24%;width:22%"></i><i class="z-fair" style="left:46%;width:30%"></i><i class="z-over" style="left:76%;width:24%"></i></div><i class="wa" style="left:76%"></i><i class="mk" style="left:38%"><span>Next bid $395K</span></i></div><div class="legend"><span><i class="z-steal"></i>Steal</span><span><i class="z-good"></i>Good buy</span><span><i class="z-fair"></i>Fair</span><span><i class="z-over"></i>Overpaying</span></div></div>`;
@@ -1531,7 +1546,7 @@ $('#help').onclick=()=>menu();
 /* ---------- boot ---------- */
 let hiddenAt=null;
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=Date.now();tlog('hidden');save();flushPlay();}else{tlog('visible');if(hiddenAt){if(!S.days.includes(today()))S.days.push(today());awayCredit(hiddenAt);hiddenAt=null;setTimeout(dailyCheck,600);}}});
-window.addEventListener('pagehide',()=>{save();flushPlay();});
+window.addEventListener('pagehide',()=>{save();if(WEB_STATS&&statsOn()&&navigator.sendBeacon){try{const d=sessionDoc();d.log=d.log.slice(-30);d.auctions=d.auctions.slice(-20);d.curve=d.curve.slice(-20);navigator.sendBeacon('/api/play',new Blob([JSON.stringify({session:d,player:playerDoc()})],{type:'application/json'}));}catch(e){}}else flushPlay();});
 setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 drawMute();drawStars();drawStreak();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();

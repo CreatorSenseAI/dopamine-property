@@ -14,7 +14,7 @@ IGNORE = ("ERR_TUNNEL", "fonts.g", "net::ERR", "Failed to load resource")
 
 
 def page(b, scheme, seed=None):
-    pg = b.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2, color_scheme=scheme)
+    pg = b.new_page(viewport={"width": 360, "height": 643}, device_scale_factor=2, color_scheme=scheme)
     pg.on("pageerror", lambda e: errors.append(f"{scheme}: {e}"))
     pg.on("console", lambda m: m.type == "error" and not any(s in m.text for s in IGNORE) and errors.append(f"{scheme} console: {m.text}"))
     if seed:

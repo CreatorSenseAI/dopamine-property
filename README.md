@@ -27,6 +27,17 @@ The Railway service is connected to this repo, so **every push to `main` deploys
 | `tools/build.py` | One-off migration that produced the v10 UI from `original/`. Not part of the workflow. |
 | `original/index.html` | v9 snapshot from the Claude artifact, kept for reference. |
 
+## Play stats (who's playing, retention, funnel)
+
+On the web the game posts anonymous play logs to `POST /api/play` every 15s and on page close. Each player is a random install id; no names, emails or IPs are stored. Players can switch it off in the menu.
+
+- Railway service variables: `ADMIN_KEY=<long random string>` and `DATA_DIR=/data`
+- Railway volume mounted at `/data` (logs survive redeploys)
+- Dashboard: `https://<your-domain>/admin?key=<ADMIN_KEY>`; raw data: `/admin/export.json?key=<ADMIN_KEY>`
+- Shows: day 1 / day 7 retention, daily players, session length, time to first bid and win, join and win rates, wins by deal zone, near-misses, combos, unlock times per tier, overdrafts and repossessions, market and offer use, time per tab, versions.
+
+Inside Claude (the artifact) the same logs go to the artifact database instead.
+
 ## Config (top of the script in `public/index.html`)
 
 ```js
