@@ -1,0 +1,9 @@
+{
+  "appId": "com.creatorsenseai.eat",
+  "appName": "Empire Auction Tycoon",
+  "webDir": "www",
+  "server": { "androidScheme": "https", "iosScheme": "capacitor" },
+  "plugins": {
+    "PushNotifications": { "presentationOptions": ["badge", "sound", "alert"] }
+  }
+}

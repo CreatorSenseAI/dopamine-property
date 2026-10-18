@@ -877,6 +877,24 @@ html,body{overflow-x:clip}
 .acard b{font-size:11.5px;padding:4px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acard small{font-size:10.5px;color:var(--muted);padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .acard.r4{box-shadow:0 0 12px rgba(224,160,32,.6)}.acard.sold{opacity:.55;filter:grayscale(.7)}
 .prop{cursor:pointer}
+
+/* ---------- v27 tours + skyline ---------- */
+.tourbtn{position:absolute;right:10px;bottom:10px;z-index:2;border:0;border-radius:999px;background:rgba(10,14,24,.78);color:#fff;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 11px 5px 26px;background-image:radial-gradient(circle at 14px 50%,#ffd34d 4px,transparent 5px)}
+.art .daily.boss~.tourbtn{bottom:40px}
+.tour{text-align:left;display:flex;flex-direction:column;gap:10px}
+.thead{display:flex;align-items:baseline;gap:8px}.thead b{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.04em;text-transform:uppercase}.thead span{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.thead em{margin-left:auto;font-style:normal;font-family:var(--f-mono);font-size:12.5px;font-weight:700;background:var(--sunk);padding:3px 8px;border-radius:999px}.thead em.hot{background:var(--red);color:var(--on-red)}.thead em.sold{background:var(--ink);color:var(--bg)}
+.troom{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--sunk);touch-action:pan-y}
+.troom svg,.troom img{width:100%;height:100%;display:block;object-fit:cover}
+.sheet .hspot{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;padding:0;border:2px solid #fff;background:rgba(255,211,77,.55);box-shadow:0 0 0 0 rgba(255,211,77,.7);animation:hsp 1.6s ease-out infinite}
+.sheet .hspot.seen{animation:none;background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
+@keyframes hsp{0%{box-shadow:0 0 0 0 rgba(255,211,77,.7)}100%{box-shadow:0 0 0 16px rgba(255,211,77,0)}}
+.sheet .tnav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;padding:0;background:rgba(10,14,24,.6);color:#fff;font-size:24px;line-height:1}
+.sheet .tnav.prev{left:8px}.sheet .tnav.next{right:8px}.sheet .tnav:disabled{opacity:.25}
+.tnotes p{margin:0 0 4px;font-size:13px;color:var(--ink)}.tnotes p.real{font-weight:700}.tnotes p.hint{color:var(--muted)}
+.hero{position:relative;overflow:hidden}.hero>*:not(.skyline){position:relative}
+.skyline{position:absolute;right:0;bottom:0;width:62%;height:100%;pointer-events:none;color:var(--bg)}
+.skyline svg{position:absolute;right:8px;bottom:0;height:88%;width:100%}
 </style>
 </head>
 <body>
@@ -948,7 +966,7 @@ html,body{overflow-x:clip}
   <main id="vEmpire" hidden>
     <div class="esel"><select id="eSec" aria-label="Empire section"></select></div>
     <div class="esec" data-s="ov">
-    <section class="hero">
+    <section class="hero"><div class="skyline" id="skyline" aria-hidden="true"></div>
       <small>Net worth</small>
       <span class="big" id="eWorth">$0</span>
       <div class="hinc" id="eInc"></div>
@@ -1181,11 +1199,13 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
 function playerDoc(){return{installId,version:VERSION,regVar:S.regVar,mkVar:S.mkVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
 function soonFlush(){clearTimeout(soonFlush.t);soonFlush.t=setTimeout(flushPlay,2000);}
 /* on the web, play logs go to our own server (anonymous install id, no personal data); inside Claude they go to the artifact database */
-const WEB_STATS=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname);
+/* in the native app (app/ wrapper) window.EAT_API points at the Railway server */
+const API=window.EAT_API||'',WEB_STATS=!!window.EAT_API||(/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname));
+const imgURL=u=>API&&/^\//.test(u)?API+u:u;
 const statsOn=()=>!S.noStats;
 async function flushPlay(){if(flushing||!T.dirty||!statsOn())return;if(!DB&&!WEB_STATS)return;flushing=true;T.dirty=false;
  try{if(DB){await DB.doc('sessions/'+T.sid).set(sessionDoc());await DB.doc('players/'+installId).set(playerDoc());}
-  else{const res=await fetch('/api/play',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session:sessionDoc(),player:playerDoc()})});if(!res.ok&&res.status>=500)T.dirty=true;}}
+  else{const res=await fetch(API+'/api/play',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({session:sessionDoc(),player:playerDoc()})});if(!res.ok&&res.status>=500)T.dirty=true;}}
  catch(e){if(!e||e.code==='unavailable')T.dirty=true;else if(['not_granted','capability_disabled','capability_removed','revoked'].includes(e.code))DB=null;}
  finally{flushing=false;}}
 
@@ -1335,8 +1355,8 @@ function houseSVG(p){
 }
 
 let IMGS=null;
-function artOf(p){const list=IMGS&&IMGS[p.style];if(list&&list.length){const src=list[Math.abs(p.seed|0)%list.length];return `<img src="${esc(src)}" alt="Photo of ${esc(p.addr)}" loading="lazy" decoding="async">`;}return houseSVG(p);}
-try{if(location.protocol!=='file:')fetch('img/manifest.json').then(x=>x.ok?x.json():null).then(j=>{if(j&&typeof j==='object'){IMGS=j;if(A&&!A.bg)renderLot();buildEmpire();}}).catch(()=>{});}catch(e){}
+function artOf(p){const list=IMGS&&IMGS[p.style];if(list&&list.length){const src=imgURL(list[Math.abs(p.seed|0)%list.length]);return `<img src="${esc(src)}" alt="Photo of ${esc(p.addr)}" loading="lazy" decoding="async">`;}return houseSVG(p);}
+try{if(location.protocol!=='file:')fetch(API?API+'/img/manifest.json':'img/manifest.json').then(x=>x.ok?x.json():null).then(j=>{if(j&&typeof j==='object'){IMGS=j;if(A&&!A.bg)renderLot();buildEmpire();}}).catch(()=>{});}catch(e){}
 
 /* ---------- sound ---------- */
 let AC=null;
@@ -1455,8 +1475,8 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  if(!first&&!daily&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
  for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
  let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
- L.sky=skyAt(L.st);
- const X={boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ L.sky=skyAt(L.st);const find0=bg||SD_BUILD?undefined:inspect(feat);
+ const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
@@ -1476,8 +1496,8 @@ function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;i
  A.hit=who==='you'?'you':who.name;$('#lotCard').dataset.fin='0';if(who==='you')buzz(12);else if(prevLeader==='you')buzz([15,40,15]);
  if(!A.duel&&!A.sell&&A.est&&A.st.hand+A.st.auto+A.st.big>0&&A.rivals.filter(r=>!r.out).length===1&&amt>=waOf(A.est)*0.98){A.duel=true;T.c.duels=(T.c.duels||0)+1;tlog('duel',{tier:A.lot.ti});$('#lotCard').classList.add('duel');const el=$('#callBig');if(el){el.textContent='Bidding war!';el.className='callbig duelc';void el.offsetWidth;el.classList.add('on');}sfx('call');buzz([40,40,40,40,80]);}
  const b=$('#bidNow');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');sfx(who==='you'?'bid':'rival',A.est?amt/A.est.hi:0.5);renderFeed();updAuction();}
-function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
- if(A.ended){A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').textContent='Next lot '+Math.ceil(A.nextIn)+'s';return;}
+function auctionTick(dt){if(!A||document.hidden||(!$('#modal').hidden&&!TOURING))return;
+ if(A.ended){if(TOURING&&!A.bg)return;A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').textContent='Next lot '+Math.ceil(A.nextIn)+'s';return;}
  A.clock=Math.max(0,A.clock-dt);
  if(A.say){A.say.t-=dt;if(A.say.t<=0){A.say=null;renderChat();}}
  for(const r of A.rivals){if(r.out||A.leader===r)continue;const nb=nextBid();
@@ -1525,16 +1545,16 @@ function startShowdown(){if(!sdOpen())return;show('a');SDQ=true;if(!A||A.ended||
 function drawSd(){const b=$('#sdBtn');if(b)b.hidden=!sdOpen();const bb=$('#sdBoardBtn');if(bb)bb.hidden=!(CONFIG.showdown&&WEB_STATS&&S.props.length>0);}
 async function showdownDone(p,day){const won=!!p,score=won?+((p.value/p.paid-1)*100).toFixed(2):null;if(won)T.c.sdWins++;
  tlog('showdown_end',{won,score});S.nick=S.nick||('Bidder '+(1000+Math.floor(Math.random()*9000)));save();
- let board=null;try{if(won)await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day,installId,nick:S.nick,score,hammer:Math.round(p.paid),value:Math.round(p.value),rarity:p.rarity,stars:S.legacy||0})});
-  board=await (await fetch('/api/board?day='+day+'&me='+installId)).json();}catch(e){}
+ let board=null;try{if(won)await fetch(API+'/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day,installId,nick:S.nick,score,hammer:Math.round(p.paid),value:Math.round(p.value),rarity:p.rarity,stars:S.legacy||0})});
+  board=await (await fetch(API+'/api/board?day='+day+'&me='+installId)).json();}catch(e){}
  sdSheet(board,won?score:null);}
 function sdSheet(board,score){const rows=board&&board.top||[];
  $('#sheet').innerHTML=`<div class="upg sd"><h3>Today's showdown</h3><p>${score==null?'A rival took it this time. Same house for everyone today: here is who won it best.':`You scored <b>${score>=0?'+':''}${score.toFixed(1)}%</b> equity.${board&&board.rank?` You're #${board.rank} of ${board.count} today.`:''}`}</p>
   <ol class="sdlist">${rows.map((r,i)=>`<li class="${r.me?'me':''}"><span>${i+1}</span><span>${esc(r.nick)}${r.stars?` <i class="bst">★${r.stars}</i>`:''}${r.rarity>=3?` <i class="rar r${r.rarity}">${RAR[r.rarity][0]}</i>`:''}</span><span class="num">${r.score>=0?'+':''}${(+r.score).toFixed(1)}%</span></li>`).join('')||'<li><span></span><span>No winners yet. Be the first.</span><span></span></li>'}</ol>
   <p class="upnote">Playing as <b>${esc(S.nick||'Bidder')}</b> · <button class="linkbtn" id="sdName">Change name</button></p><button class="sec" id="sdClose">Close</button></div>`;$('#modal').hidden=false;
  $('#sdClose').onclick=()=>{$('#modal').hidden=true;};
- $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v,stars:S.legacy||0})});const b2=await (await fetch('/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
-async function openBoard(){try{const b=await (await fetch('/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
+ $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch(API+'/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v,stars:S.legacy||0})});const b2=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
+async function openBoard(){try{const b=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
 function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
 function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
  if(A.leader==='you')recordAuction('you');else if(A.leader){recordAuction('rival',A.leader.name);if(A.st.hand+A.st.auto+A.st.big>0){T.c.losses++;T.c.outbid++;}}else{recordAuction('none');T.c.passedIn++;}
@@ -1548,7 +1568,7 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
  if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
   const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
-  const fnd=A.showdown?seeded(A.sdSeed+7,()=>inspect(true)):inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(fAmt);T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
+  const fnd=A.showdown?seeded(A.sdSeed+7,()=>inspect(true)):A.find0!==undefined?A.find0:inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(fAmt);T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
   if(A.featured){T.c.featuredWon++;award('headliner');}
   /* the rivals you beat lose the deal they were chasing and slide on the rich list */
   {const before=A.rankBefore||richRank(),w0=A.worthBefore||0,w1=worth(),passed=[];for(const r of part){const was=(S.board[r.name]||0)>w0;S.board[r.name]=Math.max(0,(S.board[r.name]||0)-L.value*0.12);if(was&&S.board[r.name]<=w1)passed.push(r.name);}
@@ -1557,7 +1577,7 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
   const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
-  p.feat=!!A.featured;p.nem=!!beatNem||!!A.boss;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured||!!A.boss,nem:!!beatNem||!!A.boss,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
+  p.feat=!!A.featured;p.nem=!!beatNem||!!A.boss;if(A.tourStat)p.tourIQ=A.tourStat;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured||!!A.boss,nem:!!beatNem||!!A.boss,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
   if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');lifeWin(p);addAlbum(p);
   if(A.boss){S.bossDone=S.bossDone||{};S.bossDone[A.boss]=1;award('boss');T.c.bossWins=(T.c.bossWins||0)+1;tlog('boss',{rival:A.boss,won:true});const h=S.h2h[A.boss];if(h)h.l=h.w;setTimeout(()=>toast(`You beat ${A.boss} in the final showdown. They’re rebuilding.`,'up'),2400);}
   if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(p,d),3600);}
@@ -1585,7 +1605,7 @@ function gavel(){if(reduce)return;const app=$('#app');app.classList.remove('slam
 function comboPop(n){const d=document.createElement('div');d.className='combopop';d.innerHTML=`<b>x${n}</b><small>${n===2?'Double hammer':n===3?'Triple!':'On fire'}</small>`;$('#app').appendChild(d);setTimeout(()=>d.remove(),1500);}
 /* ---------- property cards: tap to flip, foil by rarity, tilt for the holo ---------- */
 const STYLE_N={cottage:'Cottage',villa:'Villa',modern:'Modern',unit:'Apartment',tower:'Penthouse',terrace:'Terrace',estate:'Estate'};
-function albumRec(p){return{id:p.id,dyn:S.dynasties||0,addr:p.addr,sub:p.sub,st:p.st,ti:p.ti,style:p.style,seed:p.seed,rarity:p.rarity||0,paid:Math.round(p.paid),value:Math.round(p.value),won:p.boughtAt||Date.now(),feat:!!p.feat,nem:!!p.nem,rivals:p.rivals||0,find:p.find||null,findLabel:p.findLabel||null,land:p.land||0,beds:p.beds||0,sold:null};}
+function albumRec(p){return{id:p.id,dyn:S.dynasties||0,addr:p.addr,sub:p.sub,st:p.st,ti:p.ti,style:p.style,seed:p.seed,rarity:p.rarity||0,paid:Math.round(p.paid),value:Math.round(p.value),won:p.boughtAt||Date.now(),feat:!!p.feat,nem:!!p.nem,rivals:p.rivals||0,tourIQ:p.tourIQ||null,find:p.find||null,findLabel:p.findLabel||null,land:p.land||0,beds:p.beds||0,sold:null};}
 function addAlbum(p){S.album=S.album||[];S.album.push(albumRec(p));if(S.album.length>400){let i=S.album.findIndex(a=>a.rarity===0);if(i<0)i=0;S.album.splice(i,1);}albumSets();}
 function albumSets(){const A0=S.album||[];for(let ti=0;ti<TIERS.length;ti++){const subs=TIERS[ti].places.map(x=>x[0]);if(subs.length&&subs.every(sb=>A0.some(a=>a.ti===ti&&a.sub===sb))){if(!(S.badges||{}).album_city){award('album_city');S.frame=S.frame||'gold';}}}
  const styles=new Set(A0.map(a=>a.style));if(['cottage','villa','modern','unit'].every(x=>styles.has(x)))award('album_style');}
@@ -1596,7 +1616,7 @@ function cardFace(c,live){const r=c.rarity||0,[rn,rc]=RAR[r],eq=(c.value/c.paid-
   ['Home',[c.land?c.land.toLocaleString('en-AU')+' m²':'',c.beds?c.beds+' bed':'',STYLE_N[c.style]||c.style].filter(Boolean).join(' · ')],
   ...(p&&p.up&&Object.keys(p.up).length?[['Upgrades',Object.keys(p.up).map(k=>(UPG.find(u=>u.k===k)||{}).tag||k).join(', ')]]:[]),
   ['How you won it',[c.feat?'Featured lot':'',c.nem?'Beat your nemesis':'',c.rivals?c.rivals+' rival'+(c.rivals>1?'s':''):'Uncontested'].filter(Boolean).join(' · ')],
-  ['Inspection',c.findLabel?esc(c.findLabel):'Clean'],...(p?[['Held for',(p.age||0)+' months']]:[]),...(c.sold?[['Sold',money(c.sold.price)+` <i class="${c.sold.profit>=0?'pos':'neg'}">${c.sold.profit>=0?'+':''}${money(c.sold.profit)}</i>`]]:[])];
+  ['Inspection',c.findLabel?esc(c.findLabel):'Clean'],...(c.tourIQ?[['Tour IQ',c.tourIQ.got+' of '+c.tourIQ.of+' clues spotted']]:[]),...(p?[['Held for',(p.age||0)+' months']]:[]),...(c.sold?[['Sold',money(c.sold.price)+` <i class="${c.sold.profit>=0?'pos':'neg'}">${c.sold.profit>=0?'+':''}${money(c.sold.profit)}</i>`]]:[])];
  return `<div class="card3d r${r}${frame}${c.sold?' sold':''}" style="--rc:${rc}"><div class="cface cfront"><div class="cart">${artOf(c)}</div><div class="foil"></div><div class="ctop"><span class="ctier">${TIERS[c.ti].name}</span><span class="cgem">${rn}</span></div><div class="cbot"><b>${esc(c.addr)}</b><small>${esc(c.sub)}, ${esc(c.st)}</small><em>Won ${date}${c.dyn?` · Dynasty ${c.dyn+1}`:''}</em></div></div>
  <div class="cface cback"><h4>${esc(c.addr)}</h4><small class="csub">${esc(c.sub)} · ${rn}</small><table>${rows.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table></div></div>`;}
 function tiltOn(el){const set=(x,y)=>{el.style.setProperty('--rx',(y*-10).toFixed(1)+'deg');el.style.setProperty('--ry',(x*12).toFixed(1)+'deg');el.style.setProperty('--mx',(50+x*45).toFixed(0)+'%');el.style.setProperty('--my',(50+y*45).toFixed(0)+'%');};
@@ -1621,7 +1641,48 @@ function renderAlbum(){const box=$('#albumBox');if(!box)return;const al=(S.album
  ${show.length?`<h3>Showcase</h3><div class="agrid show">${show.map((a,i)=>mini(a,i)).join('')}</div>`:''}<h3>All cards</h3><div class="agrid">${al.map((a,i)=>mini(a,i)).join('')}</div>`;
  function mini(a,i){return `<button class="acard r${a.rarity}${a.sold?' sold':''}" data-ai="${(S.album||[]).indexOf(a)}" style="--rc:${RAR[a.rarity][1]}"><span class="aart">${artOf(a)}</span><b>${esc(a.addr)}</b><small>${esc(a.sub)}</small></button>`;}
  box.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>{const a=S.album[+b.dataset.ai];if(!a)return;const live=S.props.find(p=>p.id===a.id&&a.dyn===(S.dynasties||0)&&!a.sold);cardSheet(live||a,!live);});}
-function houseTour(p){toast('House tours are coming in the next update.','');}
+/* ---------- house tours: walk the rooms; clues move your walk-away and hint at the inspection ---------- */
+let TOURING=false;
+const ROOMS_H=[['street','Street'],['living','Living room'],['kitchen','Kitchen'],['bed','Main bedroom'],['yard','Backyard']],ROOMS_U=[['lobby','Lobby'],['living','Living room'],['kitchen','Kitchen'],['bed','Bedroom'],['view','Balcony']];
+const CLUE={over:['Fresh paint over a ceiling stain','The second bedroom is smaller than the plan','Traffic noise you can’t hear in the photos'],under:['The floor plan is bigger than the listing says','Afternoon light and city glimpses','Solid brick under the cladding'],fair:['Everything matches the listing','Neat, as advertised','The agent’s photos are honest'],
+ flaw:['Hairline cracks in the cornice','A musty smell under the house','The deck boards are soft underfoot'],good:['A door the agent didn’t open','Building plans left on the bench','Something big under a tarp out the back'],jackpot:['A council letter on the bench about this block','A developer’s card wedged in the door'],dud:['Nice light in here','New tapware','Fresh carpet','A good-sized robe','Quiet street']};
+function roomSVG(p,k,i){const r=mulberry((p.seed|0)+i*131),R=a=>a[Math.floor(r()*a.length)],id='rm'+(++svgN),sky=SKY_T[p.sky!=null?p.sky:0],reno=!!(p.up&&p.up.reno);
+ const wall=reno?'#f7f5f0':R(['#efe6d8','#e3e8ee','#f2ece4','#dde5dc','#eadfd2']),floor=R(['#b8875a','#9c6b45','#cfc6b8','#8d8f94']),acc=R(['#2f6fd6','#c05a3a','#3c7a5a','#6b46c1','#b7791f']);
+ let g=`<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs>`;
+ if(k==='street')return houseSVG(p);
+ if(k==='yard'||k==='view'){g+=`<rect width="400" height="300" fill="url(#${id})"/>`;
+  if(k==='view'){g+=`<g fill="#3d4a66" opacity=".75">${Array.from({length:9},(_,j)=>`<rect x="${j*46}" y="${120+((j*37+i*13)%60)}" width="38" height="200"/>`).join('')}</g><rect y="215" width="400" height="85" fill="#4a90c2"/><rect y="200" width="400" height="10" fill="#c9ced6"/>${Array.from({length:14},(_,j)=>`<rect x="${j*30}" y="170" width="4" height="40" fill="#c9ced6"/>`).join('')}<rect y="166" width="400" height="6" fill="#d8dde4"/>`;}
+  else{g+=`<rect y="190" width="400" height="110" fill="#7fb36d"/><g fill="#b98b5e">${Array.from({length:20},(_,j)=>`<rect x="${j*20}" y="140" width="16" height="60"/>`).join('')}</g><circle cx="${60+r()*60}" cy="120" r="44" fill="#4f8a4a"/><rect x="${80+r()*20}" y="150" width="10" height="50" fill="#6b4b2e"/><rect x="290" y="170" width="44" height="34" rx="4" fill="#333"/><rect x="296" y="160" width="32" height="10" fill="#555"/>`;
+   if(p.up&&p.up.pool)g+=`<rect x="140" y="215" width="200" height="60" rx="10" fill="#4fc3e8" stroke="#e8f7fc" stroke-width="6"/>`;}
+  return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">${g}</svg>`;}
+ if(p.works&&i===1)return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice"><rect width="400" height="300" fill="#d9d2c5"/><g stroke="#8a6d3b" stroke-width="6">${Array.from({length:6},(_,j)=>`<line x1="${30+j*70}" y1="20" x2="${30+j*70}" y2="260"/>`).join('')}<line x1="0" y1="90" x2="400" y2="90"/><line x1="0" y1="180" x2="400" y2="180"/></g><g fill="#f28c28">${[60,170,280].map(x=>`<path d="M${x} 280 l14 -40 l14 40z"/>`).join('')}</g><text x="200" y="150" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#5a4630">Works under way</text></svg>`;
+ g+=`<rect width="400" height="300" fill="${wall}"/><rect y="215" width="400" height="85" fill="${floor}"/><rect x="${k==='lobby'?150:250}" y="40" width="${k==='lobby'?100:110}" height="${k==='lobby'?175:110}" fill="url(#${id})" stroke="#fff" stroke-width="6"/>`;
+ if(k==='living')g+=`<ellipse cx="150" cy="262" rx="120" ry="22" fill="${acc}" opacity=".35"/><rect x="40" y="170" width="190" height="60" rx="14" fill="${acc}"/><rect x="40" y="150" width="190" height="34" rx="12" fill="${acc}" opacity=".85"/><rect x="60" y="160" width="40" height="30" rx="8" fill="#fff" opacity=".7"/><rect x="60" y="60" width="90" height="60" fill="#fff" stroke="#333" stroke-width="3"/><rect x="70" y="70" width="70" height="40" fill="${R(['#e8a87c','#85cdca','#c38d9e'])}"/><rect x="330" y="150" width="6" height="70" fill="#333"/><circle cx="333" cy="140" r="16" fill="#ffe7a3"/>`;
+ else if(k==='kitchen')g+=`<rect x="20" y="160" width="220" height="60" fill="${reno?'#fff':'#c9b79c'}"/><rect x="20" y="150" width="220" height="12" fill="#e6e1d9"/><rect x="20" y="60" width="220" height="50" fill="${reno?'#fff':'#c9b79c'}" opacity=".9"/><g fill="#333">${[60,120,180].map(x=>`<line x1="${x}" y1="0" x2="${x}" y2="40" stroke="#333" stroke-width="2"/><circle cx="${x}" cy="44" r="9" fill="#ffe7a3"/>`).join('')}</g><rect x="270" y="190" width="100" height="30" fill="#b98b5e"/><rect x="280" y="220" width="6" height="40" fill="#333"/><rect x="354" y="220" width="6" height="40" fill="#333"/>`;
+ else if(k==='bed')g+=`<rect x="80" y="120" width="220" height="70" rx="10" fill="#6b5a4a"/><rect x="70" y="180" width="240" height="60" rx="10" fill="#fff"/><rect x="70" y="200" width="240" height="40" rx="8" fill="${acc}" opacity=".8"/><rect x="100" y="165" width="70" height="24" rx="10" fill="#f3efe8"/><rect x="210" y="165" width="70" height="24" rx="10" fill="#f3efe8"/><rect x="20" y="190" width="40" height="40" fill="#8a6d50"/><circle cx="40" cy="178" r="12" fill="#ffe7a3"/>`;
+ else if(k==='lobby')g+=`<rect y="215" width="400" height="85" fill="#e9e4dc"/><rect x="40" y="60" width="80" height="155" fill="#b8bec7" stroke="#8a9099" stroke-width="4"/><line x1="80" y1="60" x2="80" y2="215" stroke="#8a9099" stroke-width="3"/><rect x="290" y="150" width="80" height="65" fill="#3d3d3d"/><circle cx="330" cy="130" r="22" fill="#4f8a4a"/>`;
+ return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice">${g}</svg>`;}
+function tourPlan(p,auc){const strata=p.style==='unit'||p.style==='tower',rooms=(strata?ROOMS_U:ROOMS_H).slice();const r=mulberry((p.seed|0)+99),pos=()=>({x:Math.round(18+r()*64),y:Math.round(22+r()*50)});const spots=[];
+ if(auc&&auc.est){const e=auc.est.mid/p.value-1,kind=e>0.02?'over':e<-0.02?'under':'fair';spots.push(Object.assign({room:1+Math.floor(r()*3),kind,label:CLUE[kind][Math.floor(r()*3)],real:kind!=='fair'},pos()));
+  const f=auc.find0,fk=f?f.kind:'dud';spots.push(Object.assign({room:Math.floor(r()*rooms.length),kind:fk,label:CLUE[fk][Math.floor(r()*CLUE[fk].length)],real:!!f},pos()));}
+ const duds=CLUE.dud.slice().sort(()=>r()-0.5);for(let j=0;j<2;j++)spots.push(Object.assign({room:Math.floor(r()*rooms.length),kind:'dud',label:duds[j],real:false},pos()));
+ return{rooms,spots};}
+function houseTour(p,from){const auc=from==='lot'?A:null;if(auc&&auc.ended)return;const plan=auc?(auc.tour=auc.tour||tourPlan(p,auc)):tourPlan(p,null);let i=0;TOURING=!!auc;T.c.tours=(T.c.tours||0)+1;tlog('tour',{from:from||'lot',tier:p.ti});
+ const seen=auc?(auc.tourSeen=auc.tourSeen||{}):{};
+ const draw=()=>{const [k,name]=plan.rooms[i],here=plan.spots.map((sp,j)=>[sp,j]).filter(([sp])=>sp.room===i);
+  $('#sheet').innerHTML=`<div class="tour"><div class="thead"><b>${esc(name)}</b><span>${i+1}/${plan.rooms.length}</span>${auc?'<em id="tClock"></em>':''}</div>
+  <div class="troom">${roomSVG(Object.assign({},p,{sky:p.sky!=null?p.sky:skyAt(p.st)}),k,i)}${(auc||from==='card')?here.map(([sp,j])=>`<button class="hspot${seen[j]?' seen':''}" data-hs="${j}" style="left:${sp.x}%;top:${sp.y}%" aria-label="Look closer"></button>`).join(''):''}<button class="tnav prev" data-tn="-1"${i?'':' disabled'} aria-label="Previous room">‹</button><button class="tnav next" data-tn="1"${i<plan.rooms.length-1?'':' disabled'} aria-label="Next room">›</button></div>
+  <div class="tnotes">${plan.spots.map((sp,j)=>seen[j]?`<p class="${sp.real?'real':''}">${esc(sp.label)}${sp.kind==='over'?': your walk-away drops.':sp.kind==='under'?': your walk-away rises.':sp.kind==='flaw'?': inspection could find a problem.':sp.kind==='good'||sp.kind==='jackpot'?': there may be a find here.':'.'}</p>`:'').join('')||'<p class="hint">Tap the glowing spots. Clues move your walk-away line. The auction keeps running while you look.</p>'}</div>
+  <button id="tourX">${auc?'Back to the auction':'Done'}</button></div>`;$('#modal').hidden=false;
+  $('#sheet').querySelectorAll('[data-tn]').forEach(b=>b.onclick=()=>{i=Math.max(0,Math.min(plan.rooms.length-1,i+ +b.dataset.tn));sfx('tick');draw();});
+  $('#sheet').querySelectorAll('[data-hs]').forEach(b=>b.onclick=()=>{const j=+b.dataset.hs,sp=plan.spots[j];if(seen[j])return;seen[j]=1;buzz(10);sfx(sp.real?'cash':'tick');T.c.tourClues=(T.c.tourClues||0)+(sp.real?1:0);
+   if(auc&&!auc.ended&&(sp.kind==='over'||sp.kind==='under')){const L=auc.lot;auc.est.wa=roundTo((auc.est.wa+L.value)/2,L.inc);auc.autoMax=Math.max(L.open,Math.min(maxBid(L),auc.est.wa));drawMeter();dealSig='';updDeal();}
+   if(auc){const real=plan.spots.filter(x=>x.real).length;auc.tourStat={got:plan.spots.filter((x,k)=>x.real&&seen[k]).length,of:real};}draw();});
+  const sw=$('#sheet .troom');let x0=null;sw.addEventListener('pointerdown',e=>{x0=e.clientX;});sw.addEventListener('pointerup',e=>{if(x0==null)return;const d=e.clientX-x0;x0=null;if(Math.abs(d)>40&&!e.target.closest('button')){i=Math.max(0,Math.min(plan.rooms.length-1,i+(d<0?1:-1)));draw();}});
+  $('#tourX').onclick=close;};
+ const close=()=>{TOURING=false;clearInterval(tick);$('#modal').hidden=true;if(auc&&A===auc)updAuction();};
+ const tick=setInterval(()=>{const el=$('#tClock');if($('#modal').hidden||!$('#sheet .tour')){TOURING=false;clearInterval(tick);return;}if(!el)return;if(!auc||auc.ended||A!==auc){el.textContent='Sold';el.className='sold';return;}el.textContent=`${money(auc.leader?auc.bid:auc.lot.open)} · ${Math.ceil(auc.clock)}s${auc.leader==='you'?' · yours':''}`;el.className=auc.clock<=4?'hot':'';},200);
+ draw();}
 function rollTo(el,to,fmt,dur){if(reduce){el.textContent=fmt(to);return;}dur=dur||800;const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmt(Math.round(to*e));if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);}
 let lastWinAt=0,combo=0;
 function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastWinAt=now;if(combo>=2){comboPop(combo);award('combo2');if(combo>=3)award('combo3');toast(combo===2?'Double hammer!':combo===3?'Ding ding ding! Three wins.':combo+' wins in a row!','up');setTimeout(()=>sfx('combo',combo),250);buzz([30,30,30,30,60]);T.c.combos=(T.c.combos||0)+1;}return combo;}
@@ -1632,7 +1693,7 @@ function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&
 $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">Lot ${L.no} · ${T.name}</span>`+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">Lot ${L.no} · ${T.name}</span>`+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':'<button class="tourbtn" id="tourBtn" aria-label="Tour this home">Tour</button>')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
  $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
  if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
@@ -1790,7 +1851,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  {const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const top=[4,3,2].find(i=>n[i]);$('#oHomes').textContent=S.props.length;const of=$('#oFinds');of.textContent=top!=null?n[top]+' '+RAR[top][0]:'-';of.className=top!=null?'rt r'+top:'';
   const c=sets();$('#oSets').textContent=Object.values(c.sub).filter(v=>v>=SET_N).length+' done';$('#oRank').textContent='#'+richRank();$('#oStars').textContent='★'+(S.legacy||0)+' '+rankOf(S.legacy||0).t;
   $('#oBadges').textContent=Object.keys(S.badges||{}).length+'/'+BADGES.length;$('#oStreak').textContent=(S.streak||0)+' day'+((S.streak||0)===1?'':'s');}
- eSel();drawDynCard();
+ eSel();drawDynCard();drawSkyline();
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
   el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');gp.hidden=!!(p.works&&p.works.redev);
@@ -1802,6 +1863,13 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  const joined=S.wins+S.losses;$('#pRate').textContent=$('#pRate2').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
  $('#rich').innerHTML=rows.map((r,i)=>(i>=5&&!r.me)?'':`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
 const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['alb','Card album'],['bad','Badges'],['dyn','Dynasty and play']];
+function drawSkyline(){const el=$('#skyline');if(!el)return;const ps=S.props.slice().sort((a,b)=>a.id-b.id).slice(-28),sig=ps.map(p=>p.id+':'+(p.rarity||0)+':'+Math.round(Math.log10(p.value)*4)+(p.up&&p.up.pool?'p':'')).join(',');if(el.dataset.sig===sig)return;el.dataset.sig=sig;
+ if(!ps.length){el.innerHTML='';return;}const W=360,n=ps.length,bw=Math.max(8,Math.min(26,W/n-3)),lv=ps.map(p=>Math.log10(Math.max(1e5,p.value))),lo=Math.min(...lv),hi=Math.max(...lv);let x=W-n*(bw+3),out='';
+ for(const p of ps){const h=30+56*(Math.log10(Math.max(1e5,p.value))-lo)/(hi-lo+0.4),col=RAR[p.rarity||0][1],tw=p.style==='tower'||p.style==='unit';
+  out+=`<rect x="${x.toFixed(1)}" y="${(96-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" fill="currentColor" opacity=".18"/>`;
+  for(let wy=96-h+5;wy<92;wy+=tw?6:9)for(let wx=x+2.5;wx<x+bw-3;wx+=5)out+=`<rect x="${wx.toFixed(1)}" y="${wy.toFixed(1)}" width="2.2" height="2.6" fill="${col}" opacity=".85"/>`;
+  if(!tw)out+=`<path d="M${(x-1).toFixed(1)} ${(96-h).toFixed(1)} L${(x+bw/2).toFixed(1)} ${(96-h-bw*0.45).toFixed(1)} L${(x+bw+1).toFixed(1)} ${(96-h).toFixed(1)}Z" fill="currentColor" opacity=".18"/>`;x+=bw+3;}
+ el.innerHTML=`<svg viewBox="0 0 360 100" preserveAspectRatio="xMaxYMax meet">${out}</svg>`;}
 function eSel(){const sel=$('#eSec'),labels={pf:`Portfolio (${S.props.length})`,bad:`Badges (${Object.keys(S.badges||{}).length}/${BADGES.length})`,dyn:`Dynasty ★${S.legacy||0}`,alb:`Card album (${(S.album||[]).length})`},sig=ESECS.map(([k,n])=>labels[k]||n).join('|')+eSec;if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
  sel.innerHTML=ESECS.map(([k,n])=>`<option value="${k}"${k===eSec?' selected':''}>${esc(labels[k]||n)}</option>`).join('');}
 function eGo(k,quiet){if(k==='alb')setTimeout(renderAlbum,0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
@@ -1864,9 +1932,9 @@ function endSell(){A.ended=true;A.nextIn=A.bg?2.5:5;const ui=!A.bg,L=A.lot,p=S.p
  if(ui){res.hidden=false;$('#art').appendChild(stp);const rl=stp.querySelector('[data-roll]');if(rl)rollTo(rl,+rl.dataset.roll,v=>(v>=0?'+':'')+money(v)+' vs value');updAuction();}
  buildEmpire();save();soonFlush();}
 /* ---------- share card: a 1080x1350 picture of an Epic or Legendary find ---------- */
-const shareURL=()=>WEB_STATS?location.origin:CONFIG.shareUrl;
+const shareURL=()=>WEB_STATS&&!API?location.origin:CONFIG.shareUrl;
 function artImage(p){return new Promise(res=>{const list=IMGS&&IMGS[p.style];const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);
- if(list&&list.length){i.src=list[Math.abs(p.seed|0)%list.length];return;}
+ if(list&&list.length){i.crossOrigin="anonymous";i.src=imgURL(list[Math.abs(p.seed|0)%list.length]);return;}
  const svg=houseSVG(p).replace('<svg ','<svg width="960" height="720" ');i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);});}
 function wrapText(g,txt,x,y,maxW,lh){const words=String(txt).split(' ');let line='';for(const w of words){const t2=line?line+' '+w:w;if(g.measureText(t2).width>maxW&&line){g.fillText(line,x,y);y+=lh;line=w;}else line=t2;}if(line)g.fillText(line,x,y);return y+lh;}
 async function shareCard(p){if(!p||(p.rarity||0)<3)return;T.c.shareOpens++;tlog('share_open',{r:p.rarity});
@@ -2122,7 +2190,7 @@ $('#tA').onclick=()=>show('a');$('#tM').onclick=()=>{if(!mktOpen()){toast('Win y
 let dCash=S.cash,dWorth=worth();
 function drawStars(){const b=$('#hStars'),n=S.legacy||0,t='★ '+n;if(b.textContent!==t)b.textContent=t;b.classList.toggle('ready',worth()>=CASH_AT);b.setAttribute('aria-label',`Dynasty: ${n} stars, ${rankOf(n).t}`);}
 $('#hStars').onclick=()=>dynastySheet('header');
-document.addEventListener('click',e=>{const b=e.target.closest('[data-dyn]');if(b){e.preventDefault();dynastySheet(b.id==='dynCard'?'empire':'overview');}});
+document.addEventListener('click',e=>{if(e.target.closest('#tourBtn')&&A&&!A.ended){hideCoach();houseTour(A.lot,'lot');return;}const b=e.target.closest('[data-dyn]');if(b){e.preventDefault();dynastySheet(b.id==='dynCard'?'empire':'overview');}});
 function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el.hidden=true;return;}if(!S.featAt){S.featAt=Date.now()+2*60e3;}
  const ms=S.featAt-Date.now();el.hidden=false;el.textContent=ms>0?'Featured '+mmss(ms):'Featured next';el.classList.toggle('due',ms<=0);
  if(ms<=0&&!S.featWarned&&A&&!A.ended&&!A.featured){S.featWarned=true;toast('Featured auction up next: a rare home and a packed room.','up');}}

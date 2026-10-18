@@ -4,3 +4,7 @@ dist/
 .DS_Store
 *.log
 data/
+app/www/
+app/node_modules/
+app/ios/
+app/android/
