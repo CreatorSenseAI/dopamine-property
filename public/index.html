@@ -1523,11 +1523,11 @@ async function shareCard(p){if(!p||(p.rarity||0)<3)return;T.c.shareOpens++;tlog(
  c.toBlob(b=>{if(!b)return;const fname='empire-auction-'+name.toLowerCase()+'.png',file=new File([b],fname,{type:'image/png'}),u=URL.createObjectURL(b);
   const text=`${name} find in Empire Auction Tycoon: ${p.addr}, ${p.sub}. Won for ${money(p.paid)}, now worth ${money(p.value)} (${eq>=0?'+':''}${eq.toFixed(0)}%).`;
   const canFile=!!(navigator.canShare&&navigator.canShare({files:[file]}));
-  $('#sheet').innerHTML=`<div class="shareprev"><h3>${name} find</h3><img src="${u}" alt="Share card for ${esc(p.addr)}">${canFile||navigator.share?'<button id="shGo">Share</button>':''}<a class="sec dl" href="${u}" download="${fname}">Save image</a><button class="sec" id="shCopy">Copy text and link</button><button class="sec" id="shX">Close</button></div>`;$('#modal').hidden=false;
+  $('#sheet').innerHTML=`<div class="shareprev"><h3>${name} find</h3><img src="${u}" alt="Share card for ${esc(p.addr)}">${canFile||navigator.share?'<button id="shGo">Share</button>':''}${WEB_STATS?`<a class="sec dl" href="${u}" download="${fname}">Save image</a>`:''}<button class="sec" id="shCopy">Copy text and link</button><button class="sec" id="shX">Close</button></div>`;$('#modal').hidden=false;
   $('#shX').onclick=()=>{$('#modal').hidden=true;};
   $('#shCopy').onclick=async()=>{try{await navigator.clipboard.writeText(text+' '+shareURL());$('#shCopy').textContent='Copied';T.c.shareCopies++;tlog('share_done',{r:p.rarity,how:'copy'});}catch(e){$('#shCopy').textContent='Copy failed';}};
   const go=$('#shGo');if(go)go.onclick=async()=>{try{await navigator.share(canFile?{files:[file],text,url:shareURL()}:{text,url:shareURL()});T.c.shareDone++;tlog('share_done',{r:p.rarity,how:canFile?'file':'link'});}catch(e){}};
-  $('#sheet').querySelector('.dl').onclick=()=>{T.c.shareSaves++;tlog('share_done',{r:p.rarity,how:'save'});};},'image/png');}
+  const dl=$('#sheet').querySelector('.dl');if(dl)dl.onclick=()=>{T.c.shareSaves++;tlog('share_done',{r:p.rarity,how:'save'});};},'image/png');}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-share]');if(!b)return;e.preventDefault();e.stopPropagation();const p=S.props.find(q=>q.id===+b.dataset.share);if(p)shareCard(p);},true);
 function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,mtax,bank,profit,loan}=saleOf(p,price);if(mtax){T.c.mansionTax+=Math.round(mtax);}
  const holdSec=p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,sinceMkt=T.lastMarket?Math.round((Date.now()-T.lastMarket.at)/1000):null;
