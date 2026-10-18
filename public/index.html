@@ -706,6 +706,7 @@ main{padding:8px 14px 10px;gap:8px}
 #vAuction .dhead small{display:inline;margin-right:5px;font-size:10px}
 #vAuction .dhead small{letter-spacing:.05em}
 #vAuction .dhead>div{white-space:nowrap}
+#vAuction .dhead{flex-wrap:wrap;column-gap:10px}#vAuction .dhead .r{margin-left:auto}
 #vAuction .dhead .est{font-size:12.5px}
 #vAuction .meter{margin-top:19px}
 #vAuction .meter .mk span{font-size:10.5px;padding:0 5px;line-height:15px}
@@ -782,6 +783,28 @@ main{padding:8px 14px 10px;gap:8px}
 .eqbtns{display:flex;gap:6px;flex:1 1 100%}.eqbtns button{flex:1}
 .sheet .uprow button.armed{background:var(--red);color:var(--on-red)}
 .sheet p.upnote.warn{color:var(--red);text-align:left;margin:-2px 0 8px}
+/* v26b: nothing may widen the page (Android text scaling pushed the header, top row and lot card past the screen) */
+html,body{overflow-x:clip}
+#app{grid-template-columns:minmax(0,1fr)}
+#app>*{min-width:0}
+.top{min-width:0;overflow:hidden;gap:8px;padding-inline:12px}
+.mark{flex:0 1 auto;min-width:0;gap:6px}
+.ledger{min-width:0;flex:0 1 auto;gap:12px}
+.ledger div{min-width:0}
+.ledger strong,.ledger em,.ledger small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.help{flex:none}
+.lvrow{margin:0 -14px;padding:0 14px}
+.live{grid-template-columns:minmax(0,1fr) auto}
+.cur{min-width:0}
+.cur .big{max-width:100%;white-space:nowrap}
+#vAuction .leader{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stars,.streakc{white-space:nowrap;flex:none}
+#vAuction{overflow-y:auto}
+#vAuction>.lot{flex:1 0 auto}
+.call{min-width:0;max-width:42vw}.call b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vAuction .lotinfo{min-width:0}#vAuction .guide{min-width:0}
+.dock .row,.bidrow{min-width:0}.dock .skip{white-space:nowrap}
+.tabs button{min-width:0;overflow:hidden}
 </style>
 </head>
 <body>
@@ -1046,7 +1069,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v26-web';
+const VERSION='v26b-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1991,7 +2014,7 @@ function renderLive(){const box=$('#lvStrip');box.hidden=!LIVE.length;if(box.hid
   el.className='lv'+(x.ended&&x.leader==='you'?' won':x.leader==='you'?' lead':c==='neg'?' outbid':'');
   el.querySelector('[data-k="p"]').textContent=money(q);const se=el.querySelector('[data-k="s"]');se.textContent=s+(x.ended?'':' · '+ZONES[z]);se.className='lvs '+c;
   const ci=el.querySelector('[data-k="c"]');ci.style.width=(x.ended?0:x.clock/x.total*100)+'%';ci.className=x.clock<=4?'hot':'';
-  const ab=el.querySelector('.lvauto');ab.disabled=x.ended;ab.setAttribute('aria-pressed',!!x.auto);ab.innerHTML=x.ended?esc(s):`<small>${x.auto?'Auto on':'Auto to'}</small>${money(x.autoMax)}${x.auto?'':'?'}`;}}
+  const ab=el.querySelector('.lvauto'),past=!x.ended&&!x.auto&&x.leader!=='you'&&x.autoMax<nextBidOf(x);ab.disabled=x.ended||past;ab.setAttribute('aria-pressed',!!x.auto);ab.innerHTML=x.ended?esc(s):past?'<small>Past your</small>walk-away':`<small>${x.auto?'Auto on':'Auto to'}</small>${money(x.autoMax)}${x.auto?'':'?'}`;}}
 const nextBidOf=x=>x.leader?x.bid+x.lot.inc:x.lot.open;
 $('#lvRow').onclick=e=>{const a=e.target.closest('[data-auto]');if(a){const x=LIVE.find(y=>y.lot.no===+a.dataset.auto);if(x&&!x.ended){x.auto=!x.auto;x.autoWarned=false;T.c.liveAutos=(T.c.liveAutos||0)+1;hideCoach('live');renderLive();}return;}
  const f=e.target.closest('[data-focus]');if(f)focusLive(+f.dataset.focus);};

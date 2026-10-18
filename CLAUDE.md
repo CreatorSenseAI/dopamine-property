@@ -75,3 +75,5 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - Offers (Market group) last 40s (bidding wars 30s); an ignored offer at/over value comes back once as a final offer (+2%, 25s).
 - Background live lots spawn only at a tier you can pay for.
 - Logs: `/admin/digest.txt?key=…&since=ISO&page=n` (compact text, 12K/page); `&log=1` also writes it to the Railway service log (read it with the Railway logs tool, filter `DG`).
+- Width: `#app` is `minmax(0,1fr)` and its children `min-width:0`, so Android text scaling can't push the page wider than the screen (it did in v25/v26). If the auction can't fit (big text, short screen) the lot card keeps its content height and `#vAuction` scrolls instead of clipping. Test with `ovf.py`-style font scaling at 1.3×.
+- Live cards show "Past your walk-away" (disabled) instead of offering auto-bid below the current price.
