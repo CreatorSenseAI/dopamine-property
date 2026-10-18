@@ -458,7 +458,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .dock .row{flex-wrap:nowrap}
 .dock .auto{flex:1 1 auto}
 .dock .skip{flex:none}
-.auto .lim{font-size:12.5px;white-space:nowrap}
+.auto .lim{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* walkthrough */
 .tour{text-align:left}
@@ -830,7 +830,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v18-web';
+const VERSION='v19-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -918,19 +918,21 @@ function finishWorks(p,quiet){const w=p.works;if(!w)return;if(w.redev){finishRed
  builtIds='';}
 /* ---------- redevelopment: knock down and rebuild. Step 1: duplex and mansion. Bought with game cash; build time = no rent, costs keep running ---------- */
 const REDEV=[
- {k:'duplex',name:'Duplex',desc:'Knock down and build two homes side by side: two tenants, two rents, sell one and keep one.',cost:0.65,end:[1.85,2.2],mo:24,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':(p.land||0)<600?`Needs 600 m² of land, this has ${p.land||0} m².`:null},
- {k:'mansion',name:'Mansion',desc:'Knock down and build one big statement home. Mansion tax applies when you sell over $5M.',cost:0.9,end:[2.2,2.6],mo:30,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':baseTi(p)<2?'Only in Prestige suburbs and up':(p.land||0)<1000?`Needs 1,000 m² of land, this has ${p.land||0} m².`:null}
+ {k:'duplex',name:'Duplex',desc:'Knock down and build two homes side by side: two tenants, two rents, sell one and keep one.',cost:0.65,end:[1.7,2.05],mo:24,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':(p.land||0)<600?`Needs 600 m² of land, this has ${p.land||0} m².`:null},
+ {k:'mansion',name:'Mansion',desc:'Knock down and build one big statement home. Mansion tax applies when you sell over $5M.',cost:0.9,end:[2.0,2.4],mo:30,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':baseTi(p)<2?'Only in Prestige suburbs and up':(p.land||0)<1000?`Needs 1,000 m² of land, this has ${p.land||0} m².`:null}
 ];
-const redevAvail=p=>REDEV.filter(r=>!r.why(p));
+const REDEV_MAX=2;/* your builder can run two sites at once */
+const buildsOn=()=>S.props.filter(q=>q.works&&q.works.redev).length;
+const redevAvail=p=>buildsOn()>=REDEV_MAX?[]:REDEV.filter(r=>!r.why(p));
 function reclass(p){let moved=false;while(p.ti<TIERS.length-1&&p.value>=classLine(p.ti)){if(p.ti0==null)p.ti0=p.ti;p.ti++;moved=true;}if(moved){p.value*=1.06;T.c.reclassed++;award('new_class');}return moved;}
-function startRedev(p,k){const r=REDEV.find(x=>x.k===k);if(!r||p.works||r.why(p)||!S.props.includes(p))return;const c=upCost(p,r);
+function startRedev(p,k){const r=REDEV.find(x=>x.k===k);if(!r||p.works||r.why(p)||!S.props.includes(p))return;if(buildsOn()>=REDEV_MAX){toast('Your builder is flat out on '+REDEV_MAX+' sites. Wait for one to finish.','down');return;}const c=upCost(p,r);
  if(S.cash<c){toast('Not enough cash to build a '+r.name.toLowerCase()+'. It costs '+money(c)+'.','down');return;}
  S.cash-=c;p.capex=(p.capex||0)+c;p.works={k,redev:true,end:rnd(r.end[0],r.end[1]),cost:c};p.vacant=r.mo;OFF=OFF.filter(o=>o.pid!==p.id);
  T.c.redevs++;T.c.redevSpend+=Math.round(c);tlog('redev_start',{k,tier:p.ti,land:p.land||0,cost:Math.round(c),value:Math.round(p.value),cashAfter:Math.round(S.cash)});
  toast(r.name+' build started at '+p.addr+'. '+money(-c)+'. No rent for '+r.mo+' months; bills keep coming.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
 /* things that go wrong on a build site, at most once each per build */
 function buildEvents(p){const w=p.works;if(!w||!w.redev)return;
- if(!w.blown&&Math.random()<0.012){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000);S.cash-=x;S.paidOut+=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x)});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+'.','down',true);}
+ if(!w.blown&&Math.random()<0.02){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000);S.cash-=x;S.paidOut+=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x)});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+'.','down',true);}
  if(!w.late&&Math.random()<0.01){w.late=true;p.vacant+=6;T.c.buildDelays++;tlog('build_delay',{k:w.k});note('build','Builder delay at '+p.addr+': 6 more months.','down',true);}}
 function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,total=p.value*w.end;p.up={};p.dwell=w.k;p.heat=0;p.rare=false;let out=[p];
  if(w.k==='mansion'){p.value=total;p.style='villa';p.beds=Math.max(p.beds||5,6);p.feats=['New build','Mansion'];}
@@ -944,7 +946,7 @@ function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,
 function upgradeSheet(p){const nl=classLine(p.ti);
  const rows=UPG.map(u=>{const done=p.up&&p.up[u.k],why=u.why(p),c=upCost(p,u),lo=p.value*u.lift[0],hi=p.value*u.lift[1];
   return `<div class="uprow${done||why?' off':''}"><div class="uptxt"><b>${u.name}${done?' ✓':''}</b><small>${done?'Done':why?esc(why):`${esc(u.desc)} Adds ${money(lo)} to ${money(hi)} to the value. ${u.mo} months of works, no rent.`}</small></div>${done||why?'':`<button data-upk="${u.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
- const rrows=p.dwell||isStrata(p)?'':'<h4 class="uph">Redevelop</h4>'+REDEV.map(x=>{const why=x.why(p),c=upCost(p,x),lo=p.value*x.end[0],hi=p.value*x.end[1];return `<div class="uprow${why?' off':''}"><div class="uptxt"><b>${x.name}</b><small>${why?esc(why):`${esc(x.desc)} Ends up worth ${money(lo)} to ${money(hi)}${x.k==='duplex'?' for the pair':''}. ${x.mo} months to build; cost blowouts and delays can happen.`}</small></div>${why?'':`<button data-rdk="${x.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
+ const busy=buildsOn()>=REDEV_MAX;const rrows=p.dwell||isStrata(p)?'':'<h4 class="uph">Redevelop</h4>'+(busy?`<p class="upnote">Your builder is on ${REDEV_MAX} sites already. One build at a time per site, ${REDEV_MAX} at once.</p>`:'')+REDEV.map(x=>{const why=busy?'Builder busy on '+REDEV_MAX+' sites':x.why(p),c=upCost(p,x),lo=p.value*x.end[0],hi=p.value*x.end[1];return `<div class="uprow${why?' off':''}"><div class="uptxt"><b>${x.name}</b><small>${why?esc(why):`${esc(x.desc)} Ends up worth ${money(lo)} to ${money(hi)}${x.k==='duplex'?' for the pair':''}. ${x.mo} months to build; cost blowouts and delays can happen.`}</small></div>${why?'':`<button data-rdk="${x.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
  $('#sheet').innerHTML=`<div class="upg"><h3>Upgrade</h3><p>${esc(p.addr)}, ${esc(p.sub)}<br>Worth ${money(p.value)}${p.land?' · '+p.land+' m² of land':''} · you have ${money(S.cash)}</p>${rows}${rrows}${nl<Infinity?`<p class="upnote">Lift it past ${money(nl)} and it becomes a ${TIERS[p.ti+1].name} home, worth 6% more.</p>`:''}<button class="sec" id="upClose">Close</button></div>`;
  $('#modal').hidden=false;$('#upClose').onclick=()=>{$('#modal').hidden=true;};
  $('#sheet').querySelectorAll('[data-upk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startWorks(p,b.dataset.upk);});
@@ -1093,7 +1095,7 @@ const RMETA={
  'Aurelian Sovereign Fund':{ini:'AF',short:'Aurelian',col:'#2c7a7b',bid:['Mandate approved.','Deep pockets.'],think:['Aurelian is checking the mandate…'],out:['Outside our mandate.'],win:['Acquired.'],counter:['The Fund responds.']}};
 const rm=r=>RMETA[r.name]||{ini:r.name.slice(0,2).toUpperCase(),short:r.name,col:'#56647c',bid:['Bid.'],think:['Thinking…'],out:['Out.'],win:['Mine.'],counter:['Again.']};
 function rivalSay(r,kind){A.say={r,kind,text:pick(rm(r)[kind]),t:kind==='think'?6:2.8};renderChat();}
-function renderChat(){if(A&&A.bg)return;const c=$('#chat');if(!c)return;if(!A||!A.say){c.classList.remove('on');return;}const sy=A.say;
+function renderChat(){if(A&&A.bg)return;const c=$('#chat');if(!c)return;if(!A||!A.say||A.ended){c.classList.remove('on');return;}const sy=A.say;
  if(sy.kind==='war')c.innerHTML=`<span class="ctext war">${esc(sy.text)}</span>`;
  else{const m=rm(sy.r);c.innerHTML=`<span class="cini" style="--pc:${m.col}">${m.ini}</span><span class="ctext">${sy.kind==='think'?'<i>'+esc(sy.text)+'</i>':'<b>'+esc(m.short)+'</b> “'+esc(sy.text)+'”'}</span>`;}
  c.classList.remove('on');void c.offsetWidth;c.classList.add('on');}
@@ -1114,10 +1116,11 @@ const typicalOpen=i=>TIERS[i].min*0.78;
 function affordTier(){let best=0;for(let i=0;i<=S.maxTier;i++)if(S.cash>=depositFor(typicalOpen(i),i))best=i;return best;}
 function pickTier(bg){if(S.tierAuto===false)return bg&&Math.random()<0.3?Math.floor(Math.random()*(S.maxTier+1)):S.tier;const a=affordTier();return a>0&&Math.random()<(bg?0.35:0.2)?a-1:a;}
 function startAuction(){if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();const daily=S.props.length>0&&S.days.length>=2&&S.dailyDay!==today();A=newAuction(S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false,daily);renderLot();
+ if(S.tierAuto===false&&S.tier<affordTier()&&worth()>TIERS[S.tier].max*15)setTimeout(()=>coach('outgrown','Your empire has outgrown '+TIERS[S.tier].name+' lots. Tap Auto in the tier row to bid where your cash is.'),1500);
  if(daily){S.dailyDay=today();T.c.dailyLots++;tlog('daily_lot',{tier:A.lot.ti});setTimeout(()=>toast('Today’s lot: a rare home with softer rivals. Free to enter, one a day.','up'),1200);}if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
 function newAuction(ti,place,bg,daily){const L=makeLot(ti,daily?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(S.nemesis&&Math.random()<0.45&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
- const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.92,1.16):r.style==='cautious'?rnd(0.78,1.0):rnd(0.88,1.1))*(r.name===S.nemesis?1.06:1)}));
+ const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
  const X={lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.97,1.03);X.est={lo:roundTo(c*0.95,L.inc),hi:roundTo(c*1.05,L.inc),mid:c};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.hi));}
@@ -1241,7 +1244,7 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily;ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
- $('#autoLim').textContent='Max '+money(A.autoMax);
+ $('#autoLim').textContent=money(A.autoMax);$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
 $('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
@@ -1428,7 +1431,7 @@ function metaText(l){const pr=project(l.ask,l.ti,l.value,l.style);return `Cash f
 function cardHTML(l){const TT=TIERS[l.ti],d=l.ask/l.value-1,price=l.ask>=1e7?money(l.ask):full(l.ask);
  return `<article class="mcard${l.deal?' is-deal':''}${l.rare?' is-rare':''}" id="mcard" data-mid="${l.mid}">`+
  `<div class="art">${artOf(l)}<span class="tag">${TT.name} · For sale</span>${l.rare?'<span class="rare">Rare</span>':''}${l.deal?'<span class="dealtag">Deal</span>':''}<button class="star" data-watch="${l.mid}" aria-pressed="${WATCH.has(l.mid)}" aria-label="Watch this listing">&#9733;</button><span class="swl buy">Buy</span><span class="swl pass">Pass</span></div>`+
- `<div class="mbody"><div class="mtop"><div><div class="addr">${esc(l.addr)}</div><div class="msub">${esc(l.sub)}, ${esc(l.st)} · ${l.beds} bed · ${l.baths} bath${l.land?' · '+l.land.toLocaleString('en-AU')+' m²':''}</div></div><div class="ttl"><small>Gone in</small><b class="num" data-k="ttl">${l.ttl}s</b></div></div>`+
+ `<div class="mbody"><div class="mtop"><div><div class="addr">${esc(l.addr)}</div><div class="msub">${esc(l.sub)}, ${esc(l.st)} · ${l.beds} bed · ${l.baths} bath${l.land?' · '+l.land.toLocaleString('en-AU')+'\u00a0m²':''}</div></div><div class="ttl"><small>Gone in</small><b class="num" data-k="ttl">${l.ttl}s</b></div></div>`+
  `<div class="mprice"><div><small>Asking</small><span class="big">${price}</span></div><div class="mval"><small>Bank value</small><span>${money(l.value)}</span><em class="dpill${d<0?' good':''}">${Math.abs(d*100).toFixed(0)}% ${d<0?'under':'over'}</em></div></div>`+
  `<div class="mmeta" data-k="meta"></div><div class="mclock"><i></i></div></div></article>`;}
 function renderDeck(){const l=topListing(),dk=$('#deck'),bb=$('#buyBtn'),pb=$('#passBtn');
