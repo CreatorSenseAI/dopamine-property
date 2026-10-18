@@ -13,13 +13,13 @@ errors = []
 IGNORE = ("ERR_TUNNEL", "fonts.g", "net::ERR", "Failed to load resource")
 
 
-def page(b, scheme, seed=None):
+def page(b, scheme, seed=None, q="?mkt=0"):
     pg = b.new_page(viewport={"width": 360, "height": 643}, device_scale_factor=2, color_scheme=scheme)
     pg.on("pageerror", lambda e: errors.append(f"{scheme}: {e}"))
     pg.on("console", lambda m: m.type == "error" and not any(s in m.text for s in IGNORE) and errors.append(f"{scheme} console: {m.text}"))
     if seed:
         pg.add_init_script("if(!sessionStorage.getItem('seeded')){localStorage.setItem('dopamine-property-v1',%s);sessionStorage.setItem('seeded','1')}" % json.dumps(json.dumps(seed)))
-    pg.goto(url); pg.wait_for_timeout(700)
+    pg.goto(url + q); pg.wait_for_timeout(700)
     return pg
 
 
@@ -178,6 +178,12 @@ with sync_playwright() as p:
     res = play_lot(pg); print("featured result:", res[:80]); pg.wait_for_timeout(1800)
     if pg.locator(".reveal").count(): print("reveal:", pg.inner_text(".reveal").replace("\n", " | ")); pg.screenshot(path=str(out / "v20-reveal.png"))
     pg.close()
+
+    # ---------- Market A/B: control group keeps the Market tab ----------
+    pg = page(b, "light", None, "?mkt=1"); close_sheets(pg)
+    print("market kept: tab in DOM", pg.locator("#tM").count(), "| visible before first win:", pg.is_visible("#tM"))
+    play_lot(pg); pg.wait_for_timeout(3500); close_sheets(pg)
+    print("market kept: tab visible after a win:", pg.is_visible("#tM")); pg.close()
 
     # ---------- registrations (limited variant, nearly out) ----------
     allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","jackpot","headliner","new_class","nemesis","streak3","streak7"]}

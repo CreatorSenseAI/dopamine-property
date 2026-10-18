@@ -24,7 +24,8 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - Retention: `dailyCheck()` (streak, freezes, bonus), `award(id)` + `BADGES`, `recap()` every 10 focused lots.
 - `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).
-- v20 auctions first: the Market tab is hidden and `marketTick`/`offMarketTick` no longer run (code kept, dormant). Homes are bought at auction and sold at auction.
+- v20 auctions first, as a 50/50 test (`CONFIG.market` 'ab'|'on'|'off', `S.mkVar` 1 = Market kept, 0 = no Market; `?mkt=1|0` forces it; `mktOn()`). Without the Market, `marketTick`/`offMarketTick` don't run and the tab is hidden (`drawTabs`). Selling at auction exists in both. `/admin` compares the groups.
+- Rival stakes: when you win, every rival who bid loses 12% of the lot's value from their rich-list worth (they gain the same when they win); `richRank()` before/after drives a "Rich list: up to #N, past X" toast.
 - Selling: `sellSheet(p)` → `listForAuction(p, reserveMult)` queues `SELLQ`; `startAuction()` runs queued sells first via `newSellAuction()` (`A.sell={pid,reserve}`, rivals bid against each other, player can't bid). `endSell()`: at/over reserve → `sellProp(p, hammer*0.98, 'auction')`; under → passed in, 0.4% agent fee. Agent sale = 92% of value now.
 - Final call: once a focused lot's clock first hits 4s (`A.fin`), auto-bid stops for that lot; `yourCall()` cues the player whenever a rival leads in the final phase. Background lots still auto-bid.
 - Valuer estimate is wider (centre ±5%, band ±8%).

@@ -577,6 +577,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 .wrow button:disabled{background:var(--sunk);color:var(--muted)}
 .wmap{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-weight:700;text-align:left}
 .tabs button.locked{opacity:.5}
+.tabs.three{grid-template-columns:repeat(3,1fr)}
 .newtag{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#fff;border-radius:999px;padding:1px 6px;margin-left:4px}
 /* sets + badges */
 .sets{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
@@ -757,6 +758,7 @@ const CONFIG={
  affiliate:{enabled:true,au:'https://www.realestate.com.au/buy/in-{slug},+{st}/list-1'},
  ads:{enabled:false,adsenseClient:'',adsenseSlot:''},
  analytics:{plausibleDomain:''},
+ market:'ab', /* 50/50 test of v20 "auctions first": 'ab' = half of new players keep the old Market tab (buy listings, buyer offers, off-market deals), 'off' = no Market for anyone, 'on' = Market for everyone. ?mkt=1 or ?mkt=0 forces it */
  registrations:'ab' /* bidder registrations: 'ab' = half of new players (50/50 test), 'on' = everyone, 'off' = nobody. ?reg=1 or ?reg=0 in the URL forces it for testing */
 };
 const AU_STATES=['QLD','NSW','VIC','SA','WA','TAS','NT','ACT'];
@@ -834,6 +836,9 @@ const REG_MAX=8,REG_EVERY=12*60e3,REG_FREE=20;
 function regInit(){const q=/[?&]reg=([01])/.exec(location.search);if(q)S.regVar=+q[1];if(S.regVar==null){const m=CONFIG.registrations;S.regVar=m==='on'?1:m==='off'?0:(Math.random()<0.5?1:0);}
  if(S.joined==null)S.joined=(S.wins||0)+(S.losses||0);if(!S.reg)S.reg={n:REG_MAX,at:Date.now()};}
 regInit();
+/* Market A/B: S.mkVar 1 = classic Market tab kept, 0 = auctions first (no Market). Selling at auction exists in both */
+{const q=/[?&]mkt=([01])/.exec(location.search);if(q)S.mkVar=+q[1];if(S.mkVar==null){const m=CONFIG.market;S.mkVar=m==='on'?1:m==='off'?0:(Math.random()<0.5?1:0);}}
+const mktOn=()=>S.mkVar===1;
 const regOn=()=>S.regVar===1&&(S.joined||0)>=REG_FREE;
 function regRefill(){const r=S.reg,now=Date.now();if(r.n>=REG_MAX){r.at=now;return;}while(r.n<REG_MAX&&now-r.at>=REG_EVERY){r.n++;r.at+=REG_EVERY;}if(r.n>=REG_MAX)r.at=now;}
 const regNext=()=>Math.max(0,REG_EVERY-(Date.now()-S.reg.at));
@@ -847,11 +852,11 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v20-web';
+const VERSION='v21-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
- c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,finalCues:0,find_good:0,find_flaw:0,find_jackpot:0,featured:0,featuredWon:0,sellViews:0,sellListings:0,sellAuctions:0,sellAuctionSold:0,passedInOwn:0,agentSales:0,redevs:0,redevSpend:0,redevDone:0,blowouts:0,buildDelays:0,mansionTax:0,shopViews:0,shopClicks:0,iapBuys:0,iapRestores:0,regUsed:0,regBlocked:0,regTopups:0,dailyLots:0,rateLocks:0,rescueBuys:0,rescues:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
+ c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,rivalsHit:0,rankUps:0,finalCues:0,find_good:0,find_flaw:0,find_jackpot:0,featured:0,featuredWon:0,sellViews:0,sellListings:0,sellAuctions:0,sellAuctionSold:0,passedInOwn:0,agentSales:0,redevs:0,redevSpend:0,redevDone:0,blowouts:0,buildDelays:0,mansionTax:0,shopViews:0,shopClicks:0,iapBuys:0,iapRestores:0,regUsed:0,regBlocked:0,regTopups:0,dailyLots:0,rateLocks:0,rescueBuys:0,rescues:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
  auctions:[],log:[],curve:[],flags:{},tab:{},firstBidSec:null,firstWinSec:null,dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
 const tnow=()=>Math.round((Date.now()-T.start)/1000);
 function tlog(type,d){T.log.push(Object.assign({t:tnow(),type},d||{}));if(T.log.length>150)T.log.shift();T.dirty=true;}
@@ -879,9 +884,9 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
    holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction',up:p.up?Object.keys(p.up):[],works:p.works?p.works.k:null,capex:Math.round(p.capex||0),from:p.ti0!=null?p.ti0:null}))},
   funnel:{firstBidSec:T.firstBidSec,firstWinSec:T.firstWinSec,newPlayer:S.sessions<=1,coachSeen:Object.keys(S.coach||{}),marketOpen:mktOpen()},
   tabSec:Object.assign({},T.tab),
-  meta:{inApp:inApp(),adFree:adFree(),regVar:S.regVar,regOn:regOn(),regLeft:S.reg?S.reg.n:null,joined:S.joined||0,rateLock:S.lock||0,rescue:!!S.rescue,tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
+  meta:{mkVar:S.mkVar,inApp:inApp(),adFree:adFree(),regVar:S.regVar,regOn:regOn(),regLeft:S.reg?S.reg.n:null,joined:S.joined||0,rateLock:S.lock||0,rescue:!!S.rescue,tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
   auctions:T.auctions.slice(-80),log:T.log.slice(-150),curve:T.curve.slice(-240)};}
-function playerDoc(){return{installId,version:VERSION,regVar:S.regVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
+function playerDoc(){return{installId,version:VERSION,regVar:S.regVar,mkVar:S.mkVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
 function soonFlush(){clearTimeout(soonFlush.t);soonFlush.t=setTimeout(flushPlay,2000);}
 /* on the web, play logs go to our own server (anonymous install id, no personal data); inside Claude they go to the artifact database */
 const WEB_STATS=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname);
@@ -1146,10 +1151,10 @@ function startAuction(){
 function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
- const X={lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):0,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ const X={rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):0,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.hi));}
- if(feat){X.clock=X.total=18;}
+ if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
  T.c.auctionsSeen++;if(L.rare)T.c.rareSeen++;if(!X.st.couldAfford)T.c.cantAfford++;
  return X;}
 function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',prem=A.bid&&L.guide?A.bid/L.guide-1:null;
@@ -1192,6 +1197,8 @@ function inspect(featured){const r=Math.random(),j=featured?0.15:0.05;if(r<j)ret
 function showReveal(f,amt){if(!A||A.bg)return;const art=$('#art');if(!art)return;art.querySelectorAll('.stamp').forEach(s=>s.remove());const d=document.createElement('div');d.className='reveal '+(f?f.kind:'clean');
  d.innerHTML=f?`<small>${f.kind==='jackpot'?'Jackpot at inspection':'Inspection'}</small><b>${esc(f.label)}</b><em>${amt>=0?'+':''}${money(amt)} value</em>`:'<small>Inspection</small><b>Clean. No surprises.</b>';art.appendChild(d);
  if(!f)return;if(f.kind==='jackpot'){sfx('rare');confetti(true,2.2);buzz([30,30,30,30,90]);const lc=$('#lotCard');if(!reduce){lc.classList.remove('shake');void lc.offsetWidth;lc.classList.add('shake');}}else if(f.kind==='good'){sfx('cash');buzz(25);}else sfx('drop');}
+/* your place on the rich list (you + every rival) */
+function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
 function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
  if(A.leader==='you')recordAuction('you');else if(A.leader){recordAuction('rival',A.leader.name);if(A.st.hand+A.st.auto+A.st.big>0){T.c.losses++;T.c.outbid++;}}else{recordAuction('none');T.c.passedIn++;}
  const part=A.rivals.filter(r=>r.bids>0),youBidAny=A.st.hand+A.st.auto+A.st.big>0;S.h2h=S.h2h||{};let beatNem=null;
@@ -1205,6 +1212,9 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
   const fnd=inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
   if(A.featured){T.c.featuredWon++;award('headliner');}
+  /* the rivals you beat lose the deal they were chasing and slide on the rich list */
+  {const before=A.rankBefore||richRank(),w0=A.worthBefore||0,w1=worth(),passed=[];for(const r of part){const was=(S.board[r.name]||0)>w0;S.board[r.name]=Math.max(0,(S.board[r.name]||0)-L.value*0.12);if(was&&S.board[r.name]<=w1)passed.push(r.name);}
+   const after=richRank();T.c.rivalsHit+=part.length;if(after<before){T.c.rankUps++;tlog('rank_up',{from:before,to:after,passed});setTimeout(()=>toast(`Rich list: up to #${after}`+(passed.length?`, past ${rm({name:passed[0]}).short}`:'')+'.','up'),2600);}}
   const eq=L.value-A.bid,z=zoneOf(A.bid,L,A.est),k={steal:1.8,good:1.3,fair:1,over:0.6}[z]||1;SESS.best=Math.max(SESS.best==null?-Infinity:SESS.best,eq);
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
@@ -1315,7 +1325,7 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  if(S.autoPay&&debt()>0){const net=rentTick-B.total;if(net>0){const paid=applyRepay(net);T.c.autoPaid+=Math.round(paid);if(debt()<1){toast('Auto-pay cleared your last loan. Debt free.','up');sfx('win');}}}
  if(S.calm>0)S.calm--;
  if(S.lock>0){S.lock--;if(!S.lock)toast('Your rate lock ended. Loans are back to 6% a year.','down');}
- /* v20: no Market. Homes are bought at auction and sold at auction (or to an agent) */
+ if(mktOn()){marketTick();offMarketTick();}/* auctions-first players have no Market: homes are bought at auction and sold at auction (or to an agent) */
  if(--digestIn<=0)flushDigest();
  if(S.props.length){S.eventIn--;if(S.eventIn<=0){S.eventIn=Math.round(rnd(40,80));marketEvent();}}
  syncTier();updEmpire();updAuction();}
@@ -1705,8 +1715,8 @@ $('#coach').onclick=()=>hideCoach();
 
 /* ---------- progressive unlocks ---------- */
 const mktOpen=()=>S.wins>0||S.props.length>0;
-function drawTabs(){$('#tM').classList.toggle('locked',!mktOpen());$('#tM').setAttribute('aria-disabled',!mktOpen());}
-function unlockMarket(){return;drawTabs();if(S.mktUnlocked)return;S.mktUnlocked=1;$('#mNew').hidden=false;toast('Market unlocked: buy homes instantly.','up',()=>show('m'));save();}
+function drawTabs(){$('#tM').hidden=!mktOn();document.querySelector('.tabs').classList.toggle('three',mktOn());$('#tM').classList.toggle('locked',!mktOpen());$('#tM').setAttribute('aria-disabled',!mktOpen());}
+function unlockMarket(){if(!mktOn())return;drawTabs();if(S.mktUnlocked)return;S.mktUnlocked=1;$('#mNew').hidden=false;toast('Market unlocked: buy homes instantly.','up',()=>show('m'));save();}
 
 /* ---------- session recap: a natural place to stop ---------- */
 const SESS={t0:Date.now(),w0:null,i0:null,lots:0,wins:0,focusLots:0,best:null};
@@ -1781,7 +1791,7 @@ setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 drawMute();drawStars();drawStreak();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
-if((S.rules||0)<4)modal('<h3>What’s new</h3>'+((S.rules||0)<2?'<p>Owning costs money: stamp duty when you buy, rates, upkeep and land tax every month, and capital gains tax when you sell at a profit. Paying over the guide makes a house grow faster.</p>':'')+'<p><b>Auctions first.</b> The Market is gone: every home is won at auction, and you sell at auction too. Tap Sell on a home, set a reserve and watch rivals bid it up.</p><p><b>Your call.</b> Auto-bid gets you to the final call, then the last seconds are yours.</p><p><b>Inspection.</b> After you win, the inspector reports: most homes are as described, some hide a find, a few a jackpot.</p><p><b>Featured auctions</b> every few minutes: a rare home, more rivals, a packed room.</p><p><b>Mortgages.</b> Short on cash? Bid anyway. The bank lends only what you are short, up to 80% of the price, at 6% a year. Sink too deep into overdraft and it repossesses a house.</p>','Got it',()=>{S.rules=4;tlog('rules_seen');save();awayCredit(since);});
+if((S.rules||0)<4)modal('<h3>What’s new</h3>'+((S.rules||0)<2?'<p>Owning costs money: stamp duty when you buy, rates, upkeep and land tax every month, and capital gains tax when you sell at a profit. Paying over the guide makes a house grow faster.</p>':'')+(mktOn()?'<p><b>Sell at auction.</b> Tap Sell on a home, set a reserve and watch rivals bid it up. The Market tab is still there for quick buys.</p>':'<p><b>Auctions first.</b> The Market is gone: every home is won at auction, and you sell at auction too. Tap Sell on a home, set a reserve and watch rivals bid it up.</p>')+'<p><b>Your call.</b> Auto-bid gets you to the final call, then the last seconds are yours.</p><p><b>Inspection.</b> After you win, the inspector reports: most homes are as described, some hide a find, a few a jackpot.</p><p><b>Featured auctions</b> every few minutes: a rare home, more rivals, a packed room.</p><p><b>Mortgages.</b> Short on cash? Bid anyway. The bank lends only what you are short, up to 80% of the price, at 6% a year. Sink too deep into overdraft and it repossesses a house.</p>','Got it',()=>{S.rules=4;tlog('rules_seen');save();awayCredit(since);});
 else awayCredit(since);
 setInterval(()=>{auctionTick(0.1);liveTick(0.1);},100);
 setInterval(econTick,1000);
