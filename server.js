@@ -127,7 +127,7 @@ function stats() {
     ab, dailyLots: sum("dailyLots"), rateLocks: sum("rateLocks"), rescueBuys: sum("rescueBuys"), rescues: sum("rescues"),
     players: P.length, sessions: S.length,
     d1: pct(d1n, d1d), d1n: `${d1n}/${d1d}`, d7: pct(d7n, d7d), d7n: `${d7n}/${d7d}`,
-    medSessionMin: med(S.map(s => s.playSec / 60))?.toFixed(1), medActiveMin: med(S.map(s => s.activeSec / 60))?.toFixed(1),
+    medSessionMin: med(S.map(s => s.playSec / 60))?.toFixed(1) ?? "–", medActiveMin: med(S.map(s => s.activeSec / 60))?.toFixed(1) ?? "–",
     medFirstBidSec: med(S.filter(s => s.funnel?.newPlayer).map(s => s.funnel.firstBidSec)), medFirstWinSec: med(S.filter(s => s.funnel?.newPlayer).map(s => s.funnel.firstWinSec)),
     newNeverBid: pct(S.filter(s => s.funnel?.newPlayer && s.funnel.firstBidSec == null).length, S.filter(s => s.funnel?.newPlayer).length),
     auctionsSeen: sum("auctionsSeen"), joinRate: pct(sum("auctionsJoined"), sum("auctionsSeen")), winRate: pct(wins.length, joined.length),
