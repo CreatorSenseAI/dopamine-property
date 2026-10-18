@@ -136,7 +136,8 @@ with sync_playwright() as p:
 
     # ---------- mansion + mansion tax ----------
     m = dict(id=1, addr="8 Wattle Road", street="Wattle Road", sub="Mosman", st="NSW", ti=2, style="villa", land=1200, seed=4242, rare=False, paid=2.9e6, duty=0, prem=0, heat=0, age=30, value=3e6, vacant=0, boughtAt=0, loan=0)
-    seed3 = dict(days=[yday], cash=5e6, props=[m], wins=5, rules=4, tour=1, nextId=2, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
+    fill = [dict(m, id=i, addr=f"{i} Wattle Road", style="unit", land=0, value=900e3, paid=880e3) for i in (2, 3)]
+    seed3 = dict(days=[yday], cash=5e6, props=[m] + fill, wins=5, rules=4, tour=1, nextId=4, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
     pg = page(b, "light", seed3); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(600)
     pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-rdk="mansion"]')
     for _ in range(45):
@@ -197,7 +198,7 @@ with sync_playwright() as p:
     print("market kept: tab visible after a win:", pg.is_visible("#tM")); pg.close()
 
     # ---------- registrations (limited variant, nearly out) ----------
-    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","jackpot","headliner","new_class","nemesis","streak3","streak7"]}
+    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","jackpot","headliner","epic","legendary","new_class","nemesis","streak3","streak7"]}
     seed2 = dict(seed, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
     pg = page(b, "dark", seed2); close_sheets(pg)
     print("reg line:", pg.inner_text("#regInfo"))

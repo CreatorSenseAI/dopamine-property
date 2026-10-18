@@ -17,7 +17,7 @@ const ADMIN_KEY = process.env.ADMIN_KEY || "";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain" };
 const ID = /^[a-z0-9]{6,32}$/i;
 
-for (const d of ["sessions", "players"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
+for (const d of ["sessions", "players", "boards"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
 
 // ---------- static files, read once at boot ----------
 const files = new Map();
@@ -74,6 +74,37 @@ async function ingest(req, res) {
   send(req, res, 204, "text/plain", "");
 }
 
+// ---------- daily showdown leaderboard: one file per UTC day, one entry per install (first score sticks; the name can change) ----------
+const DAY = /^\d{4}-\d{2}-\d{2}$/, NICK = /^[A-Za-z0-9 _.-]{3,16}$/;
+const boardFile = d => path.join(DATA, "boards", d + ".json");
+const readBoard = d => { try { return JSON.parse(fs.readFileSync(boardFile(d), "utf8")); } catch { return {}; } };
+function dayOk(d) { if (!DAY.test(d)) return false; const diff = Math.abs(Date.parse(d + "T00:00:00Z") - Date.parse(new Date().toISOString().slice(0, 10) + "T00:00:00Z")); return diff <= 864e5; }
+async function boardPost(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 4096)); } catch { return send(req, res, 400, "text/plain", "bad body"); }
+  if (!b || !dayOk(String(b.day)) || !ID.test(String(b.installId))) return send(req, res, 400, "text/plain", "bad entry");
+  const nick = String(b.nick || "").trim();
+  if (!NICK.test(nick)) return send(req, res, 400, "text/plain", "bad name");
+  const board = readBoard(b.day), cur = board[b.installId];
+  if (cur) cur.nick = nick;
+  else {
+    const score = Number(b.score);
+    if (!isFinite(score) || score < -60 || score > 120) return send(req, res, 400, "text/plain", "bad score");
+    board[b.installId] = { nick, score: Math.round(score * 100) / 100, hammer: Math.round(+b.hammer || 0), value: Math.round(+b.value || 0), rarity: Math.max(0, Math.min(4, b.rarity | 0)), at: new Date().toISOString() };
+  }
+  writeJSON(boardFile(b.day), board);
+  send(req, res, 204, "text/plain", "");
+}
+function boardGet(req, res, url) {
+  const d = url.searchParams.get("day") || "", me = url.searchParams.get("me") || "";
+  if (!DAY.test(d)) return send(req, res, 400, "application/json", "{}");
+  const all = Object.entries(readBoard(d)).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.score - a.score || a.at.localeCompare(b.at));
+  const rank = all.findIndex(e => e.id === me) + 1;
+  const top = all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, rarity: e.rarity, me: e.id === me }));
+  send(req, res, 200, "application/json", JSON.stringify({ day: d, count: all.length, rank: rank || null, top }), { "cache-control": "no-store" });
+}
+
 // ---------- admin ----------
 let cache = null;
 function loadAll() {
@@ -122,7 +153,7 @@ function stats() {
     return { v, players: ps.length, d1: pct(n1, dd1), medMin: med(ss.map(s => s.playSec / 60))?.toFixed(1) ?? "–", join: pct(c("auctionsJoined"), c("auctionsSeen")), auctionTime: pct(tab("a"), tabAll), winsPerSession: ss.length ? (c("wins") / ss.length).toFixed(1) : "–", mktBuys: c("mktBuys"), sellAuctions: c("sellAuctions") };
   });
   return {
-    abm, rankUps: sum("rankUps"), finalCues: sum("finalCues"), findGood: sum("find_good"), findFlaw: sum("find_flaw"), findJackpot: sum("find_jackpot"), featured: sum("featured"), featuredWon: sum("featuredWon"), sellListings: sum("sellListings"), sellAuctions: sum("sellAuctions"), sellAuctionSold: sum("sellAuctionSold"), agentSales: sum("agentSales"), redevs: sum("redevs"), redevDone: sum("redevDone"), redevSpend: sum("redevSpend"), blowouts: sum("blowouts"), buildDelays: sum("buildDelays"), mansionTax: sum("mansionTax"), iapBuys: sum("iapBuys"), iapRestores: sum("iapRestores"), shopViews: sum("shopViews"), shopClicks: sum("shopClicks"), inApp: S.filter(s => (s.meta || {}).inApp).length,
+    abm, rankUps: sum("rankUps"), rar: [0, 1, 2, 3, 4].map(i => sum("rar_" + i)), shareOffers: sum("shareOffers"), shareOpens: sum("shareOpens"), shareDone: sum("shareDone") + sum("shareSaves") + sum("shareCopies"), sdPlays: sum("sdPlays"), sdWins: sum("sdWins"), sdToday: Object.keys(readBoard(today)).length, finalCues: sum("finalCues"), findGood: sum("find_good"), findFlaw: sum("find_flaw"), findJackpot: sum("find_jackpot"), featured: sum("featured"), featuredWon: sum("featuredWon"), sellListings: sum("sellListings"), sellAuctions: sum("sellAuctions"), sellAuctionSold: sum("sellAuctionSold"), agentSales: sum("agentSales"), redevs: sum("redevs"), redevDone: sum("redevDone"), redevSpend: sum("redevSpend"), blowouts: sum("blowouts"), buildDelays: sum("buildDelays"), mansionTax: sum("mansionTax"), iapBuys: sum("iapBuys"), iapRestores: sum("iapRestores"), shopViews: sum("shopViews"), shopClicks: sum("shopClicks"), inApp: S.filter(s => (s.meta || {}).inApp).length,
     iapById: Object.entries(S.flatMap(s => (s.log || []).filter(e => e.type === "purchase")).reduce((m, e) => (m[e.id] = (m[e.id] || 0) + 1, m), {})),
     ab, dailyLots: sum("dailyLots"), rateLocks: sum("rateLocks"), rescueBuys: sum("rescueBuys"), rescues: sum("rescues"),
     players: P.length, sessions: S.length,
@@ -162,6 +193,7 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
 <h2>Auctions</h2><div class="g">${tile("Auctions seen", s.auctionsSeen)}${tile("Joined", s.joinRate, "of lots shown")}${tile("Win rate", s.winRate, "of lots joined")}${tile("Wins paid over value", s.overpaidWins)}${tile("Wins by zone", Object.entries(s.winZones).map(([z, n]) => z + " " + n).join(" · ") || "–")}${tile("Near-misses", s.nearMiss)}${tile("Win combos", s.combos)}${tile("Background auto-bids", s.liveAutos)}${tile("Hot lot taps", s.quickPlays)}</div>
 <h2>Auction tension (v20)</h2><div class="g">${tile("Your call cues", s.finalCues, "auto-bid handed back the paddle")}${tile("Inspections", "good " + s.findGood + " · flaw " + s.findFlaw + " · jackpot " + s.findJackpot)}${tile("Featured auctions", s.featured, s.featuredWon + " won")}${tile("Selling", s.sellAuctionSold + "/" + s.sellAuctions + " sold at auction", s.agentSales + " agent sales")}</div>
+<h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}${tile("Redevelopments", s.redevs, s.redevDone + " finished · $" + Math.round((s.redevSpend || 0) / 1e6 * 10) / 10 + "M spent")}${tile("Build problems", s.blowouts + " blowouts", s.buildDelays + " delays")}${tile("Mansion tax paid", "$" + Math.round((s.mansionTax || 0) / 1000) + "K")}</div>
 <h2>A/B: auctions first (Market removed)</h2><div class="g">${s.abm.map(a => tile(a.v ? "Market kept" : "Auctions first", a.auctionTime + " time in auctions", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · join ${a.join} · ${a.winsPerSession} wins/session · ${a.mktBuys} market buys · ${a.sellAuctions} sold at auction`)).join("")}${tile("Rich-list climbs", s.rankUps, "after beating rivals")}</div>
 <h2>A/B: bidder registrations</h2><div class="g">${s.ab.map(a => tile(a.v ? "Limited (8, refill 12 min)" : "Control (no limit)", a.join + " join", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · ${a.winsPerSession} wins/session${a.v ? ` · ${a.used} used · out ${a.blocked}×` : ""}`)).join("")}${tile("Today's lots", s.dailyLots)}${tile("Bank: rate locks", s.rateLocks)}${tile("Bank: rescue cover", s.rescueBuys, s.rescues + " repossessions stopped")}</div>
@@ -183,6 +215,7 @@ http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   try {
     if (url.pathname === "/healthz") return send(req, res, 200, "text/plain", "ok");
+    if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
