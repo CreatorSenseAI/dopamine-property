@@ -306,7 +306,9 @@ http.createServer(async (req, res) => {
     }
     if (url.pathname === "/admin/digest.txt") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
-      return send(req, res, 200, "text/plain; charset=utf-8", digest(url), { "cache-control": "no-store", "x-robots-tag": "noindex" });
+      const dg = digest(url);
+      if (url.searchParams.get("log") === "1") dg.split("\n").forEach((l, i) => l && console.log("DG " + String(i).padStart(4, "0") + " " + l));
+      return send(req, res, 200, "text/plain; charset=utf-8", dg, { "cache-control": "no-store", "x-robots-tag": "noindex" });
     }
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
