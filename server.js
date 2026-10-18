@@ -87,11 +87,12 @@ async function boardPost(req, res) {
   const nick = String(b.nick || "").trim();
   if (!NICK.test(nick)) return send(req, res, 400, "text/plain", "bad name");
   const board = readBoard(b.day), cur = board[b.installId];
-  if (cur) cur.nick = nick;
+  const stars = Math.max(0, Math.min(999, b.stars | 0));
+  if (cur) { cur.nick = nick; if (b.stars != null) cur.stars = stars; }
   else {
     const score = Number(b.score);
     if (!isFinite(score) || score < -60 || score > 120) return send(req, res, 400, "text/plain", "bad score");
-    board[b.installId] = { nick, score: Math.round(score * 100) / 100, hammer: Math.round(+b.hammer || 0), value: Math.round(+b.value || 0), rarity: Math.max(0, Math.min(4, b.rarity | 0)), at: new Date().toISOString() };
+    board[b.installId] = { nick, score: Math.round(score * 100) / 100, hammer: Math.round(+b.hammer || 0), value: Math.round(+b.value || 0), rarity: Math.max(0, Math.min(4, b.rarity | 0)), stars, at: new Date().toISOString() };
   }
   writeJSON(boardFile(b.day), board);
   send(req, res, 204, "text/plain", "");
@@ -101,7 +102,7 @@ function boardGet(req, res, url) {
   if (!DAY.test(d)) return send(req, res, 400, "application/json", "{}");
   const all = Object.entries(readBoard(d)).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.score - a.score || a.at.localeCompare(b.at));
   const rank = all.findIndex(e => e.id === me) + 1;
-  const top = all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, rarity: e.rarity, me: e.id === me }));
+  const top = all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, rarity: e.rarity, stars: e.stars || 0, me: e.id === me }));
   send(req, res, 200, "application/json", JSON.stringify({ day: d, count: all.length, rank: rank || null, top }), { "cache-control": "no-store" });
 }
 
@@ -210,7 +211,7 @@ function stats() {
     return { v, players: ps.length, d1: pct(n1, dd1), medMin: med(ss.map(s => s.playSec / 60))?.toFixed(1) ?? "–", join: pct(c("auctionsJoined"), c("auctionsSeen")), auctionTime: pct(tab("a"), tabAll), winsPerSession: ss.length ? (c("wins") / ss.length).toFixed(1) : "–", mktBuys: c("mktBuys"), sellAuctions: c("sellAuctions") };
   });
   return {
-    abm, rankUps: sum("rankUps"), rar: [0, 1, 2, 3, 4].map(i => sum("rar_" + i)), shareOffers: sum("shareOffers"), shareOpens: sum("shareOpens"), shareDone: sum("shareDone") + sum("shareSaves") + sum("shareCopies"), sdPlays: sum("sdPlays"), sdWins: sum("sdWins"), sdToday: Object.keys(readBoard(today)).length, finalCues: sum("finalCues"), findGood: sum("find_good"), findFlaw: sum("find_flaw"), findJackpot: sum("find_jackpot"), featured: sum("featured"), featuredWon: sum("featuredWon"), sellListings: sum("sellListings"), sellAuctions: sum("sellAuctions"), sellAuctionSold: sum("sellAuctionSold"), agentSales: sum("agentSales"), redevs: sum("redevs"), redevDone: sum("redevDone"), redevSpend: sum("redevSpend"), blowouts: sum("blowouts"), buildDelays: sum("buildDelays"), mansionTax: sum("mansionTax"), iapBuys: sum("iapBuys"), iapRestores: sum("iapRestores"), shopViews: sum("shopViews"), shopClicks: sum("shopClicks"), inApp: S.filter(s => (s.meta || {}).inApp).length,
+    abm, rankUps: sum("rankUps"), prestiges: sum("prestiges"), dynOpens: sum("dynOpens"), goalTaps: sum("goalTaps"), ifwinOpens: sum("ifwinOpens"), esec: ["ov", "pf", "mo", "sets", "rich", "bad", "dyn"].map(k => k + " " + sum("esec_" + k)).join(" · "), rar: [0, 1, 2, 3, 4].map(i => sum("rar_" + i)), shareOffers: sum("shareOffers"), shareOpens: sum("shareOpens"), shareDone: sum("shareDone") + sum("shareSaves") + sum("shareCopies"), sdPlays: sum("sdPlays"), sdWins: sum("sdWins"), sdToday: Object.keys(readBoard(today)).length, finalCues: sum("finalCues"), findGood: sum("find_good"), findFlaw: sum("find_flaw"), findJackpot: sum("find_jackpot"), featured: sum("featured"), featuredWon: sum("featuredWon"), sellListings: sum("sellListings"), sellAuctions: sum("sellAuctions"), sellAuctionSold: sum("sellAuctionSold"), agentSales: sum("agentSales"), redevs: sum("redevs"), redevDone: sum("redevDone"), redevSpend: sum("redevSpend"), blowouts: sum("blowouts"), buildDelays: sum("buildDelays"), mansionTax: sum("mansionTax"), iapBuys: sum("iapBuys"), iapRestores: sum("iapRestores"), shopViews: sum("shopViews"), shopClicks: sum("shopClicks"), inApp: S.filter(s => (s.meta || {}).inApp).length,
     iapById: Object.entries(S.flatMap(s => (s.log || []).filter(e => e.type === "purchase")).reduce((m, e) => (m[e.id] = (m[e.id] || 0) + 1, m), {})),
     ab, dailyLots: sum("dailyLots"), rateLocks: sum("rateLocks"), rescueBuys: sum("rescueBuys"), rescues: sum("rescues"),
     players: P.length, sessions: S.length,
@@ -251,6 +252,7 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>Auctions</h2><div class="g">${tile("Auctions seen", s.auctionsSeen)}${tile("Joined", s.joinRate, "of lots shown")}${tile("Win rate", s.winRate, "of lots joined")}${tile("Wins paid over value", s.overpaidWins)}${tile("Wins by zone", Object.entries(s.winZones).map(([z, n]) => z + " " + n).join(" · ") || "–")}${tile("Near-misses", s.nearMiss)}${tile("Win combos", s.combos)}${tile("Background auto-bids", s.liveAutos)}${tile("Hot lot taps", s.quickPlays)}</div>
 <h2>Auction tension (v20)</h2><div class="g">${tile("Your call cues", s.finalCues, "auto-bid handed back the paddle")}${tile("Inspections", "good " + s.findGood + " · flaw " + s.findFlaw + " · jackpot " + s.findJackpot)}${tile("Featured auctions", s.featured, s.featuredWon + " won")}${tile("Selling", s.sellAuctionSold + "/" + s.sellAuctions + " sold at auction", s.agentSales + " agent sales")}</div>
 <h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
+<h2>Dynasty and layout (v25)</h2><div class="g">${tile("Dynasty sheet opens", s.dynOpens, s.prestiges + " cash-outs")}${tile("Goal chip taps", s.goalTaps)}${tile("If-you-win opens", s.ifwinOpens)}${tile("Empire sections", s.esec)}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}${tile("Redevelopments", s.redevs, s.redevDone + " finished · $" + Math.round((s.redevSpend || 0) / 1e6 * 10) / 10 + "M spent")}${tile("Build problems", s.blowouts + " blowouts", s.buildDelays + " delays")}${tile("Mansion tax paid", "$" + Math.round((s.mansionTax || 0) / 1000) + "K")}</div>
 <h2>A/B: auctions first (Market removed)</h2><div class="g">${s.abm.map(a => tile(a.v ? "Market kept" : "Auctions first", a.auctionTime + " time in auctions", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · join ${a.join} · ${a.winsPerSession} wins/session · ${a.mktBuys} market buys · ${a.sellAuctions} sold at auction`)).join("")}${tile("Rich-list climbs", s.rankUps, "after beating rivals")}</div>
 <h2>A/B: bidder registrations</h2><div class="g">${s.ab.map(a => tile(a.v ? "Limited (8, refill 12 min)" : "Control (no limit)", a.join + " join", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · ${a.winsPerSession} wins/session${a.v ? ` · ${a.used} used · out ${a.blocked}×` : ""}`)).join("")}${tile("Today's lots", s.dailyLots)}${tile("Bank: rate locks", s.rateLocks)}${tile("Bank: rescue cover", s.rescueBuys, s.rescues + " repossessions stopped")}</div>

@@ -18,7 +18,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - `startAuction()` sets rivals (each with a private `max`) and `A.est`, the valuer's estimate shown to the player (true value ±5% centre, ±8% band). The walk-away line is `A.est.hi`.
 - `auctionTick()` runs every 100ms; `econTick()` every 1s (1s = 1 game month: rent, bills, growth, events).
 - `project(price, tier, value, style)` is the "if you win" maths: cash out today, loan, monthly net cash flow, day-one equity.
-- `updDeal()` draws the meter marker, the dock verdict and the If-you-win panel. `drawMeter()` draws the zones per lot.
+- `updDeal()` draws the meter marker, the dock verdict and the If-you-win panel. `drawMeter()` draws the zones per lot. If you win is a popover (`#ifwin`, `closeIw()`) opened by tapping the dock verdict.
 - `tour()` is the walkthrough, reachable from the `?` menu (`menu()`). New players get one-line coach marks instead (`coach(key,msg)`, seen keys in `S.coach`).
 - Multi-auction: `A` is the lot on screen; `LIVE` holds background lots (`x.bg=true`). `liveTick()` swaps `A` to each background lot and runs the same `auctionTick()`; every DOM function returns early when `A.bg`. `focusLive(no)` swaps a background lot onto the screen. `quickPlay()` = Hot lot.
 - `endAuction()` handles both: bookkeeping is shared, presentation splits on `ui=!A.bg`. Near-miss = lost within two bids and under the walk-away. `noteWin()` runs the combo chime.
@@ -56,4 +56,12 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 ## Declutter rules (v12, from playtest feedback)
 - One notification on screen at a time (`toast()` queues; swipe sideways or tap to clear). Coach tips hold the queue.
 - Only show what matters now: details sit behind a tap (`<details>` for If you win, ledger, badges, play stats); tier chips appear once a second tier unlocks; auto-bid limit shows only when auto is on.
-- Header = net worth (+ income/mo under it), cash, menu. Nothing else.
+- Header = EAT mark, Dynasty star, streak, net worth (+ income/mo under it), cash, menu. Nothing else.
+
+## One-screen layout (v25)
+- Auction never scrolls at 360×640 and up: `#vAuction` is a flex column with `overflow:hidden`; the lot card flexes and the art (`.art`, min 56px) takes whatever height is left. Under 600px tall it falls back to scrolling. Keep new auction UI inside the existing rows or the art shrinks to nothing; check `scrollHeight - clientHeight` of `#vAuction` (smoke `fits()`).
+- Top row (`.toprow`): `#chips` (goal chip first, then Auto + unlocked tiers; the next locked tier is the goal chip) and `.tright` (Showdown, Featured countdown, Hot lot). The goal chip (`goalInfo()`, `updGoal()`): next market, then the Dynasty cash-out once worth is past `CASH_AT` ($100M) or every market is open. The old goal strip and the "Live now" title are gone.
+- Live cards are one row each with the auto button as a right column. The result line overlays the top of the lot card.
+- Empire is sections behind a dropdown (`#eSec`, `ESECS`, `eGo(k)`): Overview (hero, goal bar, 12 tiles, no scroll), Portfolio, Money and bank, Suburb sets, Rich list, Badges, Dynasty and play. Jump to a section with `show('e');eGo('pf')`. The section survives tab switches within a session.
+- Dynasty: header star always shows (★ 0 too) and opens `dynastySheet()`: stars, prestige title (`RANKS`, `rankOf()`), cash-out (`cashOut()`), lifetime stats (`S.life`, kept in `carry()`). Title badges `rank1…rank25` via `rankBadges()`. Stars also on the share card and the showdown board (`stars` in `/api/board`).
+

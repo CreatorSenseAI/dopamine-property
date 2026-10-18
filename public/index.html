@@ -638,12 +638,152 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 .pager button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:9px 14px;font-weight:700;font-size:14px;min-width:92px}
 .pager button:disabled{opacity:.4;cursor:default}
 .pager span{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);text-align:center}
+
+/* ---------- v25: auction fits one screen, Empire overview, Dynasty ---------- */
+.top{padding:6px 14px}
+.help{width:32px;height:32px}
+main{padding:8px 14px 10px;gap:8px}
+#vAuction{overflow:hidden;position:relative}
+#vAuction>.lot{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;position:relative}
+#vAuction>.lot>*{flex:none}
+#vAuction .art,#vAuction:has(.lvstrip:not([hidden])) .art{flex:1 1 auto;min-height:70px;max-height:none;aspect-ratio:auto;height:auto}
+#vAuction .art>svg,#vAuction .art>img{position:absolute;inset:0;width:100%;height:100%}
+#vAuction .art .tag,#vAuction .art .rare{top:8px}
+#vAuction .lotinfo{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;padding:6px 12px 2px}
+#vAuction .addr{font-size:15px;flex:0 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vAuction .sub{font-size:12px;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vAuction .guide{flex:none;text-align:right;display:flex;gap:5px;align-items:baseline}
+#vAuction .guide small{display:inline;font-size:10.5px}
+
+#vAuction .specs{padding:2px 12px 4px}
+#vAuction .live{padding:4px 12px 8px;gap:2px 10px}
+#vAuction .live .big{font-size:32px}
+#vAuction .leader{margin-top:0;font-size:12.5px}
+#vAuction .call b{font-size:16px}
+#vAuction .live .deal{padding:0 0 2px;gap:2px}
+#vAuction .est{font-size:13px}
+#vAuction .meter{margin:17px 0 2px;height:10px}
+#vAuction .pad{gap:0;width:52px}
+#vAuction .pad small,#vAuction .pad em{font-size:10.5px;line-height:1.15}
+#vAuction .pads{padding-top:3px}
+#vAuction .clock{height:5px}
+#vAuction .result{position:absolute;left:8px;right:8px;top:8px;z-index:4;box-shadow:0 6px 18px var(--shadow);border:1px solid var(--line);background:var(--surface)}
+#vAuction .lvstrip{gap:4px}
+#vAuction .lvhead b{font-size:13px}
+#vAuction .chips .chip{padding:4px 10px;font-size:12.5px}
+.goalchip{position:relative;overflow:hidden;background:var(--surface)}
+.goalchip i{position:absolute;left:0;top:0;bottom:0;background:var(--gold-fill);opacity:.4;transition:width .5s}
+.goalchip span{position:relative;font-weight:600}
+.goalchip.dyn{border-color:var(--gold)}
+.goalchip.ready{background:var(--gold-fill);color:var(--on-gold)}.goalchip.ready i{display:none}
+.lv{flex-direction:row;align-items:stretch;position:relative}
+.lvmain{flex:1;min-width:0;grid-template-columns:34px 1fr;gap:6px;padding:4px 5px 6px}
+.lvart{width:34px;height:34px}
+.lvt b{font-size:11.5px}.lvp{font-size:12px}.lvs{font-size:10.5px}
+.lvclock{position:absolute;left:0;right:0;bottom:0;height:2px}
+.lvauto{flex:none;width:58px;border-top:0;border-left:1px solid var(--line);min-height:0;padding:2px 4px 4px;font-size:11.5px;line-height:1.15;white-space:normal;text-align:center;font-family:var(--f-mono)}
+.lvauto small{display:block;font-family:var(--f-body);font-size:10px;font-weight:700;opacity:.75}
+.dock{padding:7px 14px;gap:6px}
+.dock .bid{padding:11px 12px}
+.bigbid{padding:5px 6px}
+.dock .skip{padding:6px 12px}
+.dock .auto{padding:4px 6px}
+.dock .toggle{padding:5px 10px}
+.verdict{border:0;background:none;padding:0;width:100%;text-align:left;color:inherit;font:inherit;font-size:13px;cursor:pointer;min-height:22px}
+.verdict::after{content:"";margin-left:auto;flex:none;width:7px;height:7px;border-right:2px solid var(--muted);border-top:2px solid var(--muted);transform:rotate(-45deg);margin-right:3px;margin-top:3px}
+.verdict[aria-expanded="true"]::after{transform:rotate(135deg);margin-top:-4px}
+.iwpop{position:absolute;left:14px;right:14px;bottom:8px;z-index:6;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 -6px 28px var(--shadow);display:flex;flex-direction:column;gap:10px;animation:iwin .18s ease-out}
+.iwpop[hidden]{display:none}
+@keyframes iwin{from{transform:translateY(12px);opacity:0}}
+.iwtop{display:flex;align-items:center;gap:8px}
+.iwtop b{font-family:var(--f-display);font-weight:400;font-size:16px;letter-spacing:.04em;text-transform:uppercase}
+.iwtop .iwsum{margin-left:auto}
+.iwx{border:0;background:var(--sunk);color:var(--ink);width:28px;height:28px;border-radius:50%;font-size:18px;line-height:1;flex:none}
+#vAuction .cur small{font-size:10px;line-height:1.1}
+#vAuction .live .big{font-size:30px}
+#vAuction .leader{font-size:12px;line-height:1.25}
+#vAuction .dhead{align-items:baseline}
+#vAuction .dhead small{display:inline;margin-right:5px;font-size:10px}
+#vAuction .dhead small{letter-spacing:.05em}
+#vAuction .dhead>div{white-space:nowrap}
+#vAuction .dhead .est{font-size:12.5px}
+#vAuction .meter{margin-top:19px}
+#vAuction .meter .mk span{font-size:10.5px;padding:0 5px;line-height:15px}
+.toprow{display:flex;align-items:center;gap:8px;min-width:0}
+.toprow .chips{flex:1 1 auto;min-width:0;margin:0 0 0 -14px;padding:0 6px 0 14px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent)}
+.tright{flex:none;display:flex;align-items:center;gap:6px}
+.tright .featin{margin:0}.tright .sdbtn,.tright .hotbtn{margin:0;padding:4px 10px;font-size:12px}
+.tright .sdbtn:not([hidden])~.featin{display:none}
+#vAuction:not(:has(.lvstrip:not([hidden]))) .tright .hotbtn{display:none}
+#vAuction .setchip{position:absolute;left:10px;top:36px;z-index:2;background:var(--surface);border-radius:999px;padding:2px 8px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px var(--shadow)}
+#vAuction .lotinfo{flex-wrap:nowrap}
+.dock .auto{padding:2px 6px}
+.dock .skip{padding:4px 12px}
+.dock .bid{padding:10px 12px}
+#vAuction .art,#vAuction:has(.lvstrip:not([hidden])) .art{min-height:56px}
+@media (max-height:600px){#vAuction{overflow-y:auto}#vAuction>.lot{flex:none}#vAuction .art,#vAuction:has(.lvstrip:not([hidden])) .art{flex:none;height:84px}}
+@media (max-height:620px){#vEmpire .hnote{display:none}.otiles button{padding:4px 8px 5px}#vEmpire .hero .big{font-size:34px}}
+@media (min-height:760px){#vAuction .meter{margin-top:22px}#vAuction .live .big{font-size:36px}#vAuction .cur small{font-size:11px}}
+/* Empire */
+.esel{position:sticky;top:-8px;z-index:3;margin:-8px -14px 0;padding:8px 14px 6px;background:var(--bg)}
+.esel select{appearance:none;-webkit-appearance:none;width:100%;font:inherit;font-weight:700;font-size:15px;padding:9px 36px 9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.esel::after{content:"";position:absolute;right:29px;top:50%;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.esec{display:flex;flex-direction:column;gap:8px}
+.esec[hidden]{display:none}
+.esec>*{flex-shrink:0}
+#vEmpire .hero{padding:10px 14px 12px}
+#vEmpire .hero .big{font-size:40px;margin:0}
+#vEmpire .hinc{margin:2px 0 0;font-size:13px}
+#vEmpire .unlock{padding:8px 12px}
+#vEmpire .unlock p{font-size:13px;margin:0 0 6px}
+.unlock.dyn{border-color:var(--gold)}
+.otiles,.hstats2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.otiles button,.hstats2 div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 9px 7px;text-align:left;display:flex;flex-direction:column;min-width:0;color:var(--ink)}
+.otiles small,.hstats2 small{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.otiles strong,.hstats2 strong{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hstats2 strong.pos{color:var(--green)}.hstats2 strong.neg{color:var(--red)}
+.otiles .ostar{border-color:var(--gold)}.otiles .ostar strong{color:var(--gold);font-size:12.5px}
+.rt.r2{color:#2f6fd6}.rt.r3{color:#8b45d6}.rt.r4{color:#c98a00}
+#vEmpire .hnote{font-size:11.5px;color:var(--muted);text-align:center;margin:0;opacity:1}
+.dyncard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;color:var(--ink)}
+.dyncard .dstar{font-family:var(--f-mono);font-weight:700;background:var(--gold-fill);color:var(--on-gold);border-radius:999px;padding:4px 10px;flex:none}
+.dyncard b{display:block;font-family:var(--f-display);font-weight:400;font-size:18px;letter-spacing:.04em;text-transform:uppercase}
+.dyncard small{display:block;color:var(--muted);font-size:12.5px}
+.dyncard em{margin-left:auto;font-style:normal;font-weight:700;font-size:13px;color:var(--muted)}
+.stars.ready{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--gold);animation:starpulse 1.6s ease-in-out infinite alternate}
+@keyframes starpulse{to{box-shadow:0 0 0 2px var(--surface),0 0 0 6px transparent}}
+.bst{font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--gold)}
+.dyn{text-align:left}
+.dhero{display:flex;gap:14px;align-items:center}
+.dbig{font-family:var(--f-display);font-size:46px;line-height:1;color:var(--gold);flex:none}
+.dhero small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dhero b{display:block;font-family:var(--f-display);font-weight:400;font-size:26px;letter-spacing:.04em;text-transform:uppercase;line-height:1.1}
+.dhero em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.dyn .bar{margin:10px 0 8px;height:6px}
+.sheet .dyn p.dbon{text-align:left;font-size:13px;margin:0 0 10px}
+.ladder{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 12px}
+.ladder span{background:var(--sunk);border-radius:8px;padding:3px 6px;display:flex;flex-direction:column;align-items:center;line-height:1.15;opacity:.7}
+.ladder span b{font-size:11.5px}.ladder span small{font-family:var(--f-mono);font-size:10.5px;color:var(--muted)}
+.ladder span.on{background:var(--gold-fill);color:var(--on-gold);opacity:1}.ladder span.on small{color:inherit}
+.ladder span.cur{box-shadow:0 0 0 2px var(--ink)}
+.dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.dstats div{background:var(--sunk);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;min-width:0}
+.dstats small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dstats strong{font-family:var(--f-mono);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcash{border:1px solid var(--gold);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.dcash>b{font-family:var(--f-display);font-weight:400;font-size:17px;letter-spacing:.04em;text-transform:uppercase}
+.sheet .dcash p{text-align:left;font-size:12.5px;margin:2px 0 8px}
+.sheet .dcash .legbtn{padding:10px}
+.sheet .legbtn{background:var(--gold-fill);color:var(--on-gold);box-shadow:0 3px 0 #a8780f}
+.sheet .legbtn:disabled{background:var(--sunk);color:var(--muted);box-shadow:none}
+.sheet .legbtn.armed{background:var(--red);color:var(--on-red);box-shadow:0 3px 0 #8c1426}
+.sheet p.rankup{color:var(--gold);font-size:16px}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
-    <div class="mark"><b>EAT</b><span>Empire Auction<br>Tycoon</span><button class="stars" id="hStars" hidden aria-label="Legacy stars"></button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
+    <div class="mark"><b>EAT</b><span>Empire Auction<br>Tycoon</span><button class="stars" id="hStars" aria-label="Dynasty: stars and prestige">★ 0</button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
     <div class="ledger">
       <div><small>Net worth</small><strong id="hWorth">$0</strong><em id="hInc">+$0/mo</em></div>
       <div><small>Cash</small><strong id="hCash">$0</strong></div>
@@ -652,9 +792,8 @@ details.bills.fold[open]>summary{margin-bottom:6px}
   </header>
 
   <main id="vAuction">
-    <button class="goal" id="goal" aria-label="Your goal. Open your empire"><div class="gl"><small>Goal</small><span id="goalTxt"></span><em id="goalPct"></em></div><div class="bar"><i id="goalBar"></i></div></button>
-    <div class="chips" id="chips" role="group" aria-label="Market tier"></div>
-    <section class="lvstrip" id="lvStrip" hidden aria-label="Other live auctions"><div class="lvhead"><b>Live now</b><span id="lvCount"></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><span class="featin" id="featIn" hidden></span><button class="hotbtn" data-quick="1">Hot lot</button></div><div class="lvrow" id="lvRow"></div></section>
+    <div class="toprow"><div class="chips" id="chips" role="group" aria-label="Goal and market tier"></div><div class="tright"><span id="lvCount" hidden></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><span class="featin" id="featIn" hidden></span><button class="hotbtn" data-quick="1">Hot lot</button></div></div>
+    <section class="lvstrip" id="lvStrip" hidden aria-label="Other live auctions"><div class="lvrow" id="lvRow"></div></section>
 
     <section class="lot" id="lotCard" aria-live="polite">
       <div class="art" id="art"></div>
@@ -670,8 +809,8 @@ details.bills.fold[open]>summary{margin-bottom:6px}
         <div class="call"><b id="callTxt">Bidding open</b><span class="num" id="clockTxt">12.0s</span></div>
         <div class="deal" id="deal">
           <div class="dhead">
-            <div><small>Valuer&rsquo;s estimate</small><span class="est" id="estTxt"></span></div>
-            <div class="r"><small>Walk away at</small><span class="est" id="waTxt"></span></div>
+            <div><small>Estimate</small><span class="est" id="estTxt"></span></div>
+            <div class="r"><small>Walk away</small><span class="est" id="waTxt"></span></div>
           </div>
           <div class="meter" id="meter"><div class="track" id="track"></div><i class="wa" id="waMk"></i><i class="mk" id="mk"><span id="mkLbl"></span></i></div>
         </div>
@@ -681,15 +820,15 @@ details.bills.fold[open]>summary{margin-bottom:6px}
       </div>
     </section>
 
-    <details class="ifwin" id="ifwin">
-      <summary><span id="iwHead">If you win</span><span class="iwsum" id="iwSum"></span></summary>
+    <div class="iwpop" id="ifwin" hidden role="dialog" aria-label="If you win">
+      <div class="iwtop"><b id="iwHead">If you win</b><span class="iwsum" id="iwSum"></span><button class="iwx" id="iwX" aria-label="Close">&times;</button></div>
       <div class="iw">
         <div><small>Cash today</small><strong id="iwCash"></strong><em id="iwCashN"></em></div>
         <div><small>Cash flow</small><strong id="iwFlow"></strong><em id="iwFlowN"></em></div>
         <div><small>Net worth</small><strong id="iwWorth"></strong><em id="iwWorthN"></em></div>
       </div>
       <div class="incline" id="iwInc"></div>
-    </details>
+    </div>
   </main>
 
   <main id="vMarket" hidden>
@@ -708,43 +847,68 @@ details.bills.fold[open]>summary{margin-bottom:6px}
   </main>
 
   <main id="vEmpire" hidden>
+    <div class="esel"><select id="eSec" aria-label="Empire section"></select></div>
+    <div class="esec" data-s="ov">
     <section class="hero">
       <small>Net worth</small>
       <span class="big" id="eWorth">$0</span>
       <div class="hinc" id="eInc"></div>
-      <div class="hstats">
-        <div><small>Cash</small><strong id="eCash">$0</strong></div>
-        <div><small>Rent in</small><strong id="eRent">$0</strong></div>
-        <div><small>Bills out</small><strong id="eBills">$0</strong></div>
-        <div><small>Debt</small><strong id="eDebt">$0</strong></div>
-      </div>
-      <div class="hnote">1 second = 1 month. Rent lands every second a house is tenanted. Bills go out every second, tenant or not.</div>
     </section>
     <section class="unlock" id="unlock"><p id="unlockTxt"></p><div class="bar"><i id="unlockBar"></i></div></section>
-    <section class="sets" id="setsBox" hidden><h2>Suburb sets</h2><p class="bnote">Own 3 homes in one suburb for +10% rent on all of them. Two on the same street adds another +5%.</p><div class="setlist" id="setList"></div></section>
+    <div class="otiles" id="oTiles">
+      <button data-go="mo"><small>Cash</small><strong id="eCash">$0</strong></button>
+      <button data-go="mo"><small>Rent in</small><strong id="eRent">$0</strong></button>
+      <button data-go="mo"><small>Bills out</small><strong id="eBills">$0</strong></button>
+      <button data-go="mo"><small>Debt</small><strong id="eDebt">$0</strong></button>
+      <button data-go="pf"><small>Homes</small><strong id="oHomes">0</strong></button>
+      <button data-go="pf"><small>Best finds</small><strong id="oFinds">-</strong></button>
+      <button data-go="rich"><small>Rich list</small><strong id="oRank">-</strong></button>
+      <button data-go="dyn"><small>Win rate</small><strong id="pRate">-</strong></button>
+      <button data-go="sets"><small>Sets</small><strong id="oSets">0</strong></button>
+      <button data-dyn="1" class="ostar"><small>Dynasty</small><strong id="oStars">★ 0</strong></button>
+      <button data-go="bad"><small>Badges</small><strong id="oBadges">0</strong></button>
+      <button data-go="bad"><small>Streak</small><strong id="oStreak">0</strong></button>
+    </div>
+    <p class="hnote">1 second = 1 month. Rent lands every second a home is tenanted; bills go out every second.</p>
+    </div>
+    <div class="esec" data-s="pf" hidden>
     <div class="phead"><h2>Portfolio</h2><div class="pfilter" id="pfilter" role="group" aria-label="Show properties" hidden><button class="chip" id="pfAll" data-pf="all" aria-pressed="true">All <small id="pfAllN">0</small></button><button class="chip" id="pfRare" data-pf="rare" aria-pressed="false">Rare <small id="pfRareN">0</small></button></div></div>
     <div class="chips psort" id="psort" role="group" aria-label="Sort properties" hidden><button class="chip" data-ps="new" aria-pressed="true">Newest</button><button class="chip" data-ps="value" aria-pressed="false">Value</button><button class="chip" data-ps="flow" aria-pressed="false">Cash flow</button><button class="chip" data-ps="gain" aria-pressed="false">Gain</button><button class="chip" data-ps="loss" aria-pressed="false">Losing money</button><button class="chip" data-ps="suburb" aria-pressed="false">Suburb</button><button class="chip" data-ps="rarity" aria-pressed="false">Rarity</button></div>
     <div class="coll" id="coll" hidden></div>
     <div class="plist" id="plist"></div>
     <nav class="pager" id="pager" aria-label="Portfolio pages" hidden><button id="pgPrev" aria-label="Previous page">&lsaquo; Prev</button><span id="pgTxt" aria-live="polite"></span><button id="pgNext" aria-label="Next page">Next &rsaquo;</button></nav>
-    <details class="bills fold"><summary><h2>Monthly ledger</h2><span class="fsum" id="ledSum"></span></summary><div id="billRows"></div><div class="bnote" id="billNote"></div><div class="debtbox" id="debtBox" hidden><button class="repay" id="repayBtn"></button><button class="toggle" id="autoPayBtn" aria-pressed="false">Auto-pay: off</button><p class="bnote" id="debtNote"></p></div><div class="bank" id="bankBox" hidden><h3>Bank</h3><div id="bankRows"></div></div></details>
-    <section class="legacy" id="legacy"><div><h2>Dynasty</h2><p id="legacyTxt"></p></div><button class="legbtn" id="legacyBtn">Cash out</button></section>
-    <details class="fold plain" id="badgeFold"><summary><h2>Badges</h2><span class="fsum" id="bCount"></span></summary><div class="badges" id="badges"></div></details>
-    <button class="sec sdboard" id="sdBoardBtn" hidden>Today's showdown leaderboard</button>
+    </div>
+    <div class="esec" data-s="mo" hidden>
+    <section class="hstats2" id="moTop"></section>
+    <details class="bills fold" open><summary><h2>Monthly ledger</h2><span class="fsum" id="ledSum"></span></summary><div id="billRows"></div><div class="bnote" id="billNote"></div><div class="debtbox" id="debtBox" hidden><button class="repay" id="repayBtn"></button><button class="toggle" id="autoPayBtn" aria-pressed="false">Auto-pay: off</button><p class="bnote" id="debtNote"></p></div><div class="bank" id="bankBox" hidden><h3>Bank</h3><div id="bankRows"></div></div></details>
+    </div>
+    <div class="esec" data-s="sets" hidden>
+    <section class="sets" id="setsBox"><h2>Suburb sets</h2><p class="bnote">Own 3 homes in one suburb for +10% rent on all of them. Two on the same street adds another +5%.</p><div class="setlist" id="setList"></div></section>
+    <p class="empty" id="setsEmpty">No sets yet. Win 3 homes in one suburb for +10% rent on all of them.</p>
+    </div>
+    <div class="esec" data-s="rich" hidden>
     <h2>Rich list</h2>
     <ol class="rich" id="rich"></ol>
-    <details class="fold plain"><summary><h2>Your play</h2></summary>
+    <button class="sec sdboard" id="sdBoardBtn" hidden>Today's showdown leaderboard</button>
+    </div>
+    <div class="esec" data-s="bad" hidden>
+    <details class="fold plain" id="badgeFold" open><summary><h2>Badges</h2><span class="fsum" id="bCount"></span></summary><div class="badges" id="badges"></div></details>
+    </div>
+    <div class="esec" data-s="dyn" hidden>
+    <button class="dyncard" id="dynCard" data-dyn="1"></button>
+    <h2>Your play</h2>
     <section class="playcard">
       <div><small>Days played</small><strong id="pDays">0</strong></div>
       <div><small>Sessions</small><strong id="pSess">0</strong></div>
       <div><small>Time played</small><strong id="pTime">0m</strong></div>
-      <div><small>Win rate</small><strong id="pRate">-</strong></div>
-    </section></details>
+      <div><small>Win rate</small><strong id="pRate2">-</strong></div>
+    </section>
     <button class="reset" id="resetBtn">Start a new empire</button>
+    </div>
   </main>
 
   <div class="dock" id="dock">
-    <div class="verdict" id="verdict"></div>
+    <button class="verdict" id="verdict" aria-expanded="false" aria-controls="ifwin"></button>
     <div class="reginfo" id="regInfo" hidden></div>
     <div class="bidrow"><button class="bid" id="bidBtn">Bid</button><button class="bigbid" id="bigBtn" aria-label="Go big: jump the bidding"><b>Go big</b><span id="bigAmt"></span></button></div>
     <div class="row">
@@ -847,7 +1011,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -876,7 +1040,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v24-web';
+const VERSION='v25-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1149,7 +1313,7 @@ function renderPads(){if(!A||A.bg)return;const rin=A.rivals.filter(r=>!r.out).le
  const html=`<div class="pad you${A.leader==='you'?' lead':''}" style="--pc:var(--green)"><b>YOU</b><small>You</small></div>`+A.rivals.map(r=>{const m=rm(r),h=h2h[r.name],nem=S.nemesis===r.name,st=r.out?'out':A.leader===r?'lead':r.think>0?'think':'';
   return `<div class="pad ${st}${nem?' nem':''}" style="--pc:${m.col}" title="${esc(r.name)}"><b>${m.ini}</b><small>${esc(m.short)}</small>${nem?'<em>Nemesis</em>':h?`<em>you ${h.w}–${h.l}</em>`:''}${st==='out'?'<span class="ptag">Out</span>':''}${st==='think'?'<span class="dots"><i></i><i></i><i></i></span>':''}</div>`;}).join('');
  const pads=$('#pads');if(pads.dataset.sig!==html){pads.dataset.sig=html;pads.innerHTML=html;}
- const ic=$('#inCount');ic.textContent=A.ended?'':rin===0?'Field cleared':rin===1&&youBid?'Head to head':`${rin+(youBid?1:0)} bidders in`;ic.classList.toggle('hot',!A.ended&&rin<=1&&youBid);}
+ const ic=$('#inCount');ic.textContent=A.ended?'':rin===0?'Field cleared':rin===1&&youBid?'Head to head':`${rin+(youBid?1:0)} bidder${rin+(youBid?1:0)===1?'':'s'} in`;ic.classList.toggle('hot',!A.ended&&rin<=1&&youBid);}
 function dropOut(r){if(r.out)return;r.out=true;r.think=0;r.counterNext=false;T.c.rivalOuts++;A.st.outs++;if(A.war&&(A.war.a===r||A.war.b===r))A.war=null;if(r.bids>0){rivalSay(r,'out');sfx('drop');}renderPads();}
 /* two rivals sometimes lock horns while you watch */
 function rivalReact(who,prev,amt,big){
@@ -1242,15 +1406,15 @@ function startShowdown(){if(!sdOpen())return;show('a');SDQ=true;if(!A||A.ended||
 function drawSd(){const b=$('#sdBtn');if(b)b.hidden=!sdOpen();const bb=$('#sdBoardBtn');if(bb)bb.hidden=!(CONFIG.showdown&&WEB_STATS&&S.props.length>0);}
 async function showdownDone(p,day){const won=!!p,score=won?+((p.value/p.paid-1)*100).toFixed(2):null;if(won)T.c.sdWins++;
  tlog('showdown_end',{won,score});S.nick=S.nick||('Bidder '+(1000+Math.floor(Math.random()*9000)));save();
- let board=null;try{if(won)await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day,installId,nick:S.nick,score,hammer:Math.round(p.paid),value:Math.round(p.value),rarity:p.rarity})});
+ let board=null;try{if(won)await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day,installId,nick:S.nick,score,hammer:Math.round(p.paid),value:Math.round(p.value),rarity:p.rarity,stars:S.legacy||0})});
   board=await (await fetch('/api/board?day='+day+'&me='+installId)).json();}catch(e){}
  sdSheet(board,won?score:null);}
 function sdSheet(board,score){const rows=board&&board.top||[];
  $('#sheet').innerHTML=`<div class="upg sd"><h3>Today's showdown</h3><p>${score==null?'A rival took it this time. Same house for everyone today: here is who won it best.':`You scored <b>${score>=0?'+':''}${score.toFixed(1)}%</b> equity.${board&&board.rank?` You're #${board.rank} of ${board.count} today.`:''}`}</p>
-  <ol class="sdlist">${rows.map((r,i)=>`<li class="${r.me?'me':''}"><span>${i+1}</span><span>${esc(r.nick)}${r.rarity>=3?` <i class="rar r${r.rarity}">${RAR[r.rarity][0]}</i>`:''}</span><span class="num">${r.score>=0?'+':''}${(+r.score).toFixed(1)}%</span></li>`).join('')||'<li><span></span><span>No winners yet. Be the first.</span><span></span></li>'}</ol>
+  <ol class="sdlist">${rows.map((r,i)=>`<li class="${r.me?'me':''}"><span>${i+1}</span><span>${esc(r.nick)}${r.stars?` <i class="bst">★${r.stars}</i>`:''}${r.rarity>=3?` <i class="rar r${r.rarity}">${RAR[r.rarity][0]}</i>`:''}</span><span class="num">${r.score>=0?'+':''}${(+r.score).toFixed(1)}%</span></li>`).join('')||'<li><span></span><span>No winners yet. Be the first.</span><span></span></li>'}</ol>
   <p class="upnote">Playing as <b>${esc(S.nick||'Bidder')}</b> · <button class="linkbtn" id="sdName">Change name</button></p><button class="sec" id="sdClose">Close</button></div>`;$('#modal').hidden=false;
  $('#sdClose').onclick=()=>{$('#modal').hidden=true;};
- $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v})});const b2=await (await fetch('/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
+ $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch('/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v,stars:S.legacy||0})});const b2=await (await fetch('/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
 async function openBoard(){try{const b=await (await fetch('/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
 function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
 function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
@@ -1274,7 +1438,7 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
   const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
   p.feat=!!A.featured;p.nem=!!beatNem;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured,nem:!!beatNem,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
-  if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');
+  if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');lifeWin(p);
   if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(p,d),3600);}
   if(ui){stp.className='stamp '+(L.rare?'rarewin':'win');stp.innerHTML=`<div class="stamp-in"><b>${beatNem?'Nemesis beaten':L.rare?'Rare. Yours':'Sold to you'}</b><small>${full(A.bid)}</small><em data-roll="${Math.round(eq)}">+$0</em></div>`;
    res.className='result '+(L.value>=A.bid?'good':'bad');res.innerHTML=esc((L.value>=A.bid?`Bank values it at ${money(L.value)}: instant equity +${money(L.value-A.bid)}. ${gradeOf(prem)}, growing ${growPct(heat)}% a year.`:`Bank values it at ${money(L.value)}, ${money(A.bid-L.value)} under what you paid. ${gradeOf(prem)}: it grows ${growPct(heat)}% a year, so hold it.`)+` Stamp duty ${money(duty)}.`+(pay.loan?` Borrowed ${money(pay.loan)} at 6%.`:'')+` Cash flow ${sg(pn)}/mo.`)+affiliateHTML(L);
@@ -1300,8 +1464,8 @@ function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastW
 function affiliateHTML(L){if(!CONFIG.affiliate.enabled||!AU_STATES.includes(L.st))return '';const slug=L.sub.toLowerCase().replace(/\s+/g,'+');const url=CONFIG.affiliate.au.replace('{slug}',encodeURIComponent(slug).replace(/%2B/g,'+')).replace('{st}',L.st.toLowerCase());return `<br><a class="aff" href="${esc(url)}" target="_blank" rel="sponsored noopener" data-aff="${esc(L.sub)}">See real homes for sale in ${esc(L.sub)} &rsaquo;</a>`;}
 document.addEventListener('click',e=>{const a=e.target.closest('[data-aff]');if(a){T.c.affClicks=(T.c.affClicks||0)+1;tlog('aff_click',{sub:a.dataset.aff});track('Affiliate click',{suburb:a.dataset.aff});}});
 
-function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY;$('#chips').hidden=S.maxTier<1&&!AUC_CITY;$('#chips').innerHTML=`<button class="chip" data-auto="1" aria-pressed="${auto}">Auto <small>what you can afford</small></button>`+TIERS.map((t,i)=>{const locked=i>S.maxTier;return `<button class="chip" data-t="${i}" aria-pressed="${!auto&&i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join('')+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');}
-$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
+function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&!AUC_CITY;$('#chips').hidden=false;$('#chips').innerHTML=`<button class="chip goalchip" id="goalChip" data-goal="1" aria-label="Your goal"></button>`+(one?'':`<button class="chip" data-auto="1" aria-pressed="${auto}">Auto <small>what you can afford</small></button>`+TIERS.map((t,i)=>{const locked=i>S.maxTier;if(i===S.maxTier+1)return '';return `<button class="chip" data-t="${i}" aria-pressed="${!auto&&i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join(''))+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');updGoal();}
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
  $('#art').innerHTML=artOf(L)+`<span class="tag">Lot ${L.no} · ${T.name}</span>`+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
@@ -1321,17 +1485,20 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  const z=zoneOf(q,L,e),pr=project(q,L.ti,e.mid,L.style),ok=canPay(q,L.ti),now=incomeNow();if(!A.ended&&A.lastZone&&A.lastZone!==z)buzz(8);A.lastZone=z;
  const s=[A.ended,mine,q,z,Math.round(pr.net),Math.round(now),ok,S.cash>>10].join('|');if(s===dealSig)return;dealSig=s;
  $('#mkLbl').textContent=(A.ended?(A.leader?'Sold':'Passed in'):mine?'Your bid':'Next bid')+' '+money(q);
- if(A.sell){const rv=A.sell.reserve,ok2=A.leader&&A.bid>=rv;$('#verdict').innerHTML=`<span class="vd ${ok2?'good':'na'}">${A.ended?(ok2?'Sold':'Passed in'):ok2?'On the market':'Under reserve'}</span><span class="vtxt">Reserve <b>${money(rv)}</b> · top <b>${A.leader?money(A.bid):'none'}</b></span>`;$('#ifwin').hidden=true;return;}
+ if(A.sell){const rv=A.sell.reserve,ok2=A.leader&&A.bid>=rv;$('#verdict').innerHTML=`<span class="vd ${ok2?'good':'na'}">${A.ended?(ok2?'Sold':'Passed in'):ok2?'On the market':'Under reserve'}</span><span class="vtxt">Reserve <b>${money(rv)}</b> · top <b>${A.leader?money(A.bid):'none'}</b></span>`;closeIw();return;}
  const v=$('#verdict');
  if(A.ended){const p0=A.leader==='you'&&S.props[0],pn=p0?rentOf(p0)-propCost(p0,bills().landRate)-(p0.loan||0)*rate():0;v.innerHTML=p0?`<span class="vd steal">Yours</span><span class="vtxt">Cash flow <b class="${pn>=0?'pos':'neg'}">${sg(pn)}/mo</b> · see Empire</span>`:`<span class="vd na">${A.leader?'Sold':'Passed in'}</span><span class="vtxt">Next lot is on its way</span>`;}
  else if(!ok)v.innerHTML=`<span class="vd na">Out of reach</span><span class="vtxt">Need <b>${money(depositFor(q,L.ti))}</b> deposit + duty</span>`;
  else v.innerHTML=`<span class="vd ${z}">${ZONES[z]}</span><span class="vtxt">${mine?'At':'Win at'} <b>${money(q)}</b>: ${pr.day1>=0?'<b class="pos">'+sg(pr.day1)+'</b> equity':'<b class="neg">'+money(pr.day1)+'</b> on day one'} · <b class="${pr.net>=0?'pos':'neg'}">${sg(pr.net)}</b>/mo</span>`;
- const iw=$('#ifwin');iw.hidden=A.ended;if(iw.hidden)return;
+ if(A.ended){closeIw();return;}
  $('#iwHead').textContent=A.ended?'What you just bought':(mine?'If you win at ':'If you win at ')+money(q);
  $('#iwCash').textContent=money(pr.out);const cn=$('#iwCashN');cn.className=ok||A.ended?'':'neg';cn.textContent=!ok&&!A.ended?'You have '+money(S.cash):pr.loan?'Borrow '+money(pr.loan)+' at 6%':'Paid in full';
  $('#iwSum').textContent=sg(pr.net)+'/mo';$('#iwSum').className='iwsum '+(pr.net>=0?'pos':'neg');const f=$('#iwFlow');f.textContent=sg(pr.net)+'/mo';f.className=pr.net>=0?'pos':'neg';$('#iwFlowN').textContent='Rent '+money(pr.rent)+', costs '+money(pr.costs);
  const w=$('#iwWorth');w.textContent=sg(pr.day1);w.className=pr.day1>=0?'pos':'neg';$('#iwWorthN').textContent='Grows '+growPct(heatOf(q,L.guide))+'%/yr';
  $('#iwInc').innerHTML=A.ended?'':`Your income <b class="${now>=0?'pos':'neg'}">${sg(now)}/mo</b> → <b class="${now+pr.net>=0?'pos':'neg'}">${sg(now+pr.net)}/mo</b>`+(now+pr.net<0?'. Negative income drains your cash.':'');}
+function closeIw(){const p=$('#ifwin');if(p.hidden)return;p.hidden=true;$('#verdict').setAttribute('aria-expanded','false');}
+$('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.ended||A.sell){closeIw();return;}if(p.hidden){p.hidden=false;$('#verdict').setAttribute('aria-expanded','true');T.c.ifwinOpens=(T.c.ifwinOpens||0)+1;dealSig='';updDeal();}else closeIw();};
+$('#iwX').onclick=closeIw;
 function renderFeed(){if(A&&A.bg)return;if(!$('#feed'))return;$('#feed').innerHTML=A.feed.length?A.feed.map(f=>`<li class="${f.you?'you':''}"><span>${esc(f.who)}</span><span class="num">${full(f.amt)}</span></li>`).join(''):`<li><span>Room is quiet. Opening at</span><span class="num">${full(A.lot.open)}</span></li>`;}
 function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  $('#curLbl').textContent=A.leader?(A.ended?'Hammer price':'Current bid'):'Opening bid';
@@ -1395,7 +1562,7 @@ function marketEvent(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm|
  else if(kind==='rate_hike'){S.props.forEach(p=>p.value*=0.93);toast('Rates up. Buyers pull back, values slide 7%.','down');}
  else if(kind==='rate_cut'){S.props.forEach(p=>p.value*=1.05);toast('Rate cut. Values up 5%.','up');sfx('cash');}
  else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.12);sfx('cash');
-  toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
+  toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');eGo('pf');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
  for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
@@ -1406,7 +1573,7 @@ function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag(
  syncTier();updEmpire();save();}
 
 /* ---------- empire ---------- */
-let builtIds='',armed=null,armTimer=null,resetArmed=false,legArmed=false,pf='all',psort='new',pg=0;
+let eSec='ov',builtIds='',armed=null,armTimer=null,resetArmed=false,legArmed=false,pf='all',psort='new',pg=0;
 const PAGE=8;
 const flowOf=p=>p.vacant>0?-propCost(p,bills().landRate)-(p.loan||0)*rate():rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();
 /* order is fixed when the list is built, so rows never jump while values tick */
@@ -1422,15 +1589,19 @@ function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf
  $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.rarity>=1?`<button class="pill rar r${p.rarity}"${p.rarity>=3?` data-share="${p.id}" aria-label="Share this ${RAR[p.rarity][0]} find"`:' tabindex="-1"'}>${RAR[p.rarity][0]}${p.rarity>=3?' ↗':''}</button>`:''}${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
  const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;{const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const co=$('#coll');co.hidden=!(n[1]+n[2]+n[3]+n[4]);co.innerHTML='<b>Collection</b>'+[4,3,2,1].filter(i=>n[i]).map(i=>`<span class="rar r${i}">${n[i]} ${RAR[i][0]}</span>`).join('');}renderSets();renderBadges();updEmpire();
  if(view==='e'&&S.props.length>=3&&S.props.some(upgOpen))setTimeout(()=>{if(view==='e')coach('upgrade','Tap Upgrade on a home to renovate, extend or add a pool. It costs cash now and lifts the value and the rent.');},600);}
-function updGoal(){const w=worth(),nt=S.maxTier+1;
- if(nt<TIERS.length){const lo=TIERS[S.maxTier].unlock,hi=TIERS[nt].unlock,p=Math.max(0,Math.min(100,(w-lo)/(hi-lo)*100));$('#goalTxt').innerHTML=`<b>${money(hi)}</b> net worth unlocks <b>${TIERS[nt].name}</b>`;$('#goalPct').textContent=Math.floor(p)+'%';$('#goalBar').style.width=p+'%';}
- else{const rows=[w,...Object.values(S.board)].sort((a,b)=>b-a),rk=rows.indexOf(w)+1;$('#goalTxt').innerHTML=`Every market open. Top the rich list`;$('#goalPct').textContent='#'+rk;$('#goalBar').style.width=Math.max(4,100-(rk-1)*12)+'%';}}
-$('#goal').onclick=()=>show('e');
+/* goal lives in the chips row: next market, then the Dynasty cash-out */
+const CASH_AT=1e8,starsFor=w=>Math.floor(Math.sqrt(w/2.5e7)),starAt=n=>n*n*2.5e7;
+function goalInfo(){const w=worth(),nt=S.maxTier+1;
+ if(nt<TIERS.length&&w<CASH_AT){const lo=TIERS[S.maxTier].unlock,hi=TIERS[nt].unlock,p=Math.max(0,Math.min(100,(w-lo)/(hi-lo)*100));return{p,dyn:false,html:`${TIERS[nt].name} at <b>${money(hi)}</b>`,pct:Math.floor(p)+'%',long:`${TIERS[nt].name} auctions unlock at ${money(hi)} net worth. ${money(Math.max(0,hi-w))} to go.`};}
+ if(w<CASH_AT){const p=Math.max(0,Math.min(100,w/CASH_AT*100));return{p,dyn:true,html:`★ Cash out at <b>${money(CASH_AT)}</b>`,pct:Math.floor(p)+'%',long:`Every market is open. At ${money(CASH_AT)} net worth you can cash out for ${starsFor(CASH_AT)}★ and start a new dynasty. ${money(CASH_AT-w)} to go.`};}
+ const n=starsFor(w),lo=starAt(n),hi=starAt(n+1),p=Math.max(0,Math.min(100,(w-lo)/(hi-lo)*100));return{p,dyn:true,ready:true,html:`★ Cash out now: <b>+${n}★</b>`,pct:`+1★ at ${money(hi)}`,long:`Cash out now for +${n}★, or keep growing: ${money(hi)} makes it +${n+1}★.`};}
+function updGoal(){const g=$('#goalChip');if(!g)return;const o=goalInfo(),sig=o.html+o.pct+Math.round(o.p);if(g.dataset.sig===sig)return;g.dataset.sig=sig;
+ g.innerHTML=`<i style="width:${o.p}%"></i><span>${o.html} <small>${o.pct}</small></span>`;g.classList.toggle('dyn',o.dyn);g.classList.toggle('ready',!!o.ready);}
 function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(p.vacant>0?0:rentOf(p)),0);
  {const inc=rentNow-B.total,hi=$('#hInc');hi.textContent=sg(inc)+'/mo';hi.className=inc>0.5?'pos':inc<-0.5?'neg':'';const ei=$('#eInc');ei.className='hinc '+(inc>=0?'pos':'neg');ei.textContent=S.props.length?(inc>=0?`Earning ${money(inc)} a month after bills`:`Losing ${money(-inc)} a month after bills`):'No houses yet. Win one at auction to start earning rent.';}
  updGoal();
  $('#eWorth').textContent=money(w);$('#eCash').textContent=money(S.cash);
- $('#eRent').textContent=money(rentNow);$('#eBills').textContent=money(B.total);const dt=debt(),spare=Math.min(dt,Math.max(0,S.cash-B.total*6));$('#eDebt').textContent=money(dt);
+ $('#eRent').textContent=money(rentNow);$('#eBills').textContent=money(B.total);const dt=debt();$('#eDebt').textContent=money(dt);
  const payable=Math.min(dt,Math.max(0,S.cash-B.total));$('#debtBox').hidden=!(dt>0);const rb=$('#repayBtn');rb.disabled=payable<1000;
  if(!payArmed)rb.textContent=payable>=dt-1?'Pay off all '+money(dt)+' debt':'Pay off '+money(payable)+' of '+money(dt);
  const ap=$('#autoPayBtn');ap.setAttribute('aria-pressed',!!S.autoPay);ap.textContent='Auto-pay: '+(S.autoPay?'on':'off');
@@ -1438,11 +1609,13 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  $('#debtNote').textContent=S.autoPay?'Spare rent goes straight onto your loans every month. Your cash stays put for bidding.':'Turn on auto-pay to put spare rent onto your loans every month.';
  $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>over $2M of property</small>',-B.land],['Mortgage interest <small>'+((S.lock||0)>0?'4.5% a year, locked':'6% a year')+'</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
  $('#billNote').textContent=`Also: stamp duty of 3 to 7% on every purchase, and capital gains tax on every profitable sale (30%, or 15% once you have held for 12 months), and mansion tax on any sale over $5M (4%, or 5.5% over $10M). Tax and bills paid so far: ${money(S.paidOut)}.`;
- const pts=Math.floor(Math.sqrt(w/2.5e7)),st=S.legacy||0,lb=$('#legacyBtn');
- $('#legacy').hidden=!(S.legacy||w>=1e7);{const led=$('#ledSum');if(led){const n=rentNow-B.total;led.textContent=sg(n)+'/mo';led.className='fsum '+(n>=0?'pos':'neg');}}drawStars();$('#legacyTxt').textContent=(st?`${st} legacy star${st>1?'s':''}: +${st*10}% rent on every house, ${money(450000+st*100000)} starting cash. `:'Each legacy star adds 10% to all rent and $100K to your starting cash. ')+(w>=1e8?`Cash out now to bank ${pts} more and start a new dynasty.`:`Cash out unlocks at ${money(1e8)} net worth.`);
- lb.disabled=w<1e8;if(!legArmed)lb.textContent=w>=1e8?'Cash out +'+pts+'★':'Cash out';
- const nt=S.maxTier+1;if(nt<TIERS.length){const lo=TIERS[S.maxTier].unlock,hi=TIERS[nt].unlock;$('#unlockTxt').textContent=`${TIERS[nt].name} auctions unlock at ${money(hi)} net worth. ${money(Math.max(0,hi-w))} to go.`;$('#unlockBar').style.width=Math.max(0,Math.min(100,(w-lo)/(hi-lo)*100))+'%';}
- else{$('#unlockTxt').textContent='Every market is open. Chase the top of the rich list.';$('#unlockBar').style.width='100%';}
+ {const led=$('#ledSum');if(led){const n=rentNow-B.total;led.textContent=sg(n)+'/mo';led.className='fsum '+(n>=0?'pos':'neg');}}drawStars();
+ {const g=goalInfo();$('#unlockTxt').textContent=g.long;$('#unlockBar').style.width=g.p+'%';$('#unlock').classList.toggle('dyn',g.dyn);}
+ $('#moTop').innerHTML=`<div><small>Cash</small><strong>${money(S.cash)}</strong></div><div><small>Debt</small><strong>${money(dt)}</strong></div><div><small>Net a month</small><strong class="${rentNow-B.total>=0?'pos':'neg'}">${sg(rentNow-B.total)}</strong></div>`;
+ {const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const top=[4,3,2].find(i=>n[i]);$('#oHomes').textContent=S.props.length;const of=$('#oFinds');of.textContent=top!=null?n[top]+' '+RAR[top][0]:'-';of.className=top!=null?'rt r'+top:'';
+  const c=sets();$('#oSets').textContent=Object.values(c.sub).filter(v=>v>=SET_N).length+' done';$('#oRank').textContent='#'+richRank();$('#oStars').textContent='★'+(S.legacy||0)+' '+rankOf(S.legacy||0).t;
+  $('#oBadges').textContent=Object.keys(S.badges||{}).length+'/'+BADGES.length;$('#oStreak').textContent=(S.streak||0)+' day'+((S.streak||0)===1?'':'s');}
+ eSel();drawDynCard();
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
   el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');gp.hidden=!!(p.works&&p.works.redev);
@@ -1451,11 +1624,17 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
   const sb=el.querySelector('.sell');sb.disabled=!!p.listed;sb.textContent=p.listed?'At auction':'Sell';}
  const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
  $('#pDays').textContent=S.days.length;$('#pSess').textContent=S.sessions;const pm=Math.round(S.playSec/60);$('#pTime').textContent=pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m';
- const joined=S.wins+S.losses;$('#pRate').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
+ const joined=S.wins+S.losses;$('#pRate').textContent=$('#pRate2').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
  $('#rich').innerHTML=rows.map((r,i)=>(i>=5&&!r.me)?'':`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
+const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['bad','Badges'],['dyn','Dynasty and play']];
+function eSel(){const sel=$('#eSec'),labels={pf:`Portfolio (${S.props.length})`,bad:`Badges (${Object.keys(S.badges||{}).length}/${BADGES.length})`,dyn:`Dynasty ★${S.legacy||0}`},sig=ESECS.map(([k,n])=>labels[k]||n).join('|')+eSec;if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
+ sel.innerHTML=ESECS.map(([k,n])=>`<option value="${k}"${k===eSec?' selected':''}>${esc(labels[k]||n)}</option>`).join('');}
+function eGo(k,quiet){if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+$('#eSec').onchange=e=>eGo(e.target.value);
+$('#oTiles').onclick=e=>{const b=e.target.closest('[data-go]');if(b)eGo(b.dataset.go);};
 $('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset.pf===pf)return;pf=b.dataset.pf;pg=0;buildEmpire();};
 $('#psort').onclick=e=>{const b=e.target.closest('[data-ps]');if(!b||b.dataset.ps===psort)return;psort=b.dataset.ps;pg=0;tlog('portfolio_sort',{by:psort});buildEmpire();};
-function goPage(d){pg+=d;buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+function goPage(d){pg+=d;buildEmpire();$('#vEmpire').scrollTop=0;}
 $('#pgPrev').onclick=()=>goPage(-1);$('#pgNext').onclick=()=>goPage(1);
 /* ---------- bank products: bought with game cash now; V2 can sell them in the app. Guaranteed outcomes only ---------- */
 const lockFee=()=>Math.max(2000,roundTo(debt()*0.015,1000)),rescueFee=()=>Math.max(5000,roundTo(holdings()*0.005,1000));
@@ -1519,7 +1698,7 @@ async function shareCard(p){if(!p||(p.rarity||0)<3)return;T.c.shareOpens++;tlog(
  const bits=[p.findLabel?(p.find==='jackpot'?'Jackpot: ':'Inspection: ')+p.findLabel:null,p.feat?'Featured auction':null,p.nem?'Beat my nemesis':null,p.rare?'Rare listing':null,p.rivals?`${p.rivals} rival${p.rivals>1?'s':''} outbid`:null].filter(Boolean).slice(0,4).join(' · ');
  g.fillStyle=col;g.font='600 30px "Familjen Grotesk", Arial, sans-serif';wrapText(g,bits,80,1166,920,38);
  g.fillStyle='#d7263d';g.fillRect(80,1240,96,56);g.fillStyle='#fff';g.font='34px Anton, Impact, sans-serif';g.textAlign='center';g.fillText('EAT',128,1280);g.textAlign='left';
- g.fillStyle='#ffffff';g.font='600 30px "Familjen Grotesk", Arial, sans-serif';g.fillText('Empire Auction Tycoon',196,1265);g.fillStyle='#9fb0cc';g.font='500 26px "IBM Plex Mono", monospace';g.fillText(shareURL().replace(/^https?:\/\//,''),196,1298);
+ g.fillStyle='#ffffff';g.font='600 30px "Familjen Grotesk", Arial, sans-serif';g.fillText('Empire Auction Tycoon',196,1265);{const n=S.legacy||0,rk=rankOf(n).t;g.textAlign='right';g.fillStyle='#f2c14e';g.font='600 34px "IBM Plex Mono", monospace';g.fillText('★ '+n,1000,1268);g.fillStyle='#9fb0cc';g.font='500 24px "Familjen Grotesk", Arial, sans-serif';g.fillText(rk,1000,1298);g.textAlign='left';}g.fillStyle='#9fb0cc';g.font='500 26px "IBM Plex Mono", monospace';g.fillText(shareURL().replace(/^https?:\/\//,''),196,1298);
  c.toBlob(b=>{if(!b)return;const fname='empire-auction-'+name.toLowerCase()+'.png',file=new File([b],fname,{type:'image/png'}),u=URL.createObjectURL(b);
   const text=`${name} find in Empire Auction Tycoon: ${p.addr}, ${p.sub}. Won for ${money(p.paid)}, now worth ${money(p.value)} (${eq>=0?'+':''}${eq.toFixed(0)}%).`;
   const canFile=!!(navigator.canShare&&navigator.canShare({files:[file]}));
@@ -1551,12 +1730,33 @@ $('#repayBtn').onclick=e=>{const b=e.currentTarget,amt=Math.min(debt(),Math.max(
  payArmed=false;clearTimeout(payTimer);b.classList.remove('armed');const paid=applyRepay(amt);T.c.repays++;tlog('repay',{amt:Math.round(paid),debtAfter:Math.round(debt()),cashAfter:Math.round(S.cash)});
  if(debt()<1&&S.borrowed)award('debt_free');toast(debt()<1?'Debt cleared. Every dollar of rent is yours now.':'Paid off '+money(paid)+'. '+money(debt())+' left.','up');sfx(debt()<1?'win':'cash');if(debt()<1)confetti(false);updEmpire();save();};
 $('#autoPayBtn').onclick=()=>{S.autoPay=!S.autoPay;T.c.autoPayToggles++;tlog('autopay',{on:S.autoPay,debt:Math.round(debt())});updEmpire();save();};
-$('#legacyBtn').onclick=e=>{const b=e.currentTarget,w=worth();if(w<1e8)return;const pts=Math.floor(Math.sqrt(w/2.5e7));
- if(!legArmed){legArmed=true;b.classList.add('armed');b.textContent='Sell everything for +'+pts+'★?';setTimeout(()=>{legArmed=false;b.classList.remove('armed');updEmpire();},3500);return;}
- legArmed=false;b.classList.remove('armed');T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});
+/* ---------- Dynasty: stars, prestige titles, cash-out (header star opens it) ---------- */
+const RANKS=[[0,'Newcomer'],[1,'Investor'],[3,'Baron'],[6,'Mogul'],[10,'Tycoon'],[15,'Titan'],[25,'Dynasty']];
+function rankOf(n){let i=0;for(let k=0;k<RANKS.length;k++)if(n>=RANKS[k][0])i=k;return{i,t:RANKS[i][1],next:RANKS[i+1]||null};}
+function rankBadges(){const n=S.legacy||0;for(const [need] of RANKS.slice(1))if(n>=need)award('rank'+need);}
+function lifeWin(p){S.life=S.life||{wins:0,epic:0,legend:0,bestFind:0};S.life.wins++;if(p.rarity>=3)S.life.epic++;if(p.rarity===4)S.life.legend++;const eq=(p.value-p.paid)/p.paid*100;if(eq>(S.life.bestFind||0))S.life.bestFind=Math.round(eq);}
+function drawDynCard(){const c=$('#dynCard');if(!c)return;const n=S.legacy||0,r=rankOf(n);c.innerHTML=`<span class="dstar">★ ${n}</span><span><b>${r.t}</b><small>${n?`+${n*10}% rent · start with ${money(450000+n*100000)}`:'Cash out at '+money(CASH_AT)+' for your first stars'}</small></span><em>Open</em>`;}
+let legArmed2=false,legTimer=null;
+function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open',{from:from||'header',stars:S.legacy||0});const w=worth(),n=S.legacy||0,r=rankOf(n),pts=starsFor(w),can=w>=CASH_AT,L=S.life||{},pm=Math.round(S.playSec/60),joined=S.wins+S.losses;
+ const nx=r.next,np=nx?Math.min(100,(n-RANKS[r.i][0])/(nx[0]-RANKS[r.i][0])*100):100;
+ const stat=(k,v)=>`<div><small>${k}</small><strong>${v}</strong></div>`;
+ $('#sheet').innerHTML=`<div class="dyn"><div class="dhero"><span class="dbig">★ ${n}</span><div><small>Prestige level ${r.i+1} of ${RANKS.length}</small><b>${r.t}</b><em>${nx?`${nx[1]} at ${nx[0]}★`:'Top of the ladder'}</em></div></div>
+ <div class="bar"><i style="width:${np}%"></i></div>
+ <div class="dcash"><b>Cash out</b><p>${can?`Sell everything now for <b>+${pts}★</b>. ${money(starAt(pts+1))} would make it +${pts+1}★.`:`Unlocks at ${money(CASH_AT)} net worth (${Math.floor(w/CASH_AT*100)}% there). It sells every home, banks your stars and starts a new dynasty.`} You keep stars, badges, streak and nemesis.</p>
+ <button class="legbtn" id="legacyBtn"${can?'':' disabled'}>${can?'Cash out +'+pts+'★':'Cash out at '+money(CASH_AT)}</button></div>
+ <p class="dbon">${n?`Every star: <b>+10% rent</b> on every home and <b>+$100K</b> starting cash. Yours: <b>+${n*10}% rent</b>, start with <b>${money(450000+n*100000)}</b>.`:'Stars are permanent. Each one adds <b>10% rent</b> to every home and <b>$100K</b> to your starting cash, every dynasty after.'}</p>
+ <div class="ladder">${RANKS.map(([need,t],i)=>`<span class="${n>=need?'on':''}${i===r.i?' cur':''}"><b>${t}</b><small>${need}★</small></span>`).join('')}</div>
+ <div class="dstats">${stat('Dynasties',S.dynasties||0)}${stat('Best worth',money(Math.max(S.bestWorth||0,w)))}${stat('Homes won',(L.wins||0)||S.wins)}${stat('Epic+ finds',L.epic||0)}${stat('Best find',L.bestFind?'+'+L.bestFind+'%':'-')}${stat('Time played',pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m')}</div>
+ <button class="sec" id="dynX">Close</button></div>`;$('#modal').hidden=false;
+ $('#dynX').onclick=()=>{$('#modal').hidden=true;};
+ $('#legacyBtn').onclick=e=>{const b=e.currentTarget,w=worth();if(w<CASH_AT)return;const pts=starsFor(w);
+  if(!legArmed2){legArmed2=true;b.classList.add('armed');b.textContent='Sell everything for +'+pts+'★?';clearTimeout(legTimer);legTimer=setTimeout(()=>{legArmed2=false;if(b.isConnected){b.classList.remove('armed');b.textContent='Cash out +'+starsFor(worth())+'★';}},3500);return;}
+  legArmed2=false;clearTimeout(legTimer);$('#modal').hidden=true;cashOut(w,pts);};}
+function cashOut(w,pts){T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const r0=rankOf(S.legacy||0).i;
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:Math.max(S.bestWorth,w),muted:S.muted,tour:S.tour,rules:S.rules,legacy:(S.legacy||0)+pts,dynasties:(S.dynasties||0)+1,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
- S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();
- modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span><p>${S.legacy} legacy stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});};
+ S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');drawStars();rankBadges();save();
+ const r=rankOf(S.legacy),up=r.i>r0;
+ modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}<p>${S.legacy} stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});}
 $('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
  else{resetArmed=true;b.classList.add('armed');b.textContent='Tap again to wipe everything';setTimeout(()=>{resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';},3500);}};
 
@@ -1729,14 +1929,16 @@ function aucHere(c){if(c.ti>S.maxTier)return;AUC_CITY={place:[c.sub,c.st],ti:c.t
 
 /* ---------- tabs + header ---------- */
 function show(t){view=t;hideCoach();$('#dock').hidden=t!=='a';$('#vAuction').hidden=t!=='a';$('#vMarket').hidden=t!=='m';$('#vEmpire').hidden=t!=='e';['A','M','E'].forEach(k=>$('#t'+k).setAttribute('aria-selected',t===k.toLowerCase()));
- if(t==='e'){T.c.empireViews++;updEmpire();}
+ if(t==='e'){T.c.empireViews++;eGo(eSec,true);}
+ if(t!=='a')closeIw();
  if(t==='m'){T.c.mktViews++;refill();deckId=null;mchipSig='';offSig='';renderMarket();if(!$('#globeSec').hidden)gstart();if(!$('#mNew').hidden){$('#mNew').hidden=true;coach('market','Buy homes instantly here. Swipe right to buy, left to pass, or tap the star to watch one.');}}else gstop();}
 $('#tA').onclick=()=>show('a');$('#tM').onclick=()=>{if(!mktOpen()){toast('Win your first house to open the Market.','down');return;}show('m');};$('#tE').onclick=()=>show('e');
 let dCash=S.cash,dWorth=worth();
-function drawStars(){const b=$('#hStars'),n=S.legacy||0;b.hidden=!n;b.textContent='★ '+n;b.setAttribute('aria-label',n+' legacy stars, +'+n*10+'% rent');}
-$('#hStars').onclick=()=>{show('e');$('#legacy').scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});};
+function drawStars(){const b=$('#hStars'),n=S.legacy||0,t='★ '+n;if(b.textContent!==t)b.textContent=t;b.classList.toggle('ready',worth()>=CASH_AT);b.setAttribute('aria-label',`Dynasty: ${n} stars, ${rankOf(n).t}`);}
+$('#hStars').onclick=()=>dynastySheet('header');
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dyn]');if(b){e.preventDefault();dynastySheet(b.id==='dynCard'?'empire':'overview');}});
 function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el.hidden=true;return;}if(!S.featAt){S.featAt=Date.now()+2*60e3;}
- const ms=S.featAt-Date.now();el.hidden=false;el.textContent=ms>0?'Featured in '+mmss(ms):'Featured lot next';el.classList.toggle('due',ms<=0);
+ const ms=S.featAt-Date.now();el.hidden=false;el.textContent=ms>0?'Featured '+mmss(ms):'Featured next';el.classList.toggle('due',ms<=0);
  if(ms<=0&&!S.featWarned&&A&&!A.ended&&!A.featured){S.featWarned=true;toast('Featured auction up next: a rare home and a packed room.','up');}}
 setInterval(()=>{drawFeatIn();drawSd();},1000);
 setTimeout(()=>{drawSd();if(sdOpen())toast('Today’s showdown is open: the same house for every player, one shot. Tap Showdown.','up',()=>startShowdown());},5000);
@@ -1759,7 +1961,7 @@ function renderLive(){const box=$('#lvStrip');box.hidden=!LIVE.length;if(box.hid
   el.className='lv'+(x.ended&&x.leader==='you'?' won':x.leader==='you'?' lead':c==='neg'?' outbid':'');
   el.querySelector('[data-k="p"]').textContent=money(q);const se=el.querySelector('[data-k="s"]');se.textContent=s+(x.ended?'':' · '+ZONES[z]);se.className='lvs '+c;
   const ci=el.querySelector('[data-k="c"]');ci.style.width=(x.ended?0:x.clock/x.total*100)+'%';ci.className=x.clock<=4?'hot':'';
-  const ab=el.querySelector('.lvauto');ab.disabled=x.ended;ab.setAttribute('aria-pressed',!!x.auto);ab.textContent=x.ended?s:x.auto?'Auto to '+money(x.autoMax):'Auto to '+money(x.autoMax)+'?';}}
+  const ab=el.querySelector('.lvauto');ab.disabled=x.ended;ab.setAttribute('aria-pressed',!!x.auto);ab.innerHTML=x.ended?esc(s):`<small>${x.auto?'Auto on':'Auto to'}</small>${money(x.autoMax)}${x.auto?'':'?'}`;}}
 const nextBidOf=x=>x.leader?x.bid+x.lot.inc:x.lot.open;
 $('#lvRow').onclick=e=>{const a=e.target.closest('[data-auto]');if(a){const x=LIVE.find(y=>y.lot.no===+a.dataset.auto);if(x&&!x.ended){x.auto=!x.auto;x.autoWarned=false;T.c.liveAutos=(T.c.liveAutos||0)+1;hideCoach('live');renderLive();}return;}
  const f=e.target.closest('[data-focus]');if(f)focusLive(+f.dataset.focus);};
@@ -1774,20 +1976,20 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-quick]'))quickP
 function checkSets(p){if(!p)return;const c=sets();S.sets=S.sets||{};S.streetSets=S.streetSets||{};
  if(c.sub[p.sub]>=SET_N&&!S.sets[p.sub]){S.sets[p.sub]=Date.now();award('set_suburb');toast(`Suburb set: ${p.sub}! +10% rent on every home there.`,'up');sfx('rare');confetti(true,0.8);tlog('set_suburb',{sub:p.sub});}
  const k=p.sub+'|'+streetOf(p);if(c.street[k]>=2&&!S.streetSets[k]){S.streetSets[k]=Date.now();award('set_street');toast(`Street pair on ${streetOf(p)}: +5% rent on both.`,'up');tlog('set_street',{key:k});}}
-function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]-a[1]);$('#setsBox').hidden=!subs.length;
+function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]-a[1]);$('#setsBox').hidden=!subs.length;$('#setsEmpty').hidden=!!subs.length;
  $('#setList').innerHTML=subs.map(([s,n])=>`<span class="${n>=SET_N?'done':''}">${esc(s)} ${Math.min(n,SET_N)}/${SET_N}${n>SET_N?' +'+(n-SET_N):''}</span>`).join('');}
 
 /* ---------- badges ---------- */
-const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['developer','Developer','Finish a duplex or a mansion'],['jackpot','Jackpot','Find a jackpot at inspection'],['epic','Epic find','Win an Epic home'],['legendary','Legendary','Win a Legendary home'],['headliner','Headliner','Win a featured auction'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
-function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();regAdd(1,'badge:'+id);tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({block:'start'});});sfx('cash');},1800);if(view==='e')renderBadges();}
+const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['developer','Developer','Finish a duplex or a mansion'],['jackpot','Jackpot','Find a jackpot at inspection'],['epic','Epic find','Win an Epic home'],['legendary','Legendary','Win a Legendary home'],['headliner','Headliner','Win a featured auction'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak'],['rank1','Investor','Earn your first legacy star'],['rank3','Baron','Reach 3 legacy stars'],['rank6','Mogul','Reach 6 legacy stars'],['rank10','Tycoon','Reach 10 legacy stars'],['rank15','Titan','Reach 15 legacy stars'],['rank25','Dynasty','Reach 25 legacy stars']];
+function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();regAdd(1,'badge:'+id);tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');eGo('bad');});sfx('cash');},1800);if(view==='e')renderBadges();}
 const BQ=[];
-function renderBadges(){const got=S.badges||{};$('#badgeFold').hidden=!Object.keys(got).length;$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
+function renderBadges(){const got=S.badges||{};$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
  $('#badges').innerHTML=BADGES.map(([id,n,d])=>`<div class="bdg${got[id]?' on':''}"><i>${got[id]?'&#9733;':'?'}</i><b>${esc(n)}</b><small>${esc(d)}</small></div>`).join('');}
 
 /* ---------- daily streak ---------- */
 const FLAME='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1 4-3 5-3 9a3 3 0 0 0 6 0c0-1-.5-2-1-3 3 1 5 4 5 7a7 7 0 0 1-14 0c0-5 5-8 7-13z"/></svg>';
 function drawStreak(){const b=$('#hStreak'),n=S.streak||0;b.hidden=!n;b.innerHTML=FLAME+n;b.setAttribute('aria-label',`${n}-day streak, ${S.freezes||0} freeze${(S.freezes||0)===1?'':'s'}`);}
-$('#hStreak').onclick=()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});};
+$('#hStreak').onclick=()=>{show('e');eGo('bad');};
 const dayDiff=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
 function dailyCheck(){const td=today();if(S.lastDay===td)return;if(S.freezes==null)S.freezes=1;const gap=S.lastDay?dayDiff(S.lastDay,td):null;let used=false;
  if(gap===1)S.streak=(S.streak||0)+1;else if(gap===2&&S.freezes>0){S.freezes--;S.streak=(S.streak||0)+1;used=true;}else S.streak=1;
@@ -1855,7 +2057,7 @@ function shopSheet(){if(!STORE)return;T.c.shopViews++;tlog('shop_view',{});const
 document.addEventListener('click',e=>{if(e.target.closest('[data-shop]')){e.preventDefault();shopSheet();}});
 function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button><button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button>${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
  $('#mnTour').onclick=()=>tour(0);$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
- $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
+ $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');eGo('bad');};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
 
 /* ---------- walkthrough ---------- */
 const DEMO=`<div class="demo"><div class="meter"><div class="track"><i class="z-steal" style="left:0;width:24%"></i><i class="z-good" style="left:24%;width:22%"></i><i class="z-fair" style="left:46%;width:30%"></i><i class="z-over" style="left:76%;width:24%"></i></div><i class="wa" style="left:76%"></i><i class="mk" style="left:38%"><span>Next bid $395K</span></i></div><div class="legend"><span><i class="z-steal"></i>Steal</span><span><i class="z-good"></i>Good buy</span><span><i class="z-fair"></i>Fair</span><span><i class="z-over"></i>Overpaying</span></div></div>`;
@@ -1880,7 +2082,7 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
 if((S.rules||0)<4)modal('<h3>What’s new</h3>'+((S.rules||0)<2?'<p>Owning costs money: stamp duty when you buy, rates, upkeep and land tax every month, and capital gains tax when you sell at a profit. Paying over the guide makes a house grow faster.</p>':'')+(mktOn()?'<p><b>Sell at auction.</b> Tap Sell on a home, set a reserve and watch rivals bid it up. The Market tab is still there for quick buys.</p>':'<p><b>Auctions first.</b> The Market is gone: every home is won at auction, and you sell at auction too. Tap Sell on a home, set a reserve and watch rivals bid it up.</p>')+'<p><b>Your call.</b> Auto-bid gets you to the final call, then the last seconds are yours.</p><p><b>Inspection.</b> After you win, the inspector reports: most homes are as described, some hide a find, a few a jackpot.</p><p><b>Featured auctions</b> every few minutes: a rare home, more rivals, a packed room.</p><p><b>Mortgages.</b> Short on cash? Bid anyway. The bank lends only what you are short, up to 80% of the price, at 6% a year. Sink too deep into overdraft and it repossesses a house.</p>','Got it',()=>{S.rules=4;tlog('rules_seen');save();awayCredit(since);});

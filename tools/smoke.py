@@ -23,6 +23,16 @@ def page(b, scheme, seed=None, q="?mkt=0"):
     return pg
 
 
+def esec(pg, k):
+    pg.select_option("#eSec", k); pg.wait_for_timeout(250)
+
+
+def fits(pg, sel, label):
+    d = pg.evaluate("s=>{const e=document.querySelector(s);return e.scrollHeight-e.clientHeight}", sel)
+    if d > 1: errors.append(f"{label}: {sel} scrolls by {d}px")
+    return d
+
+
 def close_sheets(pg):
     for _ in range(4):
         if pg.is_visible("#modal"):
@@ -61,15 +71,23 @@ with sync_playwright() as p:
             pg.screenshot(path=str(out / f"v11-live-{scheme}.png"))
             pg.locator(".lvmain").last.click(); pg.wait_for_timeout(400)
             print(scheme, "focused lot:", pg.inner_text("#addr"))
-        pg.click("#lvStrip .hotbtn") if pg.is_visible("#lvStrip .hotbtn") else None
+        pg.click(".tright .hotbtn") if pg.is_visible(".tright .hotbtn") else None
         pg.wait_for_timeout(200)
         # a few more lots to exercise background resolution
         for _ in range(2):
             play_lot(pg); pg.wait_for_timeout(4300); close_sheets(pg)
         print(scheme, "reveal shown:", pg.locator(".reveal").count() > 0 or "after win only")
+        fits(pg, "#vAuction", scheme + " auction")
+        pg.screenshot(path=str(out / f"v25-auction-{scheme}.png"))
+        if pg.is_enabled("#verdict"):
+            pg.click("#verdict"); pg.wait_for_timeout(300)
+            if pg.is_visible("#ifwin"): pg.screenshot(path=str(out / f"v25-ifwin-{scheme}.png")); pg.click("#iwX")
         pg.click("#tE"); pg.wait_for_timeout(800)
-        pg.evaluate("document.getElementById('badgeFold').open=true")
-        pg.locator("#badges").scroll_into_view_if_needed()
+        fits(pg, "#vEmpire", scheme + " empire overview")
+        pg.screenshot(path=str(out / f"v25-overview-{scheme}.png"))
+        pg.click("#hStars"); pg.wait_for_timeout(300)
+        pg.screenshot(path=str(out / f"v25-dynasty-{scheme}.png")); close_sheets(pg)
+        esec(pg, "bad")
         pg.screenshot(path=str(out / f"v11-empire-{scheme}.png"))
         print(scheme, "badges:", pg.inner_text("#bCount"))
         pg.click("#help"); pg.wait_for_timeout(300)
@@ -98,9 +116,14 @@ with sync_playwright() as p:
     print("streak sheet:", pg.inner_text("#sheet")[:80].replace("\n", " ") if pg.is_visible("#modal") else "none")
     close_sheets(pg)
     pg.screenshot(path=str(out / "v11-header.png"))
+    fits(pg, "#vAuction", "returning auction")
     pg.click("#tE"); pg.wait_for_timeout(800)
+    fits(pg, "#vEmpire", "returning overview")
+    pg.screenshot(path=str(out / "v25-overview-big.png"))
+    esec(pg, "sets")
     print("sets:", pg.inner_text("#setList").replace("\n", " "), "| pager:", pg.inner_text("#pgTxt"))
-    pg.locator("#setsBox").scroll_into_view_if_needed(); pg.screenshot(path=str(out / "v11-sets.png"))
+    pg.screenshot(path=str(out / "v11-sets.png"))
+    esec(pg, "pf")
     # ---------- upgrades: pool, then a makeover that pushes it into Family ----------
     pg.evaluate("window.scrollTo(0,0)"); pg.locator('[data-up="1"]').scroll_into_view_if_needed()
     pg.screenshot(path=str(out / "v14-portfolio.png"))
@@ -128,7 +151,7 @@ with sync_playwright() as p:
     print("duplex:", pg.inner_text('.prop[data-id="3"] .pname'), "|", pg.inner_text('.prop[data-id="3"] .psub'), "| homes", pg.inner_text("#pCount"))
     assert "1/" in pg.inner_text('.prop[data-id="3"] .pname'), "duplex should split into 1/ and 2/"
     # ---------- bank: rate lock ----------
-    pg.evaluate("document.querySelector('.bills.fold').open=true"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
+    esec(pg, "mo"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
     pg.screenshot(path=str(out / "v15-bank.png"))
     pg.click('[data-bank="lock"]'); pg.wait_for_timeout(1200)
     print("bank:", pg.inner_text("#bankRows").replace("\n", " | ")[:160])
@@ -138,7 +161,7 @@ with sync_playwright() as p:
     m = dict(id=1, addr="8 Wattle Road", street="Wattle Road", sub="Mosman", st="NSW", ti=2, style="villa", land=1200, seed=4242, rare=False, paid=2.9e6, duty=0, prem=0, heat=0, age=30, value=3e6, vacant=0, boughtAt=0, loan=0)
     fill = [dict(m, id=i, addr=f"{i} Wattle Road", style="unit", land=0, value=900e3, paid=880e3) for i in (2, 3)]
     seed3 = dict(days=[yday], cash=5e6, props=[m] + fill, wins=5, rules=4, tour=1, nextId=4, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
-    pg = page(b, "light", seed3); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(600)
+    pg = page(b, "light", seed3); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(600); esec(pg, "pf")
     pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-rdk="mansion"]')
     for _ in range(45):
         pg.wait_for_timeout(1000); close_sheets(pg)
@@ -158,7 +181,7 @@ with sync_playwright() as p:
     # ---------- sell at auction + featured auction ----------
     h = dict(id=1, addr="4 Saltwater Lane", street="Saltwater Lane", sub="Bendigo", st="VIC", ti=0, style="cottage", land=600, seed=777, rare=False, paid=300e3, duty=0, prem=0, heat=0, age=30, value=340e3, vacant=0, boughtAt=0, loan=0)
     seed4 = dict(days=[yday], cash=2e6, props=[h], wins=5, rules=4, tour=1, nextId=2, maxTier=0, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), featAt=time.time() * 1000 + 3600e3, saved=time.time() * 1000, coach={"bid": 1, "won1": 1, "upgrade": 1, "live": 1})
-    pg = page(b, "dark", seed4); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(500)
+    pg = page(b, "dark", seed4); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(500); esec(pg, "pf")
     pg.click('[data-sell="1"]'); pg.wait_for_timeout(300); pg.click('[data-res="1"]'); pg.wait_for_timeout(1200)
     print("sell auction tag:", pg.is_visible("#art .mine"), "| bid:", pg.inner_text("#bidBtn"), "| verdict:", pg.inner_text("#verdict").replace("\n", " "))
     pg.screenshot(path=str(out / "v20-sell-live.png"))
@@ -183,12 +206,16 @@ with sync_playwright() as p:
     # ---------- dynasty cash-out keeps account-level state ----------
     big = dict(id=1, addr="1 Harbourview Road", street="Harbourview Road", sub="Vaucluse", st="NSW", ti=3, style="villa", land=3000, seed=99, rare=False, paid=5e7, duty=0, prem=0, heat=0, age=30, value=1.3e8, vacant=0, boughtAt=0, loan=0)
     seed6 = dict(days=[yday], cash=1e6, props=[big], wins=9, rules=4, tour=1, nextId=2, maxTier=3, regVar=1, mkVar=0, joined=40, reg=dict(n=3, at=time.time()*1000), adFree=dict(at=1), badges={"first_win": 1, "rare": 1}, streak=6, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000)
-    pg = page(b, "light", seed6, ""); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(500)
-    pg.locator("#legacyBtn").scroll_into_view_if_needed(); pg.click("#legacyBtn"); pg.wait_for_timeout(200); pg.click("#legacyBtn"); pg.wait_for_timeout(800); close_sheets(pg); pg.wait_for_timeout(3500)
+    pg = page(b, "light", seed6, ""); close_sheets(pg)
+    print("goal chip at the top:", pg.inner_text("#goalChip"))
+    pg.click("#hStars"); pg.wait_for_timeout(300); pg.screenshot(path=str(out / "v25-dynasty-ready.png"))
+    pg.click("#legacyBtn"); pg.wait_for_timeout(200); pg.click("#legacyBtn"); pg.wait_for_timeout(800)
+    print("cash-out modal:", pg.inner_text("#sheet").replace("\n", " ")[:160]); close_sheets(pg); pg.wait_for_timeout(3500)
     st = pg.evaluate("JSON.parse(localStorage.getItem('dopamine-property-v1'))")
-    kept = {k: st.get(k) for k in ["regVar", "mkVar", "joined", "adFree", "streak", "dynasties", "legacy"]}; kept["badges"] = sorted((st.get("badges") or {}).keys())
+    kept = {k: st.get(k) for k in ["regVar", "mkVar", "joined", "adFree", "streak", "dynasties", "legacy"]}; kept["header"] = pg.inner_text("#hStars"); kept["badges"] = sorted((st.get("badges") or {}).keys())
     print("after cash-out:", kept, "| market tab visible:", pg.is_visible("#tM"))
     assert st.get("regVar") == 1 and st.get("mkVar") == 0 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
+    assert "rank1" in kept["badges"] and st.get("legacy", 0) >= 2, "stars and title badge should land on cash-out"
     pg.close()
 
     # ---------- Market A/B: control group keeps the Market tab ----------
