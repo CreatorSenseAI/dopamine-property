@@ -13,7 +13,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 ## Engine map (inside the script)
 - `TIERS` markets (Starter → Icon) and unlock thresholds; `RENT`, `DUTY`, `COUNCIL`, `UPKEEP`, `STRATA`, `INTEREST`, `LVR` are the economy knobs.
 - `makeLot()` builds a property; `L.value` is the hidden true value, `L.guide` is 82–94% of it.
-- `startAuction()` sets rivals (each with a private `max`) and `A.est`, the valuer's estimate shown to the player (true value ±3% centre, ±5% band). The walk-away line is `A.est.hi`.
+- `startAuction()` sets rivals (each with a private `max`) and `A.est`, the valuer's estimate shown to the player (true value ±5% centre, ±8% band). The walk-away line is `A.est.hi`.
 - `auctionTick()` runs every 100ms; `econTick()` every 1s (1s = 1 game month: rent, bills, growth, events).
 - `project(price, tier, value, style)` is the "if you win" maths: cash out today, loan, monthly net cash flow, day-one equity.
 - `updDeal()` draws the meter marker, the dock verdict and the If-you-win panel. `drawMeter()` draws the zones per lot.
@@ -22,10 +22,14 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - `endAuction()` handles both: bookkeeping is shared, presentation splits on `ui=!A.bg`. Near-miss = lost within two bids and under the walk-away. `noteWin()` runs the combo chime.
 - Sets: `sets()` counts homes per suburb and per street (cached), `setMult()` feeds `rentOf()`. 3 in a suburb = +10% rent, 2 on a street = +5%. Streets per suburb are fixed by `streetsFor(sub)` so pairs happen.
 - Retention: `dailyCheck()` (streak, freezes, bonus), `award(id)` + `BADGES`, `recap()` every 10 focused lots.
-- Market: `MK.q` search, `WATCH` set + `renderWatch()`, globe behind `#wmapBtn`. Market tab locked until the first house (`mktOpen()`); buyer offers start at 3 houses.
 - `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).
-- Market tab: swipe deck (`renderDeck`), buyer offers (`renderOffers`), off-market pop-ups (`offMarketTick`), globe (`gdraw`).
+- v20 auctions first: the Market tab is hidden and `marketTick`/`offMarketTick` no longer run (code kept, dormant). Homes are bought at auction and sold at auction.
+- Selling: `sellSheet(p)` → `listForAuction(p, reserveMult)` queues `SELLQ`; `startAuction()` runs queued sells first via `newSellAuction()` (`A.sell={pid,reserve}`, rivals bid against each other, player can't bid). `endSell()`: at/over reserve → `sellProp(p, hammer*0.98, 'auction')`; under → passed in, 0.4% agent fee. Agent sale = 92% of value now.
+- Final call: once a focused lot's clock first hits 4s (`A.fin`), auto-bid stops for that lot; `yourCall()` cues the player whenever a rival leads in the final phase. Background lots still auto-bid.
+- Valuer estimate is wider (centre ±5%, band ±8%).
+- Inspection: `inspect(featured)` after every player win: 5% jackpot (+25–40%; 15% on featured), 20% good find (+5–12%), 12% flaw (−4–9%), else clean. Applied to `p.value`; `showReveal()` replaces the stamp. Earned, never sold.
+- Featured auction every `FEAT_EVERY` (4 min, first 2 min after owning a home; `S.featAt`): rare lot at the best tier you can afford, 4 rivals incl. your nemesis, 18s clock, crowd counter, no registration needed. Countdown in the live strip (`drawFeatIn`).
 - Upgrades (`UPG`, `upgradeSheet`, `startWorks`, `finishWorks`): Makeover, Pool (needs 600 m² land, no units/towers, no existing pool), Extension (450 m²). Paid in game cash, cost goes into `p.capex` (part of `basis()`), works use `p.vacant` with `p.works` set, value lift lands when works finish. Passing `classLine(ti)` moves the home up a category (`p.ti0` keeps the original tier so rent yield stays put) with a 6% premium. Each upgrade once per home.
 - Redevelop (`REDEV`, `startRedev`, `buildEvents`, `finishRedev`), step 1: Duplex (house, 600 m²+, 24 months, cost 65% of value, ends 1.7–2.05× split into `1/` and `2/` homes with half the land and half the cost basis each) and Mansion (Prestige+ house, 1,000 m²+, 30 months, cost 90%, ends 2.0–2.4×). Max 2 builds at once (`REDEV_MAX`). One cost blowout (12–25%, 2%/month) and one 6-month delay can each hit a build. `p.dwell` marks new builds. Mansion tax in `saleOf()`: 4% of the sale price from $5M, 5.5% from $10M. Homes now keep `land`, `beds`, `feats`; older saves get land from their seed in the migration after `load()`. Step 2 (townhouses, apartment blocks, merging neighbouring lots, grouped portfolio cards) is not built.
 - Registrations (scarcity A/B): `CONFIG.registrations` ('ab' | 'on' | 'off'), `S.regVar` (1 limited, 0 control; `?reg=1|0` forces it), `S.reg={n,at}`, `REG_MAX=8`, refill every `REG_EVERY` (12 min real time), first `REG_FREE=20` joined lots free. `regJoin(X)` is the only gate: the first bid in a lot uses one (hand, Go big or auto). Free top-ups: `regAdd()` from the daily streak (+2) and badges (+1). Market, offers, Empire never limited.

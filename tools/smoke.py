@@ -47,7 +47,7 @@ with sync_playwright() as p:
     for scheme in ["light", "dark"]:
         pg = page(b, scheme)
         assert pg.is_visible("#coach"), "first-lot coach missing"
-        assert "locked" in pg.get_attribute("#tM", "class"), "market should start locked"
+        assert not pg.is_visible("#tM"), "market tab should be gone"
         pg.screenshot(path=str(out / f"v11-first-{scheme}.png"))
         res = play_lot(pg)
         print(scheme, "first lot:", res[:110])
@@ -66,14 +66,7 @@ with sync_playwright() as p:
         # a few more lots to exercise background resolution
         for _ in range(2):
             play_lot(pg); pg.wait_for_timeout(4300); close_sheets(pg)
-        if "locked" not in (pg.get_attribute("#tM", "class") or ""):
-            pg.click("#tM"); pg.wait_for_timeout(700); close_sheets(pg)
-            pg.fill("#mQ", "ball"); pg.wait_for_timeout(600)
-            print(scheme, "search 'ball':", pg.inner_text("#mCount"))
-            if pg.locator(".star").count():
-                pg.locator(".star").first.click(); pg.wait_for_timeout(1200)
-                print(scheme, "watching rows:", pg.locator(".wrow").count())
-            pg.screenshot(path=str(out / f"v11-market-{scheme}.png"))
+        print(scheme, "reveal shown:", pg.locator(".reveal").count() > 0 or "after win only")
         pg.click("#tE"); pg.wait_for_timeout(800)
         pg.evaluate("document.getElementById('badgeFold').open=true")
         pg.locator("#badges").scroll_into_view_if_needed()
@@ -97,7 +90,7 @@ with sync_playwright() as p:
     props[0].update(land=700, value=585e3, paid=560e3)
     props[1].update(loan=150000)
     props[2].update(land=650, value=300e3, paid=290e3)  # duplex candidate  # first card: room for a pool, close to the Family line
-    seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=3, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
+    seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=4, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
     pg = page(b, "light", seed)
     pg.wait_for_timeout(1500)
     print("today's lot tag:", pg.is_visible("#art .daily"))
@@ -143,7 +136,7 @@ with sync_playwright() as p:
 
     # ---------- mansion + mansion tax ----------
     m = dict(id=1, addr="8 Wattle Road", street="Wattle Road", sub="Mosman", st="NSW", ti=2, style="villa", land=1200, seed=4242, rare=False, paid=2.9e6, duty=0, prem=0, heat=0, age=30, value=3e6, vacant=0, boughtAt=0, loan=0)
-    seed3 = dict(days=[yday], cash=5e6, props=[m], wins=5, rules=3, tour=1, nextId=2, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
+    seed3 = dict(days=[yday], cash=5e6, props=[m], wins=5, rules=4, tour=1, nextId=2, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
     pg = page(b, "light", seed3); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(600)
     pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-rdk="mansion"]')
     for _ in range(45):
@@ -151,7 +144,7 @@ with sync_playwright() as p:
         if "Mansion" in pg.inner_text('.prop[data-id="1"] .psub'): break
     print("mansion:", pg.inner_text('.prop[data-id="1"] .psub'), pg.inner_text('.prop[data-id="1"] [data-k="v"]'))
     pg.locator('.prop[data-id="1"]').screenshot(path=str(out / "v18-mansion.png"))
-    pg.click('[data-sell="1"]'); pg.wait_for_timeout(200); pg.click('[data-sell="1"]'); pg.wait_for_timeout(600)
+    pg.click('[data-sell="1"]'); pg.wait_for_timeout(300); pg.screenshot(path=str(out / "v20-sell-sheet.png")); pg.click('[data-agent]'); pg.wait_for_timeout(600)
     toasts = []
     for _ in range(5):
         toasts += pg.locator(".toast").all_inner_texts()
@@ -161,12 +154,37 @@ with sync_playwright() as p:
     assert any("mansion tax" in x for x in toasts), "mansion tax should show on the sale"
     pg.close()
 
+    # ---------- sell at auction + featured auction ----------
+    h = dict(id=1, addr="4 Saltwater Lane", street="Saltwater Lane", sub="Bendigo", st="VIC", ti=0, style="cottage", land=600, seed=777, rare=False, paid=300e3, duty=0, prem=0, heat=0, age=30, value=340e3, vacant=0, boughtAt=0, loan=0)
+    seed4 = dict(days=[yday], cash=2e6, props=[h], wins=5, rules=4, tour=1, nextId=2, maxTier=0, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), featAt=time.time() * 1000 + 3600e3, saved=time.time() * 1000, coach={"bid": 1, "won1": 1, "upgrade": 1, "live": 1})
+    pg = page(b, "dark", seed4); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(500)
+    pg.click('[data-sell="1"]'); pg.wait_for_timeout(300); pg.click('[data-res="1"]'); pg.wait_for_timeout(1200)
+    print("sell auction tag:", pg.is_visible("#art .mine"), "| bid:", pg.inner_text("#bidBtn"), "| verdict:", pg.inner_text("#verdict").replace("\n", " "))
+    pg.screenshot(path=str(out / "v20-sell-live.png"))
+    for _ in range(90):
+        pg.wait_for_timeout(500)
+        if pg.is_visible("#result"): break
+    print("sell result:", pg.inner_text("#result")[:120]); pg.screenshot(path=str(out / "v20-sell-end.png"))
+    pg.close()
+    seed5 = dict(seed4, featAt=time.time() * 1000 - 1000)
+    pg = page(b, "light", seed5); close_sheets(pg); pg.wait_for_timeout(500)
+    print("featured:", pg.is_visible("#featTag") and pg.inner_text("#featTag"), "| rivals:", pg.locator("#pads .pad").count() - 1)
+    pg.screenshot(path=str(out / "v20-featured.png"))
+    pg.click("#autoBtn"); 
+    for _ in range(200):
+        pg.wait_for_timeout(100)
+        if pg.inner_text("#callBig").upper().startswith("YOUR CALL"): print("final call cue shown"); pg.screenshot(path=str(out / "v20-yourcall.png")); break
+        if pg.is_visible("#result"): break
+    res = play_lot(pg); print("featured result:", res[:80]); pg.wait_for_timeout(1800)
+    if pg.locator(".reveal").count(): print("reveal:", pg.inner_text(".reveal").replace("\n", " | ")); pg.screenshot(path=str(out / "v20-reveal.png"))
+    pg.close()
+
     # ---------- registrations (limited variant, nearly out) ----------
-    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","new_class","nemesis","streak3","streak7"]}
+    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","jackpot","headliner","new_class","nemesis","streak3","streak7"]}
     seed2 = dict(seed, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
     pg = page(b, "dark", seed2); close_sheets(pg)
     print("reg line:", pg.inner_text("#regInfo"))
-    res = play_lot(pg); print("reg lot:", res[:60]); pg.wait_for_timeout(4500); close_sheets(pg)
+    res = play_lot(pg, 600); print("reg lot:", res[:60]); pg.wait_for_timeout(4500); close_sheets(pg)
     pg.wait_for_timeout(300)
     for _ in range(40):
         bidtxt = pg.inner_text("#bidBtn")
