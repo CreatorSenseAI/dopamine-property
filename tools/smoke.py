@@ -95,7 +95,8 @@ with sync_playwright() as p:
         s = subs[i % 3]; v = random.uniform(250e3, 420e3)
         props.append(dict(id=i, addr=f"{i} Banksia Street", street="Banksia Street", sub=s[0], st=s[1], ti=0, style="cottage", seed=i * 7919, rare=False, paid=v, duty=v * .03, prem=0, heat=0, age=20, value=v, vacant=0, boughtAt=0, loan=0))
     props[0].update(land=700, value=585e3, paid=560e3)
-    props[1].update(loan=150000)  # first card: room for a pool, close to the Family line
+    props[1].update(loan=150000)
+    props[2].update(land=650, value=300e3, paid=290e3)  # duplex candidate  # first card: room for a pool, close to the Family line
     seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=3, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
     pg = page(b, "light", seed)
     pg.wait_for_timeout(1500)
@@ -123,6 +124,16 @@ with sync_playwright() as p:
     print("after makeover:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
     assert "Family" in pg.inner_text(card + " .psub"), "makeover should push it into Family"
     pg.locator(card).screenshot(path=str(out / "v14-upgraded.png"))
+    # ---------- redevelop: duplex ----------
+    n0 = pg.locator(".prop").count()
+    pg.click('[data-up="3"]'); pg.wait_for_timeout(300); pg.screenshot(path=str(out / "v18-redev-sheet.png"))
+    pg.click('[data-rdk="duplex"]'); pg.wait_for_timeout(1500)
+    pg.locator('.prop[data-id="3"]').screenshot(path=str(out / "v18-building.png"))
+    for _ in range(40):
+        pg.wait_for_timeout(1000); close_sheets(pg)
+        if "Duplex" in pg.inner_text('.prop[data-id="3"] .psub'): break
+    print("duplex:", pg.inner_text('.prop[data-id="3"] .pname'), "|", pg.inner_text('.prop[data-id="3"] .psub'), "| homes", pg.inner_text("#pCount"))
+    assert "1/" in pg.inner_text('.prop[data-id="3"] .pname'), "duplex should split into 1/ and 2/"
     # ---------- bank: rate lock ----------
     pg.evaluate("document.querySelector('.bills.fold').open=true"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
     pg.screenshot(path=str(out / "v15-bank.png"))
@@ -130,8 +141,28 @@ with sync_playwright() as p:
     print("bank:", pg.inner_text("#bankRows").replace("\n", " | ")[:160])
     pg.close()
 
+    # ---------- mansion + mansion tax ----------
+    m = dict(id=1, addr="8 Wattle Road", street="Wattle Road", sub="Mosman", st="NSW", ti=2, style="villa", land=1200, seed=4242, rare=False, paid=2.9e6, duty=0, prem=0, heat=0, age=30, value=3e6, vacant=0, boughtAt=0, loan=0)
+    seed3 = dict(days=[yday], cash=5e6, props=[m], wins=5, rules=3, tour=1, nextId=2, maxTier=2, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000, mktUnlocked=1, coach={"bid": 1, "won1": 1, "upgrade": 1})
+    pg = page(b, "light", seed3); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(600)
+    pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-rdk="mansion"]')
+    for _ in range(45):
+        pg.wait_for_timeout(1000); close_sheets(pg)
+        if "Mansion" in pg.inner_text('.prop[data-id="1"] .psub'): break
+    print("mansion:", pg.inner_text('.prop[data-id="1"] .psub'), pg.inner_text('.prop[data-id="1"] [data-k="v"]'))
+    pg.locator('.prop[data-id="1"]').screenshot(path=str(out / "v18-mansion.png"))
+    pg.click('[data-sell="1"]'); pg.wait_for_timeout(200); pg.click('[data-sell="1"]'); pg.wait_for_timeout(600)
+    toasts = []
+    for _ in range(5):
+        toasts += pg.locator(".toast").all_inner_texts()
+        if any("mansion tax" in y for y in toasts) or not pg.locator(".toast").count(): break
+        pg.locator(".toast").first.click(); pg.wait_for_timeout(700)
+    print("sale:", [y for y in toasts if "Sold" in y][:1])
+    assert any("mansion tax" in x for x in toasts), "mansion tax should show on the sale"
+    pg.close()
+
     # ---------- registrations (limited variant, nearly out) ----------
-    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","new_class","nemesis","streak3","streak7"]}
+    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","new_class","nemesis","streak3","streak7"]}
     seed2 = dict(seed, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
     pg = page(b, "dark", seed2); close_sheets(pg)
     print("reg line:", pg.inner_text("#regInfo"))

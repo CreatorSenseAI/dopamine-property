@@ -191,6 +191,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .pill.vac{background:var(--red);color:var(--on-red)}
 .pill.hot{background:var(--gold-fill);color:var(--on-gold)}
 .sell{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:8px 10px;font-weight:700;font-size:13px;max-width:110px;line-height:1.15}
+.uph{margin:14px 0 2px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left}
 .pbtns{display:flex;flex-direction:column;gap:6px;align-items:stretch}
 .upbtn{border:1px solid var(--gold);background:transparent;color:var(--ink);border-radius:8px;padding:6px 10px;font-weight:700;font-size:12px}
 .pill.works{background:var(--gold-fill);color:var(--on-gold)}
@@ -808,6 +809,8 @@ function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,l
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
+/* homes bought before v18 had no land size: give each a fixed one from its seed and market */
+for(const p of S.props){if(p.land==null){const st=p.style;p.land=st==='unit'||st==='tower'?0:Math.round(([450,520,750,1400,4000][p.ti0!=null?p.ti0:p.ti]+mulberry(p.seed|0)()*([250,380,850,2800,36000][p.ti0!=null?p.ti0:p.ti]))/5)*5;}}
 RIVALS.forEach(r=>{if(!(r.name in S.board))S.board[r.name]=r.worth;});
 /* ---------- bidder registrations (scarcity test): each auction you bid in uses one, like a real auction. Watching, the Market and the Empire are never limited ---------- */
 const REG_MAX=8,REG_EVERY=12*60e3,REG_FREE=20;
@@ -827,11 +830,11 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v17-web';
+const VERSION='v18-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
- c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,shopViews:0,shopClicks:0,iapBuys:0,iapRestores:0,regUsed:0,regBlocked:0,regTopups:0,dailyLots:0,rateLocks:0,rescueBuys:0,rescues:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
+ c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,redevs:0,redevSpend:0,redevDone:0,blowouts:0,buildDelays:0,mansionTax:0,shopViews:0,shopClicks:0,iapBuys:0,iapRestores:0,regUsed:0,regBlocked:0,regTopups:0,dailyLots:0,rateLocks:0,rescueBuys:0,rescues:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
  auctions:[],log:[],curve:[],flags:{},tab:{},firstBidSec:null,firstWinSec:null,dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
 const tnow=()=>Math.round((Date.now()-T.start)/1000);
 function tlog(type,d){T.log.push(Object.assign({t:tnow(),type},d||{}));if(T.log.length>150)T.log.shift();T.dirty=true;}
@@ -887,11 +890,13 @@ function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=
 const propCost=(p,lr)=>p.value*(COUNCIL+UPKEEP+(isStrata(p)?STRATA:0)+lr);
 const basis=p=>p.paid+(p.duty||0)+(p.capex||0);
 const held=p=>p.age==null||p.age>=12;
-function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis(p),tax=gain>0?gain*(held(p)?0.15:0.30):0,loan=p.loan||0;return{net,tax,loan,bank:net-tax-loan,profit:net-tax-basis(p)};}
+/* mansion tax, modelled on LA's Measure ULA: on the whole sale price, 4% from $5M, 5.5% from $10M */
+const mansionTax=price=>price>=10e6?price*0.055:price>=5e6?price*0.04:0;
+function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis(p),tax=gain>0?gain*(held(p)?0.15:0.30):0,loan=p.loan||0,mtax=mansionTax(net);return{net,tax,mtax,loan,bank:net-tax-mtax-loan,profit:net-tax-mtax-basis(p)};}
 /* ---------- upgrades: spend game cash to lift a home's value; works pause the rent; a big enough lift moves it up a category ---------- */
 const hasPool=p=>baseTi(p)>=2||!!(p.up&&p.up.pool)||(p.feats||[]).some(f=>/pool/i.test(f));
 const UPG=[
- {k:'reno',name:'Makeover',tag:'Renovated',desc:'New kitchen, bathrooms, floors and paint.',cost:0.08,lift:[0.12,0.20],mo:12,why:p=>null},
+ {k:'reno',name:'Makeover',tag:'Renovated',desc:'New kitchen, bathrooms, floors and paint.',cost:0.08,lift:[0.12,0.20],mo:12,why:p=>p.dwell?'New build: nothing to renovate':null},
  {k:'pool',name:'Add a pool',tag:'Pool',desc:'In-ground pool and landscaping.',cost:0.05,lift:[0.08,0.11],mo:6,why:p=>isStrata(p)?'No yard to put one in':hasPool(p)?'Already has a pool':(p.land||0)<600?`Won't fit. Needs 600 m² of land, this has ${p.land||0} m².`:null},
  {k:'ext',name:'Extension',tag:'Extended',desc:'An extra bedroom and a second living area.',cost:0.08,lift:[0.12,0.17],mo:10,why:p=>isStrata(p)?'Strata won’t approve it':(p.land||0)<450?`Won't fit. Needs 450 m² of land, this has ${p.land||0} m².`:null}
 ];
@@ -900,25 +905,50 @@ const classLine=ti=>ti<TIERS.length-1?(TIERS[ti].max+TIERS[ti+1].min)/2:Infinity
 const upCost=(p,u)=>roundTo(p.value*u.cost,1000);
 const upgAvail=p=>UPG.filter(u=>!(p.up&&p.up[u.k])&&!u.why(p));
 /* the card only offers Upgrade when there is something left to do and you can pay for it */
-const upgOpen=p=>!p.works&&upgAvail(p).some(u=>S.cash>=upCost(p,u));
+const upgOpen=p=>!p.works&&(upgAvail(p).some(u=>S.cash>=upCost(p,u))||redevAvail(p).some(x=>S.cash>=upCost(p,x)));
 function startWorks(p,k){const u=UPG.find(x=>x.k===k);if(!u||p.works||(p.up&&p.up[k])||u.why(p)||!S.props.includes(p))return;const c=upCost(p,u);
  if(S.cash<c){toast('Not enough cash for the '+u.name.toLowerCase()+'. It costs '+money(c)+'.','down');return;}
  S.cash-=c;p.capex=(p.capex||0)+c;p.works={k,lift:rnd(u.lift[0],u.lift[1])};p.vacant=u.mo;OFF=OFF.filter(o=>o.pid!==p.id);
  T.c.upgrades++;T.c.upgradeSpend+=Math.round(c);tlog('upgrade_start',{k,tier:p.ti,style:p.style,land:p.land||0,cost:Math.round(c),value:Math.round(p.value),cashAfter:Math.round(S.cash)});
  toast(u.name+' started at '+p.addr+'. '+money(-c)+'. No rent for '+u.mo+' months while the works run.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
-function finishWorks(p,quiet){const w=p.works;if(!w)return;const u=UPG.find(x=>x.k===w.k);p.works=null;p.up=p.up||{};p.up[w.k]=1;if(w.k==='ext')p.beds=(p.beds||3)+1;
- const before=p.value;p.value*=1+w.lift;let moved=false;
- while(p.ti<TIERS.length-1&&p.value>=classLine(p.ti)){if(p.ti0==null)p.ti0=p.ti;p.ti++;moved=true;}
- if(moved){p.value*=1.06;T.c.reclassed++;award('new_class');}
+function finishWorks(p,quiet){const w=p.works;if(!w)return;if(w.redev){finishRedev(p,quiet);return;}const u=UPG.find(x=>x.k===w.k);p.works=null;p.up=p.up||{};p.up[w.k]=1;if(w.k==='ext')p.beds=(p.beds||3)+1;
+ const before=p.value;p.value*=1+w.lift;const moved=reclass(p);
  T.c.upgradesDone++;award('reno');tlog('upgrade_done',{k:w.k,tier:p.ti,from:baseTi(p),liftPct:+(w.lift*100).toFixed(1),moved,valueBefore:Math.round(before),valueAfter:Math.round(p.value)});
  if(!quiet){toast((u?u.name:'Works')+' done at '+p.addr+'. Now worth '+money(p.value)+', up '+money(p.value-before)+(moved?'. It is a '+TIERS[p.ti].name+' home now.':'.'),'up');sfx(moved?'rare':'win');if(moved)confetti(false);}
+ builtIds='';}
+/* ---------- redevelopment: knock down and rebuild. Step 1: duplex and mansion. Bought with game cash; build time = no rent, costs keep running ---------- */
+const REDEV=[
+ {k:'duplex',name:'Duplex',desc:'Knock down and build two homes side by side: two tenants, two rents, sell one and keep one.',cost:0.65,end:[1.85,2.2],mo:24,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':(p.land||0)<600?`Needs 600 m² of land, this has ${p.land||0} m².`:null},
+ {k:'mansion',name:'Mansion',desc:'Knock down and build one big statement home. Mansion tax applies when you sell over $5M.',cost:0.9,end:[2.2,2.6],mo:30,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':baseTi(p)<2?'Only in Prestige suburbs and up':(p.land||0)<1000?`Needs 1,000 m² of land, this has ${p.land||0} m².`:null}
+];
+const redevAvail=p=>REDEV.filter(r=>!r.why(p));
+function reclass(p){let moved=false;while(p.ti<TIERS.length-1&&p.value>=classLine(p.ti)){if(p.ti0==null)p.ti0=p.ti;p.ti++;moved=true;}if(moved){p.value*=1.06;T.c.reclassed++;award('new_class');}return moved;}
+function startRedev(p,k){const r=REDEV.find(x=>x.k===k);if(!r||p.works||r.why(p)||!S.props.includes(p))return;const c=upCost(p,r);
+ if(S.cash<c){toast('Not enough cash to build a '+r.name.toLowerCase()+'. It costs '+money(c)+'.','down');return;}
+ S.cash-=c;p.capex=(p.capex||0)+c;p.works={k,redev:true,end:rnd(r.end[0],r.end[1]),cost:c};p.vacant=r.mo;OFF=OFF.filter(o=>o.pid!==p.id);
+ T.c.redevs++;T.c.redevSpend+=Math.round(c);tlog('redev_start',{k,tier:p.ti,land:p.land||0,cost:Math.round(c),value:Math.round(p.value),cashAfter:Math.round(S.cash)});
+ toast(r.name+' build started at '+p.addr+'. '+money(-c)+'. No rent for '+r.mo+' months; bills keep coming.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
+/* things that go wrong on a build site, at most once each per build */
+function buildEvents(p){const w=p.works;if(!w||!w.redev)return;
+ if(!w.blown&&Math.random()<0.012){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000);S.cash-=x;S.paidOut+=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x)});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+'.','down',true);}
+ if(!w.late&&Math.random()<0.01){w.late=true;p.vacant+=6;T.c.buildDelays++;tlog('build_delay',{k:w.k});note('build','Builder delay at '+p.addr+': 6 more months.','down',true);}}
+function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,total=p.value*w.end;p.up={};p.dwell=w.k;p.heat=0;p.rare=false;let out=[p];
+ if(w.k==='mansion'){p.value=total;p.style='villa';p.beds=Math.max(p.beds||5,6);p.feats=['New build','Mansion'];}
+ else{const land=Math.round((p.land||0)/2),half={paid:p.paid/2,duty:(p.duty||0)/2,capex:(p.capex||0)/2};
+  const b=Object.assign({},p,half,{id:S.nextId++,addr:'2/'+p.addr,value:total/2,land,loan:0,seed:(p.seed|0)+7,style:'modern',feats:['New build','Duplex'],boughtAt:Date.now(),vacant:0,ti0:p.ti0,up:{}});
+  Object.assign(p,half,{addr:'1/'+p.addr,value:total/2,land,style:'modern',feats:['New build','Duplex']});S.props.splice(S.props.indexOf(p)+1,0,b);out.push(b);}
+ let moved=false;for(const q of out)moved=reclass(q)||moved;
+ const after=out.reduce((n,q)=>n+q.value,0);T.c.redevDone++;award('developer');tlog('redev_done',{k:w.k,tier:p.ti,mult:+w.end.toFixed(2),moved,valueBefore:Math.round(before),valueAfter:Math.round(after),blown:!!w.blown,late:!!w.late});
+ if(!quiet){toast((w.k==='mansion'?'Mansion finished at '+p.addr+'. Worth '+money(after):'Duplex finished: two homes worth '+money(after)+' together')+', up '+money(after-before)+(moved?'. New category: '+TIERS[p.ti].name+'.':'.'),'up');sfx('rare');confetti(true);}
  builtIds='';}
 function upgradeSheet(p){const nl=classLine(p.ti);
  const rows=UPG.map(u=>{const done=p.up&&p.up[u.k],why=u.why(p),c=upCost(p,u),lo=p.value*u.lift[0],hi=p.value*u.lift[1];
   return `<div class="uprow${done||why?' off':''}"><div class="uptxt"><b>${u.name}${done?' ✓':''}</b><small>${done?'Done':why?esc(why):`${esc(u.desc)} Adds ${money(lo)} to ${money(hi)} to the value. ${u.mo} months of works, no rent.`}</small></div>${done||why?'':`<button data-upk="${u.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
- $('#sheet').innerHTML=`<div class="upg"><h3>Upgrade</h3><p>${esc(p.addr)}, ${esc(p.sub)}<br>Worth ${money(p.value)}${p.land?' · '+p.land+' m² of land':''} · you have ${money(S.cash)}</p>${rows}${nl<Infinity?`<p class="upnote">Lift it past ${money(nl)} and it becomes a ${TIERS[p.ti+1].name} home, worth 6% more.</p>`:''}<button class="sec" id="upClose">Close</button></div>`;
+ const rrows=p.dwell||isStrata(p)?'':'<h4 class="uph">Redevelop</h4>'+REDEV.map(x=>{const why=x.why(p),c=upCost(p,x),lo=p.value*x.end[0],hi=p.value*x.end[1];return `<div class="uprow${why?' off':''}"><div class="uptxt"><b>${x.name}</b><small>${why?esc(why):`${esc(x.desc)} Ends up worth ${money(lo)} to ${money(hi)}${x.k==='duplex'?' for the pair':''}. ${x.mo} months to build; cost blowouts and delays can happen.`}</small></div>${why?'':`<button data-rdk="${x.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
+ $('#sheet').innerHTML=`<div class="upg"><h3>Upgrade</h3><p>${esc(p.addr)}, ${esc(p.sub)}<br>Worth ${money(p.value)}${p.land?' · '+p.land+' m² of land':''} · you have ${money(S.cash)}</p>${rows}${rrows}${nl<Infinity?`<p class="upnote">Lift it past ${money(nl)} and it becomes a ${TIERS[p.ti+1].name} home, worth 6% more.</p>`:''}<button class="sec" id="upClose">Close</button></div>`;
  $('#modal').hidden=false;$('#upClose').onclick=()=>{$('#modal').hidden=true;};
  $('#sheet').querySelectorAll('[data-upk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startWorks(p,b.dataset.upk);});
+ $('#sheet').querySelectorAll('[data-rdk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startRedev(p,b.dataset.rdk);});
  T.c.upgradeViews++;tlog('upgrade_view',{tier:p.ti,options:upgAvail(p).length,cash:Math.round(S.cash)});}
 const cost=n=>n*(1+DUTY[A.lot.ti]);
 const maxBid=L=>Math.max(0,Math.floor(S.cash/(1-LVR+DUTY[L.ti])/L.inc)*L.inc);
@@ -944,7 +974,8 @@ function houseSVG(p){
  if(hasPool(p)){g+=`<rect x="236" y="246" width="128" height="24" rx="8" fill="#4cc4ea"/><rect x="242" y="250" width="116" height="5" rx="2" fill="#c4f0fd" opacity=".85"/>`;}
  const W=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${win}" stroke="${frame}" stroke-width="1.5"/>`;
  const st=p.style;
- if(st==='cottage'){const x=118,w=170,y=152,h=78;
+ if(p.works&&p.works.redev){g+=`<rect x="96" y="206" width="208" height="24" fill="#b9a58a"/><path d="M262 230V58M262 70H120M262 70H300M150 70V120" stroke="#e8b52a" stroke-width="6" fill="none"/><path d="M262 58l-12 12M262 58l12 12" stroke="#e8b52a" stroke-width="4"/><rect x="138" y="120" width="24" height="18" fill="#8a8a8a"/><rect x="110" y="176" width="120" height="30" fill="#cfcfcf" stroke="#2b2b35" stroke-width="1.5"/>`;}
+ else if(st==='cottage'){const x=118,w=170,y=152,h=78;
   g+=`<rect x="${x+118}" y="108" width="16" height="36" fill="${roof}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${wall}" stroke="${frame}" stroke-width="1.5"/>`;
   g+=`<polygon points="${x-14},${y+2} ${x+w/2},${y-58} ${x+w+14},${y+2}" fill="${roof}"/>`;
   g+=W(x+18,y+20,36,28)+W(x+w-54,y+20,36,28)+`<path d="M${x+36} ${y+20}v28M${x+18} ${y+34}h36M${x+w-36} ${y+20}v28M${x+w-54} ${y+34}h36" stroke="${frame}" stroke-width="1.2"/>`;
@@ -975,7 +1006,7 @@ function houseSVG(p){
   if(coast){g+=`<path d="M${tx} 232 q ${-4+r()*8} -40 ${-2+r()*4} -78" stroke="#7a5a3a" stroke-width="5" fill="none"/>`;const cy=154;for(let k=0;k<5;k++){const a=-160+k*35;g+=`<ellipse cx="${tx}" cy="${cy}" rx="26" ry="6" fill="#2f8a4c" transform="rotate(${a} ${tx} ${cy}) translate(18 0)"/>`;}}
   else{g+=`<rect x="${tx-3}" y="188" width="6" height="44" fill="#6b4a2e"/><circle cx="${tx}" cy="178" r="22" fill="#3f8a4a"/><circle cx="${tx+10}" cy="190" r="14" fill="#357a40"/>`;}
  }
- if(p.works)g+=`<g stroke="#e8902a" stroke-width="5" opacity=".9" fill="none"><path d="M104 232V112M200 232V100M296 232V112M98 146H302M98 190H302"/></g><rect x="150" y="236" width="100" height="26" rx="4" fill="#e8902a"/><text x="200" y="255" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1a1a1a">WORKS</text>`;
+ if(p.works&&!p.works.redev)g+=`<g stroke="#e8902a" stroke-width="5" opacity=".9" fill="none"><path d="M104 232V112M200 232V100M296 232V112M98 146H302M98 190H302"/></g><rect x="150" y="236" width="100" height="26" rx="4" fill="#e8902a"/><text x="200" y="255" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="16" fill="#1a1a1a">WORKS</text>`;
  if(p.rare){for(let k=0;k<4;k++){const sx=60+r()*280,sy=30+r()*80,s=6+r()*6;g+=`<path d="M${sx} ${sy-s}L${sx+s*.28} ${sy-s*.28}L${sx+s} ${sy}L${sx+s*.28} ${sy+s*.28}L${sx} ${sy+s}L${sx-s*.28} ${sy+s*.28}L${sx-s} ${sy}L${sx-s*.28} ${sy-s*.28}Z" fill="#ffd34d"/>`;}}
  return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of ${esc(p.addr)}">${g}</svg>`;
 }
@@ -1134,7 +1165,7 @@ function endAuction(){A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
  SESS.lots+=youBidAny||ui?1:0;
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
  if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
-  const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
+  const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
   const eq=L.value-A.bid,z=zoneOf(A.bid,L,A.est),k={steal:1.8,good:1.3,fair:1,over:0.6}[z]||1;SESS.best=Math.max(SESS.best==null?-Infinity:SESS.best,eq);
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
@@ -1233,7 +1264,7 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((BASEG+(p.heat||0))*damp*ageDamp(p)+0.007*gauss());
   if(p.heat){if(p.heat>=0.0015&&Math.random()<0.004){p.value*=0.75;p.heat=0;T.c.bubblePops++;tlog('bubble_pop',{tier:p.ti,value:Math.round(p.value)});note('bubble','Bubble bursts at '+p.addr+'. Down 25%.','down',true);}else p.heat*=0.985;}
   if(Math.random()<0.003){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
-  if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
+  buildEvents(p);if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
  if(S.cash<0){if(!S.od){S.od=true;T.c.overdrafts++;tlog('overdraft',{cash:Math.round(S.cash),worth:Math.round(worth()),props:S.props.length});toast('Cash is below zero. Bills are going on the overdraft at 6% a year. Sell a house or wait for rent.','down');}}else S.od=false;
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()&&S.rescue){const p=S.props.slice().sort((a,b)=>b.value-a.value)[0],gap=-S.cash;S.rescue=false;p.loan=(p.loan||0)+gap;S.cash=0;S.borrowed=true;T.c.rescues++;tlog('rescue',{gap:Math.round(gap),debt:Math.round(debt())});toast('Rescue cover stopped a repossession. '+money(gap)+' went onto your loan for '+p.addr+'.','up');}
@@ -1278,7 +1309,7 @@ function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf
  $('#psort').hidden=S.props.length<4;$('#psort').querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===psort));
  $('#pager').hidden=all.length<=PAGE;$('#pgTxt').textContent=`${pg*PAGE+1}–${Math.min(all.length,pg*PAGE+PAGE)} of ${all.length}`;$('#pgPrev').disabled=pg<=0;$('#pgNext').disabled=pg>=pages-1;
  $('#pfilter').hidden=!nRare;$('#pfAllN').textContent=S.props.length;$('#pfRareN').textContent=nRare;$('#pfAll').setAttribute('aria-pressed',pf==='all');$('#pfRare').setAttribute('aria-pressed',pf==='rare');
- $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
+ $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
  const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;renderSets();renderBadges();updEmpire();
  if(view==='e'&&S.props.length>=2&&S.props.some(upgOpen))setTimeout(()=>{if(view==='e')coach('upgrade','Tap Upgrade on a home to renovate, extend or add a pool. It costs cash now and lifts the value and the rent.');},600);}
 function updGoal(){const w=worth(),nt=S.maxTier+1;
@@ -1296,7 +1327,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  renderBank(dt);
  $('#debtNote').textContent=S.autoPay?'Spare rent goes straight onto your loans every month. Your cash stays put for bidding.':'Turn on auto-pay to put spare rent onto your loans every month.';
  $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>over $2M of property</small>',-B.land],['Mortgage interest <small>'+((S.lock||0)>0?'4.5% a year, locked':'6% a year')+'</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
- $('#billNote').textContent=`Also: stamp duty of 3 to 7% on every purchase, and capital gains tax on every profitable sale (30%, or 15% once you have held for 12 months). Tax and bills paid so far: ${money(S.paidOut)}.`;
+ $('#billNote').textContent=`Also: stamp duty of 3 to 7% on every purchase, and capital gains tax on every profitable sale (30%, or 15% once you have held for 12 months), and mansion tax on any sale over $5M (4%, or 5.5% over $10M). Tax and bills paid so far: ${money(S.paidOut)}.`;
  const pts=Math.floor(Math.sqrt(w/2.5e7)),st=S.legacy||0,lb=$('#legacyBtn');
  $('#legacy').hidden=!(S.legacy||w>=1e7);{const led=$('#ledSum');if(led){const n=rentNow-B.total;led.textContent=sg(n)+'/mo';led.className='fsum '+(n>=0?'pos':'neg');}}drawStars();$('#legacyTxt').textContent=(st?`${st} legacy star${st>1?'s':''}: +${st*10}% rent on every house, ${money(450000+st*100000)} starting cash. `:'Each legacy star adds 10% to all rent and $100K to your starting cash. ')+(w>=1e8?`Cash out now to bank ${pts} more and start a new dynasty.`:`Cash out unlocks at ${money(1e8)} net worth.`);
  lb.disabled=w<1e8;if(!legArmed)lb.textContent=w>=1e8?'Cash out +'+pts+'★':'Cash out';
@@ -1304,8 +1335,8 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  else{$('#unlockTxt').textContent='Every market is open. Chase the top of the rich list.';$('#unlockBar').style.width='100%';}
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
-  el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');
-  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?'Works ':'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
+  el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');gp.hidden=!!(p.works&&p.works.redev);
+  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?(p.works.redev?'Building ':'Works '):'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');if(armed===p.id){sb.classList.add('armed');sb.textContent='Bank '+money(saleOf(p).bank)+' after tax'+(p.loan?' and loan':'')+'?';}else{sb.classList.remove('armed');sb.textContent='Sell';}}
  const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
@@ -1326,13 +1357,13 @@ $('#bankRows').onclick=e=>{const b=e.target.closest('[data-bank]');if(!b)return;
  if(k==='lock'&&!(S.lock>0)){const f=lockFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.lock=24;T.c.rateLocks++;tlog('bank_buy',{k,fee:Math.round(f),debt:Math.round(debt())});toast('Rate locked at 4.5% for 24 months. Fee '+money(f)+'.','up');sfx('cash');}
  else if(k==='rescue'&&!S.rescue){const f=rescueFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.rescue=true;T.c.rescueBuys++;tlog('bank_buy',{k,fee:Math.round(f),holdings:Math.round(holdings())});toast('Rescue cover active. Fee '+money(f)+'.','up');sfx('cash');}
  $('#bankBox').dataset.sig='';updEmpire();save();soonFlush();};
-function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,bank,profit,loan}=saleOf(p,price);
+function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,mtax,bank,profit,loan}=saleOf(p,price);if(mtax){T.c.mansionTax+=Math.round(mtax);}
  const holdSec=p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,sinceMkt=T.lastMarket?Math.round((Date.now()-T.lastMarket.at)/1000):null;
  T.c.sells++;T.c.sellProfit+=Math.round(profit);if(profit>0&&how!=='repossessed')award('flip');if(holdSec!==null&&holdSec<20&&profit>0){T.c.quickFlips++;if(T.c.quickFlips>=3)tflag('quick_flip_pattern',{holdSec,profit:Math.round(profit),how});}
  tlog('sell',{how,tier:p.ti,rare:!!p.rare,src:p.src||'auction',paid:Math.round(p.paid),duty:Math.round(p.duty||0),net:Math.round(net),tax:Math.round(tax),loan:Math.round(loan),profit:Math.round(profit),profitPct:+((net-tax)/basis(p)*100-100).toFixed(2),heldMonths:p.age,holdSec,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,afterDownturnSec:T.lastMarket&&T.lastMarket.down?sinceMkt:null,cashAfter:Math.round(S.cash+bank)});
- S.cash+=bank;S.paidOut+=tax;S.props.splice(i,1);OFF=OFF.filter(o=>o.pid!==p.id);if(armed===p.id){armed=null;clearTimeout(armTimer);}
+ S.cash+=bank;S.paidOut+=tax+mtax;S.props.splice(i,1);OFF=OFF.filter(o=>o.pid!==p.id);if(armed===p.id){armed=null;clearTimeout(armTimer);}
  if(how==='repossessed')toast(`The bank repossessed ${p.addr} and sold it for ${money(net)}. ${bank>=0?'You kept '+money(bank):'You still owe '+money(-bank)}.`,'down');
- else{toast(`Sold ${p.addr} for ${money(net)}. ${profit>=0?'Profit +'+money(profit):'Loss '+money(profit)}${tax>0?' after '+money(tax)+' capital gains tax':''}${loan>0?'. Loan of '+money(loan)+' repaid':''}.`,profit>=0?'up':'down');sfx('cash');if(profit>0)confetti(false);}
+ else{toast(`Sold ${p.addr} for ${money(net)}. ${profit>=0?'Profit +'+money(profit):'Loss '+money(profit)}${tax>0?' after '+money(tax)+' capital gains tax':''}${mtax>0?' and '+money(mtax)+' mansion tax':''}${loan>0?'. Loan of '+money(loan)+' repaid':''}.`,profit>=0?'up':'down');sfx('cash');if(profit>0)confetti(false);}
  buildEmpire();updAuction();if(view==='m'){offSig='';renderMarket();}save();soonFlush();}
 $('#plist').onclick=e=>{const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
  if(armed===id){const p=S.props.find(q=>q.id===id);if(p)sellProp(p,null,'empire');}
@@ -1418,7 +1449,7 @@ let qT=null;$('#mQ').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout
 $('#wmapBtn').onclick=()=>{const g=$('#globeSec'),open=g.hidden;g.hidden=!open;$('#wmapBtn').setAttribute('aria-expanded',open);$('#wmapBtn').textContent=open?'Hide world map':'World map: shop by city';if(open){gstart();g.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}else gstop();};
 function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}
  const pay=payFor(l.ask,l.ti);S.cash-=pay.out;S.paidOut+=pay.duty;if(i>=0)LST.splice(i,1);
- S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,seed:l.seed,rare:l.rare,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
+ S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,land:l.land,beds:l.beds,feats:l.feats,seed:l.seed,rare:l.rare,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
  T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);award('first_win');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
  tlog('mkt_buy',{offmkt:!!l.offmkt,tier:l.ti,rare:l.rare,deal:l.deal,ask:Math.round(l.ask),value:Math.round(l.value),loan:Math.round(pay.loan),secsLeft:l.ttl,city:l.sub,cashAfter:Math.round(S.cash)});
  const eq=l.value-l.ask;toast(`Bought ${l.addr}.`+(eq>0?` +${money(eq)} equity.`:'')+(pay.loan?` Loan ${money(pay.loan)}.`:''),'up');
@@ -1570,7 +1601,7 @@ function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]
  $('#setList').innerHTML=subs.map(([s,n])=>`<span class="${n>=SET_N?'done':''}">${esc(s)} ${Math.min(n,SET_N)}/${SET_N}${n>SET_N?' +'+(n-SET_N):''}</span>`).join('');}
 
 /* ---------- badges ---------- */
-const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
+const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['developer','Developer','Finish a duplex or a mansion'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
 function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();regAdd(1,'badge:'+id);tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({block:'start'});});sfx('cash');},1800);if(view==='e')renderBadges();}
 const BQ=[];
 function renderBadges(){const got=S.badges||{};$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
