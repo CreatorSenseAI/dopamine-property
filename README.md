@@ -48,6 +48,19 @@ const CONFIG={
 };
 ```
 
+## Remove ads (one-time purchase, web)
+
+1. In Stripe, create a Product "Remove ads" with a one-time price (e.g. A$4.99) and a **Payment Link** for it.
+2. Payment Link → After payment → "Don't show confirmation page" → redirect to `https://<your-domain>/?paid={CHECKOUT_SESSION_ID}`.
+3. Railway variables:
+   - `STRIPE_SECRET_KEY` — a restricted key with read access to Checkout Sessions
+   - `STRIPE_REMOVE_ADS_LINK` — the Payment Link URL (`https://buy.stripe.com/...`)
+   - `STRIPE_REMOVE_ADS_LINK_ID` — its id (`plink_...`), so only that link unlocks
+   - `REMOVE_ADS_PRICE` — the label shown in game, e.g. `A$4.99`
+   - `UNLOCK_SECRET` — long random string (signs unlock tokens)
+
+The menu and the ad slot then show "Remove ads". The server checks every payment with Stripe before unlocking; players on a new device use "Restore" with the email they paid with. Purchases (no email or card data) are listed on `/admin`. Leave the variables unset until ads are switched on, so there's nothing to remove before then.
+
 ## Photoreal home images (OpenAI)
 
 ```bash

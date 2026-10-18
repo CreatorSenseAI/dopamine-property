@@ -3,7 +3,12 @@
 // - POST /api/play  receives anonymous play logs from the game (random install id, no personal data, no IPs stored)
 // - GET  /admin     play-stats dashboard, protected by the ADMIN_KEY env var (404 when unset)
 // - GET  /admin/export.json  every stored session + player, for deeper analysis
+// - GET  /api/shop  what the in-game shop sells on the web (Remove ads), from env vars
+// - GET  /api/unlock?session=cs_...  checks a Stripe Checkout session is paid, returns the unlock
+// - POST /api/restore {email}  finds a paid Remove ads purchase for that email (email is never stored)
 // Logs live in DATA_DIR (default ./data). On Railway, mount a volume at /data and set DATA_DIR=/data.
+// Remove ads (web): STRIPE_SECRET_KEY (restricted key, read Checkout Sessions), STRIPE_REMOVE_ADS_LINK (the Payment Link URL),
+// optional STRIPE_REMOVE_ADS_LINK_ID (plink_...) to only accept that link, REMOVE_ADS_PRICE (label, e.g. "A$4.99").
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
@@ -16,8 +21,11 @@ const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain" };
 const ID = /^[a-z0-9]{6,32}$/i;
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || "";
+const ADS_LINK = process.env.STRIPE_REMOVE_ADS_LINK || "", ADS_LINK_ID = process.env.STRIPE_REMOVE_ADS_LINK_ID || "", ADS_PRICE = process.env.REMOVE_ADS_PRICE || "";
+const UNLOCK_SECRET = process.env.UNLOCK_SECRET || ADMIN_KEY || crypto.randomBytes(16).toString("hex");
 
-for (const d of ["sessions", "players"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
+for (const d of ["sessions", "players", "purchases"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
 
 // ---------- static files, read once at boot ----------
 const files = new Map();
@@ -74,12 +82,54 @@ async function ingest(req, res) {
   send(req, res, 204, "text/plain", "");
 }
 
+// ---------- shop: Remove ads (web, Stripe Payment Link). Closed loop: nothing here pays out or converts back to money ----------
+const shopOn = () => !!(STRIPE_KEY && ADS_LINK);
+const unlockToken = (ref, item) => crypto.createHmac("sha256", UNLOCK_SECRET).update(ref + "|" + item).digest("hex").slice(0, 32);
+async function stripeGet(p) {
+  const r = await fetch("https://api.stripe.com/v1/" + p, { headers: { authorization: "Bearer " + STRIPE_KEY } });
+  if (!r.ok) throw new Error("stripe " + r.status);
+  return r.json();
+}
+const paidAdsSession = s => s && s.payment_status === "paid" && (!ADS_LINK_ID || s.payment_link === ADS_LINK_ID);
+function recordPurchase(s, how) {
+  const f = path.join(DATA, "purchases", s.id.replace(/[^a-zA-Z0-9_]/g, "") + ".json");
+  if (fs.existsSync(f) && how === "checkout") return;
+  // no email, name or card details stored: Stripe holds those
+  writeJSON(f, { id: s.id, item: "remove_ads", amount: s.amount_total, currency: s.currency, installId: ID.test(String(s.client_reference_id || "")) ? s.client_reference_id : null, paidAt: s.created ? new Date(s.created * 1000).toISOString() : null, how, at: new Date().toISOString() });
+}
+async function unlock(req, res, url) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  const sid = url.searchParams.get("session") || "";
+  if (!shopOn() || !/^cs_(test_|live_)?[A-Za-z0-9]{10,120}$/.test(sid)) return send(req, res, 400, "application/json", JSON.stringify({ ok: false }));
+  try {
+    const s = await stripeGet("checkout/sessions/" + encodeURIComponent(sid));
+    if (!paidAdsSession(s)) return send(req, res, 402, "application/json", JSON.stringify({ ok: false, reason: "not paid" }));
+    recordPurchase(s, "checkout");
+    return send(req, res, 200, "application/json", JSON.stringify({ ok: true, item: "remove_ads", ref: s.id, token: unlockToken(s.id, "remove_ads") }), { "cache-control": "no-store" });
+  } catch (e) { return send(req, res, 502, "application/json", JSON.stringify({ ok: false })); }
+}
+async function restore(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let email = "";
+  try { email = String(JSON.parse(await readBody(req, 2048)).email || "").trim().toLowerCase(); } catch { }
+  if (!shopOn() || !/^[^@\s]{1,64}@[^@\s]{1,190}\.[a-z]{2,}$/.test(email)) return send(req, res, 400, "application/json", JSON.stringify({ ok: false }));
+  try {
+    const list = await stripeGet("checkout/sessions?limit=20&customer_details[email]=" + encodeURIComponent(email));
+    const s = (list.data || []).find(paidAdsSession);
+    if (!s) return send(req, res, 404, "application/json", JSON.stringify({ ok: false }));
+    recordPurchase(s, "restore");
+    return send(req, res, 200, "application/json", JSON.stringify({ ok: true, item: "remove_ads", ref: s.id, token: unlockToken(s.id, "remove_ads") }), { "cache-control": "no-store" });
+  } catch (e) { return send(req, res, 502, "application/json", JSON.stringify({ ok: false })); }
+}
+
 // ---------- admin ----------
 let cache = null;
 function loadAll() {
   if (cache && Date.now() - cache.at < 30000) return cache;
   const read = d => fs.readdirSync(path.join(DATA, d)).filter(f => f.endsWith(".json")).map(f => { try { return JSON.parse(fs.readFileSync(path.join(DATA, d, f), "utf8")); } catch { return null; } }).filter(Boolean);
-  cache = { at: Date.now(), sessions: read("sessions"), players: read("players") };
+  cache = { at: Date.now(), sessions: read("sessions"), players: read("players"), purchases: read("purchases") };
   return cache;
 }
 const med = a => { const b = a.filter(x => typeof x === "number" && isFinite(x)).sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : null; };
@@ -115,6 +165,7 @@ function stats() {
     return { v, players: ps.length, d1: pct(n1, dd1), medMin: med(ss.map(s => s.playSec / 60))?.toFixed(1) ?? "–", join: pct(c("auctionsJoined"), c("auctionsSeen")), winsPerSession: ss.length ? (c("wins") / ss.length).toFixed(1) : "–", blocked: c("regBlocked"), used: c("regUsed") };
   });
   return {
+    adFree: (loadAll().purchases || []).length, adFreeRevenue: (loadAll().purchases || []).reduce((n, p) => n + (p.amount || 0), 0) / 100, shopViews: sum("shopViews"), shopClicks: sum("shopClicks"),
     ab, dailyLots: sum("dailyLots"), rateLocks: sum("rateLocks"), rescueBuys: sum("rescueBuys"), rescues: sum("rescues"),
     players: P.length, sessions: S.length,
     d1: pct(d1n, d1d), d1n: `${d1n}/${d1d}`, d7: pct(d7n, d7d), d7n: `${d7n}/${d7d}`,
@@ -154,6 +205,7 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>Auctions</h2><div class="g">${tile("Auctions seen", s.auctionsSeen)}${tile("Joined", s.joinRate, "of lots shown")}${tile("Win rate", s.winRate, "of lots joined")}${tile("Wins paid over value", s.overpaidWins)}${tile("Wins by zone", Object.entries(s.winZones).map(([z, n]) => z + " " + n).join(" · ") || "–")}${tile("Near-misses", s.nearMiss)}${tile("Win combos", s.combos)}${tile("Background auto-bids", s.liveAutos)}${tile("Hot lot taps", s.quickPlays)}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}</div>
 <h2>A/B: bidder registrations</h2><div class="g">${s.ab.map(a => tile(a.v ? "Limited (8, refill 12 min)" : "Control (no limit)", a.join + " join", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · ${a.winsPerSession} wins/session${a.v ? ` · ${a.used} used · out ${a.blocked}×` : ""}`)).join("")}${tile("Today's lots", s.dailyLots)}${tile("Bank: rate locks", s.rateLocks)}${tile("Bank: rescue cover", s.rescueBuys, s.rescues + " repossessions stopped")}</div>
+<h2>Shop</h2><div class="g">${tile("Remove ads bought", s.adFree, "$" + s.adFreeRevenue.toFixed(2) + " gross")}${tile("Shop opened", s.shopViews, s.shopClicks + " went to checkout")}</div>
 <h2>Market and interruptions</h2><div class="g">${tile("Market buys", s.mktBuys)}${tile("Offers accepted", s.offerAccept, s.offersMade + " made")}${tile("Off-market bought", s.offmkt)}${tile("Searches", s.searches)}${tile("Watches", s.watches)}${tile("Notices swiped away", s.toastSwipes)}${tile("Real-listing clicks", s.affClicks)}</div>
 <h2>Where time goes</h2><div class="g">${tile("Auction tab", pct(tabs[0], tabTotal))}${tile("Market tab", pct(tabs[1], tabTotal))}${tile("Empire tab", pct(tabs[2], tabTotal))}</div>
 <h2>Versions</h2><p>${Object.entries(s.versions).map(([v, n]) => esc(v) + ": " + n).join(" · ")}</p>
@@ -172,11 +224,14 @@ http.createServer(async (req, res) => {
   try {
     if (url.pathname === "/healthz") return send(req, res, 200, "text/plain", "ok");
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
+    if (url.pathname === "/api/shop") return send(req, res, 200, "application/json", JSON.stringify(shopOn() ? { removeAds: { link: ADS_LINK, price: ADS_PRICE } } : {}), { "cache-control": "no-store" });
+    if (url.pathname === "/api/unlock") return await unlock(req, res, url);
+    if (url.pathname === "/api/restore") return req.method === "POST" ? await restore(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
       if (url.pathname === "/admin") return send(req, res, 200, "text/html; charset=utf-8", adminPage(url.searchParams.get("key")), { "cache-control": "no-store", "x-robots-tag": "noindex" });
       const all = loadAll();
-      return send(req, res, 200, "application/json", JSON.stringify({ sessions: all.sessions, players: all.players }), { "cache-control": "no-store" });
+      return send(req, res, 200, "application/json", JSON.stringify({ sessions: all.sessions, players: all.players, purchases: all.purchases }), { "cache-control": "no-store" });
     }
     const f = files.get(url.pathname === "/" ? "/index.html" : url.pathname) || files.get("/index.html");
     const gzip = !!f.gz && /\bgzip\b/.test(req.headers["accept-encoding"] || "");
