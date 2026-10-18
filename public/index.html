@@ -51,7 +51,7 @@ button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 .mark span{font-family:var(--f-display);font-size:15px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
 .ledger{margin-left:auto;display:flex;gap:14px;text-align:right}
 .ledger div{display:flex;flex-direction:column}
-.ledger small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ledger small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .ledger strong{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:15px;font-weight:600}
 .mute{border:1px solid var(--line);background:var(--sunk);width:34px;height:34px;display:grid;place-items:center;border-radius:8px}
 .mute svg{width:16px;height:16px}
@@ -88,13 +88,13 @@ main>*{flex-shrink:0}
 .addr{font-weight:700;font-size:17px;line-height:1.2;min-width:0}
 .sub{color:var(--muted);font-size:13px;grid-column:1}
 .guide{grid-column:2;grid-row:1/3;text-align:right}
-.guide small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.guide small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .guide span{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600}
 .specs{padding:6px 14px 12px;font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
 
 /* live bidding */
 .live{border-top:1px dashed var(--line);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
-.cur small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.cur small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .big{font-family:var(--f-display);font-size:44px;line-height:1;letter-spacing:.01em;font-variant-numeric:tabular-nums;display:inline-block}
 .big.bump{animation:bump .28s ease-out}
 @keyframes bump{0%{transform:scale(1.14);color:var(--red)}100%{transform:scale(1)}}
@@ -145,7 +145,7 @@ main>*{flex-shrink:0}
 
 /* empire */
 .hero{background:var(--ink);color:var(--bg);border-radius:14px;padding:16px}
-.hero small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.hero small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
 .hero .big{font-size:48px;display:block;margin:2px 0 10px}
 .hstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .hstats div{display:flex;flex-direction:column;min-width:0}
@@ -180,7 +180,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .paddr{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;min-width:0}
 .pname{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .psub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rare-t{flex:none;background:var(--gold-fill);color:var(--on-gold);font-weight:700;font-size:10px;letter-spacing:.1em;text-transform:uppercase;line-height:1;padding:3px 6px;border-radius:4px}
+.rare-t{flex:none;background:var(--gold-fill);color:var(--on-gold);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;line-height:1;padding:3px 6px;border-radius:4px}
 .phead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .pfilter{display:flex;gap:6px}
 .pnums{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:4px}
@@ -201,6 +201,15 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .sheet .uprow button{width:auto;flex:none;font-family:var(--f-mono);font-size:14px;padding:9px 12px;letter-spacing:0;text-transform:none}
 .sheet .uprow button:disabled{opacity:.4}
 .sheet p.upnote{font-size:12px;margin:8px 0 4px}
+.reginfo{font-size:12px;color:var(--muted);text-align:center;line-height:1.2}
+.reginfo.out{color:var(--red);font-weight:700}
+.art .daily{position:absolute;left:10px;bottom:10px;background:var(--red);color:var(--on-red);font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:6px}
+.bank{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.bank h3{margin:6px 0 2px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.bank .uprow button{border:0;background:var(--red);color:var(--on-red);border-radius:8px;font-family:var(--f-mono);font-weight:700;font-size:13px;padding:8px 12px;flex:none}
+.bank .uprow button:disabled{opacity:.4}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.shake{animation:shake .4s ease-out}
 .sell.armed{background:var(--red);color:var(--on-red);border-color:var(--red)}
 .empty{color:var(--muted);font-size:14px;padding:18px;text-align:center;border:1px dashed var(--line);border-radius:12px}
 .rich{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -210,7 +219,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .rich .rk{font-family:var(--f-mono);color:var(--muted)}
 .playcard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
 .playcard div{display:flex;flex-direction:column;min-width:0}
-.playcard small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.playcard small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .playcard strong{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:15px}
 .pnote{grid-column:1/-1;margin:4px 0 0;font-size:12px;color:var(--muted)}
 @media (max-width:360px){.playcard{grid-template-columns:repeat(2,1fr)}}
@@ -269,7 +278,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .mtop>div:first-child{min-width:0}
 .msub{color:var(--muted);font-size:13px}
 .ttl{text-align:right;flex:none}
-.ttl small,.mprice small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ttl small,.mprice small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .ttl b{font-size:16px}
 .ttl b.hot{color:var(--red)}
 .mprice{display:flex;justify-content:space-between;align-items:flex-end;gap:4px 12px;flex-wrap:wrap}
@@ -293,12 +302,12 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .gzoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px}
 .gzoom button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:18px;line-height:1}
 .gzoom button:disabled{opacity:.4;cursor:default}
-.wartag{display:inline-block;vertical-align:middle;background:var(--red);color:var(--on-red);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px}
+.wartag{display:inline-block;vertical-align:middle;background:var(--red);color:var(--on-red);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px}
 .offer.war{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
 .om{position:absolute;left:16px;right:16px;top:62px;z-index:21;display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:8px 8px 10px;box-shadow:0 10px 28px var(--shadow);overflow:hidden;animation:drop .3s ease-out}
 .om .pthumb{width:56px;height:44px}
 .ommain{min-width:0}
-.omtag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.omtag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .omprice{font-family:var(--f-display);font-size:22px;line-height:1.1;display:flex;align-items:center;gap:4px}
 .omsub{font-size:12px;color:var(--muted)}
 .ombtns{display:flex;flex-direction:column;gap:6px}
@@ -332,16 +341,16 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .pads::-webkit-scrollbar{display:none}
 .pad{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:1px;width:56px;transition:opacity .2s,transform .2s}
 .pad b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--pc);color:#fff;font-family:var(--f-mono);font-size:12px;font-weight:700;box-shadow:0 0 0 2px var(--surface)}
-.pad.you b{font-size:9px;letter-spacing:.04em}
-.pad small{font-size:10px;color:var(--muted);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pad em{font-style:normal;font-family:var(--f-mono);font-size:9px;color:var(--muted);white-space:nowrap}
+.pad.you b{font-size:11px;letter-spacing:.04em}
+.pad small{font-size:11px;color:var(--muted);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pad em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap}
 .pad.nem em{color:var(--red);font-weight:700;font-family:var(--f-body);letter-spacing:.06em;text-transform:uppercase}
 .pad.nem b{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--red)}
 .pad.lead{transform:translateY(-3px)}
 .pad.lead b{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--pc);animation:padpop .3s ease-out}
 .pad.out{opacity:.35}
 .pad.out b{filter:grayscale(1)}
-.ptag{position:absolute;top:9px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--bg);padding:1px 4px;border-radius:3px}
+.ptag{position:absolute;top:9px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--bg);padding:1px 4px;border-radius:3px}
 .dots{position:absolute;top:-5px;right:2px;display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 4px}
 .dots i{width:4px;height:4px;border-radius:50%;background:var(--muted);animation:dot 1s infinite}
 .dots i:nth-child(2){animation-delay:.15s}
@@ -352,7 +361,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .incount.hot{color:var(--red)}
 .chat{position:absolute;left:8px;bottom:8px;max-width:calc(100% - 16px);display:flex;align-items:center;gap:6px;font-size:13px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 3px;box-shadow:0 4px 12px var(--shadow);opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:2}
 .chat.on{opacity:1;transform:none}
-.cini{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pc);color:#fff;font-family:var(--f-mono);font-size:9px;font-weight:700}
+.cini{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pc);color:#fff;font-family:var(--f-mono);font-size:11px;font-weight:700}
 .ctext{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ctext i{color:var(--muted)}
 .ctext.war{font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.04em;font-size:12px;padding-left:7px}
@@ -364,7 +373,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .clock i.pulse{animation:cpulse .4s infinite alternate}
 @keyframes cpulse{to{opacity:.35}}
 .rec{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
-.nemtag{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em}
+.nemtag{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em}
 #vAuction .controls{position:sticky;bottom:-20px;background:var(--bg);padding-block:8px 20px;margin-bottom:-20px;z-index:3}
 @media (max-height:780px){
  #vAuction .art{max-height:17vh}
@@ -384,7 +393,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .help{border:1px solid var(--line);background:var(--sunk);width:34px;height:34px;display:grid;place-items:center;border-radius:8px;font-weight:800;font-size:15px;flex:none}
 .ledger strong.pos{color:var(--green)}
 .ledger strong.neg{color:var(--red)}
-@media (max-width:440px){.mark span{display:none}.ledger{gap:10px}.ledger strong{font-size:13.5px}.ledger small{font-size:9px}}
+@media (max-width:440px){.mark span{display:none}.ledger{gap:10px}.ledger strong{font-size:13.5px}.ledger small{font-size:11px}}
 .pos{color:var(--green)}.neg{color:var(--red)}
 
 /* goal strip */
@@ -392,7 +401,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .goal{padding:8px 12px;gap:5px}
 .goal .gl{display:flex;align-items:baseline;gap:8px;font-size:13px;min-width:0}
 .goal .gl span{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.goal small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);flex:none}
+.goal small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);flex:none}
 .goal em{font-style:normal;font-family:var(--f-mono);font-size:12px;color:var(--muted);flex:none}
 .goal .bar{height:6px}
 
@@ -406,7 +415,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 /* deal meter */
 .deal{border-top:1px dashed var(--line);padding:10px 14px 12px;display:flex;flex-direction:column;gap:6px}
 .dhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
-.dhead small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.dhead small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .dhead .r{text-align:right}
 .est{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:14px}
 .meter{position:relative;height:12px;margin:22px 0 4px}
@@ -430,7 +439,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .ifwin h2{font-size:17px;margin:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .iw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .iw div{background:var(--sunk);border-radius:10px;padding:8px 9px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.iw small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.iw small{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .iw strong{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:16px}
 .iw em{font-style:normal;font-size:11.5px;color:var(--muted);line-height:1.25}
 .iw em.neg{color:var(--red)}
@@ -549,7 +558,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 .wrow button:disabled{background:var(--sunk);color:var(--muted)}
 .wmap{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-weight:700;text-align:left}
 .tabs button.locked{opacity:.5}
-.newtag{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#fff;border-radius:999px;padding:1px 6px;margin-left:4px}
+.newtag{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--green);color:#fff;border-radius:999px;padding:1px 6px;margin-left:4px}
 /* sets + badges */
 .sets{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
 .sets h2{margin:0}
@@ -573,7 +582,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 .stamp.near .stamp-in{border-color:var(--gold);color:var(--gold)}
 .aff{display:inline-block;margin-top:6px;font-size:13px;font-weight:700;color:var(--red)}
 .adslot{border:1px dashed var(--line);border-radius:10px;padding:8px;min-height:60px;text-align:center}
-.adslot small{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.adslot small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 /* menu, streak, recap sheets */
 .sheet button.sec{background:var(--sunk);color:var(--ink);margin-top:8px}
 .menu{display:flex;flex-direction:column}
@@ -679,7 +688,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
     <div class="chips psort" id="psort" role="group" aria-label="Sort properties" hidden><button class="chip" data-ps="new" aria-pressed="true">Newest</button><button class="chip" data-ps="value" aria-pressed="false">Value</button><button class="chip" data-ps="flow" aria-pressed="false">Cash flow</button><button class="chip" data-ps="gain" aria-pressed="false">Gain</button><button class="chip" data-ps="loss" aria-pressed="false">Losing money</button><button class="chip" data-ps="suburb" aria-pressed="false">Suburb</button></div>
     <div class="plist" id="plist"></div>
     <nav class="pager" id="pager" aria-label="Portfolio pages" hidden><button id="pgPrev" aria-label="Previous page">&lsaquo; Prev</button><span id="pgTxt" aria-live="polite"></span><button id="pgNext" aria-label="Next page">Next &rsaquo;</button></nav>
-    <details class="bills fold"><summary><h2>Monthly ledger</h2><span class="fsum" id="ledSum"></span></summary><div id="billRows"></div><div class="bnote" id="billNote"></div><div class="debtbox" id="debtBox" hidden><button class="repay" id="repayBtn"></button><button class="toggle" id="autoPayBtn" aria-pressed="false">Auto-pay: off</button><p class="bnote" id="debtNote"></p></div></details>
+    <details class="bills fold"><summary><h2>Monthly ledger</h2><span class="fsum" id="ledSum"></span></summary><div id="billRows"></div><div class="bnote" id="billNote"></div><div class="debtbox" id="debtBox" hidden><button class="repay" id="repayBtn"></button><button class="toggle" id="autoPayBtn" aria-pressed="false">Auto-pay: off</button><p class="bnote" id="debtNote"></p></div><div class="bank" id="bankBox" hidden><h3>Bank</h3><div id="bankRows"></div></div></details>
     <section class="legacy" id="legacy"><div><h2>Dynasty</h2><p id="legacyTxt"></p></div><button class="legbtn" id="legacyBtn">Cash out</button></section>
     <details class="fold plain" id="badgeFold"><summary><h2>Badges</h2><span class="fsum" id="bCount"></span></summary><div class="badges" id="badges"></div></details>
     <h2>Rich list</h2>
@@ -696,6 +705,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 
   <div class="dock" id="dock">
     <div class="verdict" id="verdict"></div>
+    <div class="reginfo" id="regInfo" hidden></div>
     <div class="bidrow"><button class="bid" id="bidBtn">Bid</button><button class="bigbid" id="bigBtn" aria-label="Go big: jump the bidding"><b>Go big</b><span id="bigAmt"></span></button></div>
     <div class="row">
       <div class="auto">
@@ -727,7 +737,8 @@ const $=s=>document.querySelector(s);
 const CONFIG={
  affiliate:{enabled:true,au:'https://www.realestate.com.au/buy/in-{slug},+{st}/list-1'},
  ads:{enabled:false,adsenseClient:'',adsenseSlot:''},
- analytics:{plausibleDomain:''}
+ analytics:{plausibleDomain:''},
+ registrations:'ab' /* bidder registrations: 'ab' = half of new players (50/50 test), 'on' = everyone, 'off' = nobody. ?reg=1 or ?reg=0 in the URL forces it for testing */
 };
 const AU_STATES=['QLD','NSW','VIC','SA','WA','TAS','NT','ACT'];
 const buzz=p=>{try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}};
@@ -759,6 +770,8 @@ const baseTi=p=>p.ti0!=null?p.ti0:p.ti;/* a house keeps its original rent yield 
 const rentOf=p=>p.value*RENT[baseTi(p)]*(1+0.1*(S.legacy||0))*(S.props.includes(p)?setMult(p):1);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
+const LOCK_RATE=0.00375;/* bank rate lock: 4.5% a year */
+const rate=()=>(S.lock||0)>0?LOCK_RATE:INTEREST;
 const DUTY=[0.03,0.04,0.05,0.06,0.07],COUNCIL=0.00025,UPKEEP=0.0004,STRATA=0.0004,BASEG=0.0008;
 const isStrata=p=>p.style==='unit'||p.style==='tower';
 /* paying over the guide buys growth: up to +0.3% a month at 50% over */
@@ -773,7 +786,7 @@ const zoneOf=(q,L,e)=>q<Math.min(L.guide,e.lo)?'steal':q<e.lo?'good':q<=e.hi?'fa
 const sg=n=>(n>=0?'+':'')+money(n);
 const landTax=h=>0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8);
 function project(price,ti,val,style){const pay=payFor(price,ti),h=holdings(),strata=style==='unit'||style==='tower';
- const rent=val*RENT[ti]*(1+0.1*(S.legacy||0)),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*INTEREST;
+ const rent=val*RENT[ti]*(1+0.1*(S.legacy||0)),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*rate();
  return{out:pay.out,loan:pay.loan,duty:pay.duty,rent,costs:own+lt+int,net:rent-own-lt-int,day1:val-price-pay.duty};}
 const incomeNow=()=>S.props.reduce((a,p)=>a+(p.vacant>0?0:rentOf(p)),0)-bills().total;
 const RIVALS=[
@@ -795,13 +808,29 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.is
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
 RIVALS.forEach(r=>{if(!(r.name in S.board))S.board[r.name]=r.worth;});
+/* ---------- bidder registrations (scarcity test): each auction you bid in uses one, like a real auction. Watching, the Market and the Empire are never limited ---------- */
+const REG_MAX=8,REG_EVERY=12*60e3,REG_FREE=20;
+function regInit(){const q=/[?&]reg=([01])/.exec(location.search);if(q)S.regVar=+q[1];if(S.regVar==null){const m=CONFIG.registrations;S.regVar=m==='on'?1:m==='off'?0:(Math.random()<0.5?1:0);}
+ if(S.joined==null)S.joined=(S.wins||0)+(S.losses||0);if(!S.reg)S.reg={n:REG_MAX,at:Date.now()};}
+regInit();
+const regOn=()=>S.regVar===1&&(S.joined||0)>=REG_FREE;
+function regRefill(){const r=S.reg,now=Date.now();if(r.n>=REG_MAX){r.at=now;return;}while(r.n<REG_MAX&&now-r.at>=REG_EVERY){r.n++;r.at+=REG_EVERY;}if(r.n>=REG_MAX)r.at=now;}
+const regNext=()=>Math.max(0,REG_EVERY-(Date.now()-S.reg.at));
+const mmss=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const regOut=X=>regOn()&&!X.joined&&(regRefill(),S.reg.n<=0);
+/* true when the player may bid in lot X; the first bid in a lot uses a registration */
+function regJoin(X){if(X.joined)return true;
+ if(regOn()){regRefill();if(S.reg.n<=0){if(!X.regWarned){X.regWarned=true;T.c.regBlocked++;tlog('reg_out',{joined:S.joined,playSec:S.playSec,bg:!!X.bg});if(!X.bg)coach('reg_out','Out of registrations. Keep watching for free, or flip homes in the Market. One comes back every 12 minutes.');}return false;}
+  S.reg.n--;T.c.regUsed++;X.reg=true;}
+ X.joined=true;S.joined=(S.joined||0)+1;if(S.regVar===1&&S.joined===REG_FREE)setTimeout(()=>coach('reg_start','From your next auction, bidding uses a registration, like a real auction. You hold 8 and one comes back every 12 minutes. Watching is free.'),2500);return true;}
+function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v14-web';
+const VERSION='v15-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
- c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
+ c:{auctionsSeen:0,auctionsJoined:0,bidsHand:0,bidsAuto:0,snipes:0,wins:0,losses:0,outbid:0,passedIn:0,skips:0,skipsMidAuction:0,rareSeen:0,rareWon:0,sells:0,sellProfit:0,regUsed:0,regBlocked:0,regTopups:0,dailyLots:0,rateLocks:0,rescueBuys:0,rescues:0,upgrades:0,upgradeSpend:0,upgradesDone:0,reclassed:0,upgradeViews:0,quickFlips:0,tierChanges:0,autoToggles:0,autoLimitHits:0,empireViews:0,muteToggles:0,vacancies:0,marketEvents:0,awayCredits:0,unlocks:0,resets:0,cantAfford:0,bigBids:0,bigFolds:0,repairs:0,overdrafts:0,bubblePops:0,prestiges:0,loans:0,foreclosures:0,repays:0,calmSaves:0,mktViews:0,mktBuys:0,mktDeals:0,mktPasses:0,mktSwipes:0,mktFilters:0,offersMade:0,offersAccepted:0,offersDeclined:0,offersExpired:0,globeTaps:0,globeDrags:0,cityBrowse:0,cityAuction:0,bankruptcies:0,globeZooms:0,offerWars:0,rivalOuts:0,rivalThinks:0,rivalWars:0,rivalCounters:0,nemesisBeats:0,autoPayToggles:0,autoPaid:0,offmktShown:0,offmktBought:0,offmktPassed:0,offmktMissed:0},
  auctions:[],log:[],curve:[],flags:{},tab:{},firstBidSec:null,firstWinSec:null,dirty:true,lastWall:Date.now(),lastPerf:performance.now()};
 const tnow=()=>Math.round((Date.now()-T.start)/1000);
 function tlog(type,d){T.log.push(Object.assign({t:tnow(),type},d||{}));if(T.log.length>150)T.log.shift();T.dirty=true;}
@@ -829,9 +858,9 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
    holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction',up:p.up?Object.keys(p.up):[],works:p.works?p.works.k:null,capex:Math.round(p.capex||0),from:p.ti0!=null?p.ti0:null}))},
   funnel:{firstBidSec:T.firstBidSec,firstWinSec:T.firstWinSec,newPlayer:S.sessions<=1,coachSeen:Object.keys(S.coach||{}),marketOpen:mktOpen()},
   tabSec:Object.assign({},T.tab),
-  meta:{tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
+  meta:{regVar:S.regVar,regOn:regOn(),regLeft:S.reg?S.reg.n:null,joined:S.joined||0,rateLock:S.lock||0,rescue:!!S.rescue,tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
   auctions:T.auctions.slice(-80),log:T.log.slice(-150),curve:T.curve.slice(-240)};}
-function playerDoc(){return{installId,version:VERSION,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
+function playerDoc(){return{installId,version:VERSION,regVar:S.regVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
 function soonFlush(){clearTimeout(soonFlush.t);soonFlush.t=setTimeout(flushPlay,2000);}
 /* on the web, play logs go to our own server (anonymous install id, no personal data); inside Claude they go to the artifact database */
 const WEB_STATS=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname);
@@ -853,7 +882,7 @@ const canPay=(n,ti)=>S.cash>=n*(1+DUTY[ti])||(S.cash>=depositFor(n,ti)&&debt()+n
 const loanFor=(n,ti)=>{const full=n*(1+DUTY[ti]);return S.cash>=full?0:Math.min(n*LVR,full-Math.max(0,S.cash));};
 function payFor(n,ti){const duty=n*DUTY[ti],loan=loanFor(n,ti);return{out:n+duty-loan,loan,duty};}
 function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=p.value;council+=p.value*COUNCIL;upkeep+=p.value*UPKEEP;if(isStrata(p))strata+=p.value*STRATA;}
- const land=0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8),interest=debt()*INTEREST,od=S.cash<0?-S.cash*0.005:0;return{council,strata,upkeep,land,interest,od,total:council+strata+upkeep+land+interest+od,landRate:h?land/h:0};}
+ const land=0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8),interest=debt()*rate(),od=S.cash<0?-S.cash*0.005:0;return{council,strata,upkeep,land,interest,od,total:council+strata+upkeep+land+interest+od,landRate:h?land/h:0};}
 const propCost=(p,lr)=>p.value*(COUNCIL+UPKEEP+(isStrata(p)?STRATA:0)+lr);
 const basis=p=>p.paid+(p.duty||0)+(p.capex||0);
 const held=p=>p.age==null||p.age>=12;
@@ -1052,11 +1081,12 @@ function flashReset(){if(A&&A.bg)return;const el=$('#callBig');if(!el)return;el.
 const typicalOpen=i=>TIERS[i].min*0.78;
 function affordTier(){let best=0;for(let i=0;i<=S.maxTier;i++)if(S.cash>=depositFor(typicalOpen(i),i))best=i;return best;}
 function pickTier(bg){if(S.tierAuto===false)return bg&&Math.random()<0.3?Math.floor(Math.random()*(S.maxTier+1)):S.tier;const a=affordTier();return a>0&&Math.random()<(bg?0.35:0.2)?a-1:a;}
-function startAuction(){if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();A=newAuction(S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false);renderLot();if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
-function newAuction(ti,place,bg){const L=makeLot(ti,{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:Math.random()<0.5?3:2;
+function startAuction(){if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();const daily=S.props.length>0&&S.days.length>=2&&S.dailyDay!==today();A=newAuction(S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false,daily);renderLot();
+ if(daily){S.dailyDay=today();T.c.dailyLots++;tlog('daily_lot',{tier:A.lot.ti});setTimeout(()=>toast('Today’s lot: a rare home with softer rivals. Free to enter, one a day.','up'),1200);}if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
+function newAuction(ti,place,bg,daily){const L=makeLot(ti,daily?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(S.nemesis&&Math.random()<0.45&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
- const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):L.value*(r.style==='aggro'?rnd(0.92,1.16):r.style==='cautious'?rnd(0.78,1.0):rnd(0.88,1.1))*(r.name===S.nemesis?1.06:1)}));
- const X={lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.92,1.16):r.style==='cautious'?rnd(0.78,1.0):rnd(0.88,1.1))*(r.name===S.nemesis?1.06:1)}));
+ const X={lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.97,1.03);X.est={lo:roundTo(c*0.95,L.inc),hi:roundTo(c*1.05,L.inc),mid:c};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.hi));}
  T.c.auctionsSeen++;if(L.rare)T.c.rareSeen++;if(!X.st.couldAfford)T.c.cantAfford++;
@@ -1066,7 +1096,7 @@ function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',pre
  T.auctions.push({t:tnow(),no:L.no,tier:L.ti,rare:L.rare,style:L.style,value:Math.round(L.value),guide:Math.round(L.guide),hammer:Math.round(A.bid),winner,rival:rival||null,
   rivals:A.rivals.map(r=>r.style),rivalBids:s.rivalBids,bidders:A.rivals.filter(r=>r.bids>0).length,outs:s.outs,thinks:s.thinks,counters:s.counters,war:A.warUsed,nemesis:A.rivals.some(r=>r.name===S.nemesis)?S.nemesis:null,yourHand:s.hand,yourAuto:s.auto,yourBig:s.big,folds:s.folds,snipes:s.snipes,firstBidClock:s.firstClock,lastBidClock:s.lastClock,maxYou:Math.round(s.maxYou),
   autoOn:!!A.auto,bg:!!A.bg,autoMax:Math.round(A.autoMax),cashAt:s.cashAt,couldAfford:s.couldAfford,durSec:Math.round((Date.now()-s.t0)/1000),
-  estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,
+  estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,daily:!!A.daily,reg:!!A.reg,
   overGuidePct:prem===null?null:+(prem*100).toFixed(2),growPctYr:you?+growPct(heatOf(A.bid,L.guide)):null,duty:you?Math.round(A.bid*DUTY[L.ti]):null,
   equityPct:you?+((L.value/A.bid-1)*100).toFixed(2):null,hammerVsValuePct:A.bid?+((A.bid/L.value-1)*100).toFixed(2):null});
  if(T.auctions.length>200)T.auctions.shift();T.dirty=true;}
@@ -1088,7 +1118,7 @@ function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
    if(!inWar&&r.tell==null&&nb>r.max*0.93)r.tell=Math.random()<0.6;
    if(!inWar&&r.tell===true){r.tell=false;r.think=rnd(1.1,2.2);T.c.rivalThinks++;A.st.thinks++;rivalSay(r,'think');renderPads();break;}
    placeBid(r,nb);r.cool=inWar?rnd(0.2,0.45):rnd(0.4,1.3);if(inWar&&A.war&&--A.war.n<=0)A.war=null;break;}}
- if(A.auto&&A.leader!=='you'){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){if(Math.random()<3*dt)placeBid('you',nb,false,'auto');}else if(!A.autoWarned&&A.leader){A.autoWarned=true;T.c.autoLimitHits++;if(!A.bg)toast('Auto-bid hit your limit. Bid by hand to stay in.','down');}}
+ if(A.auto&&A.leader!=='you'){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){if(Math.random()<3*dt&&regJoin(A))placeBid('you',nb,false,'auto');}else if(!A.autoWarned&&A.leader){A.autoWarned=true;T.c.autoLimitHits++;if(!A.bg)toast('Auto-bid hit your limit. Bid by hand to stay in.','down');}}
  const st=A.clock<=1?3:A.clock<=2?2:A.clock<=4?1:0;if(st>A.stage){A.stage=st;sfx('call');showCall(st);}
  const sec=Math.ceil(A.clock);if(A.clock<=3&&sec!==A.lastSec){A.lastSec=sec;sfx('tick');}
  if(A.clock<=0)endAuction();
@@ -1107,10 +1137,10 @@ function endAuction(){A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
   const eq=L.value-A.bid,z=zoneOf(A.bid,L,A.est),k={steal:1.8,good:1.3,fair:1,over:0.6}[z]||1;SESS.best=Math.max(SESS.best==null?-Infinity:SESS.best,eq);
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
-  const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*INTEREST;checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
+  const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
   if(ui){stp.className='stamp '+(L.rare?'rarewin':'win');stp.innerHTML=`<div class="stamp-in"><b>${beatNem?'Nemesis beaten':L.rare?'Rare. Yours':'Sold to you'}</b><small>${full(A.bid)}</small><em data-roll="${Math.round(eq)}">+$0</em></div>`;
    res.className='result '+(L.value>=A.bid?'good':'bad');res.innerHTML=esc((L.value>=A.bid?`Bank values it at ${money(L.value)}: instant equity +${money(L.value-A.bid)}. ${gradeOf(prem)}, growing ${growPct(heat)}% a year.`:`Bank values it at ${money(L.value)}, ${money(A.bid-L.value)} under what you paid. ${gradeOf(prem)}: it grows ${growPct(heat)}% a year, so hold it.`)+` Stamp duty ${money(duty)}.`+(pay.loan?` Borrowed ${money(pay.loan)} at 6%.`:'')+` Cash flow ${sg(pn)}/mo.`)+affiliateHTML(L);
-   sfx(L.rare||beatNem||z==='steal'?'rare':'win');confetti(L.rare||!!beatNem,k);buzz([20,40,20]);
+   sfx(L.rare||beatNem||z==='steal'?'rare':'win');confetti(L.rare||!!beatNem,k);buzz([20,40,20]);if(!reduce&&(L.rare||beatNem||z==='steal')){const lc=$('#lotCard');lc.classList.remove('shake');void lc.offsetWidth;lc.classList.add('shake');}
    if(beatNem){const h=S.h2h[beatNem.name];toast(`You beat ${beatNem.name}, your nemesis. You lead ${h.w}–${h.l}.`,'up');}
    if(S.wins===1){coach('won1','Your first house pays rent every second. Your income is in the top bar.');setTimeout(()=>unlockMarket(),2600);}}
   else{toast(`Won ${L.sub}: ${L.addr} for ${money(A.bid)}. ${sg(pn)}/mo.`,'up');sfx('ding',combo);buzz(30);}
@@ -1134,7 +1164,7 @@ function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY;$('#chips').hidde
 $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag">Lot ${L.no} · ${T.name}</span>`+(L.rare?'<span class="rare">Rare</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#art').innerHTML=artOf(L)+`<span class="tag">Lot ${L.no} · ${T.name}</span>`+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
  $('#lotCard').classList.toggle('is-rare',L.rare);
  $('#addr').textContent=L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
@@ -1152,7 +1182,7 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  const s=[A.ended,mine,q,z,Math.round(pr.net),Math.round(now),ok,S.cash>>10].join('|');if(s===dealSig)return;dealSig=s;
  $('#mkLbl').textContent=(A.ended?(A.leader?'Sold':'Passed in'):mine?'Your bid':'Next bid')+' '+money(q);
  const v=$('#verdict');
- if(A.ended){const p0=A.leader==='you'&&S.props[0],pn=p0?rentOf(p0)-propCost(p0,bills().landRate)-(p0.loan||0)*INTEREST:0;v.innerHTML=p0?`<span class="vd steal">Yours</span><span class="vtxt">Cash flow <b class="${pn>=0?'pos':'neg'}">${sg(pn)}/mo</b> · see Empire</span>`:`<span class="vd na">${A.leader?'Sold':'Passed in'}</span><span class="vtxt">Next lot is on its way</span>`;}
+ if(A.ended){const p0=A.leader==='you'&&S.props[0],pn=p0?rentOf(p0)-propCost(p0,bills().landRate)-(p0.loan||0)*rate():0;v.innerHTML=p0?`<span class="vd steal">Yours</span><span class="vtxt">Cash flow <b class="${pn>=0?'pos':'neg'}">${sg(pn)}/mo</b> · see Empire</span>`:`<span class="vd na">${A.leader?'Sold':'Passed in'}</span><span class="vtxt">Next lot is on its way</span>`;}
  else if(!ok)v.innerHTML=`<span class="vd na">Out of reach</span><span class="vtxt">Need <b>${money(depositFor(q,L.ti))}</b> deposit + duty</span>`;
  else v.innerHTML=`<span class="vd ${z}">${ZONES[z]}</span><span class="vtxt">${mine?'At':'Win at'} <b>${money(q)}</b>: ${pr.day1>=0?'<b class="pos">'+sg(pr.day1)+'</b> equity':'<b class="neg">'+money(pr.day1)+'</b> on day one'} · <b class="${pr.net>=0?'pos':'neg'}">${sg(pr.net)}</b>/mo</span>`;
  const iw=$('#ifwin');iw.hidden=A.ended;if(iw.hidden)return;
@@ -1172,16 +1202,18 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  const bb=$('#bidBtn');bb.classList.toggle('lead',A.leader==='you'&&!A.ended);
  if(A.ended){bb.disabled=true;bb.textContent=A.leader==='you'?'Yours':'Hammer down';}
  else if(A.leader==='you'){bb.disabled=true;bb.textContent='You lead';}
+ else if(regOut(A)){bb.disabled=true;bb.textContent='No regos left';}
  else if(!canPay(nb,L.ti)){bb.disabled=true;bb.textContent='Need '+money(depositFor(nb,L.ti))+' deposit';}
  else{bb.disabled=false;bb.textContent=needsLoan(nb,L.ti)?'Bid '+money(nb)+' · loan':'Bid '+full(nb);}
- const ga=nb+L.inc*4;$('#bigBtn').disabled=A.ended||A.leader==='you'||!canPay(ga,L.ti);$('#bigAmt').textContent=A.ended?'':money(ga);
+ const ga=nb+L.inc*4;$('#bigBtn').disabled=A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A);
+ {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily;ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
  $('#autoLim').textContent='Max '+money(A.autoMax);
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
-$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti))return;placeBid('you',nb);};
+$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
-$('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(!canPay(amt,A.lot.ti))return;let folded=null;
+$('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(!canPay(amt,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}let folded=null;
  for(const r of A.rivals){if(r.out)continue;if(r.style==='aggro'&&r.max>=amt+A.lot.inc*3&&Math.random()<0.45){r.counterNext=true;r.think=0;r.cool=rnd(0.6,1.1);continue;}if(r.max>=amt+A.lot.inc&&Math.random()<0.3){r.max=amt;folded=r;}r.cool=Math.max(r.cool,0)+rnd(0.8,1.6);}
  if(folded){A.st.folds++;T.c.bigFolds++;}placeBid('you',amt,true);if(folded)dropOut(folded);};
 $('#autoBtn').onclick=()=>{if(!A)return;A.auto=!A.auto;S.autoOn=A.auto;T.c.autoToggles++;tlog('autopilot',{on:A.auto});if(A.auto)A.autoWarned=false;updAuction();save();};
@@ -1203,10 +1235,12 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
   if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
  if(S.cash<0){if(!S.od){S.od=true;T.c.overdrafts++;tlog('overdraft',{cash:Math.round(S.cash),worth:Math.round(worth()),props:S.props.length});toast('Cash is below zero. Bills are going on the overdraft at 6% a year. Sell a house or wait for rent.','down');}}else S.od=false;
+ if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()&&S.rescue){const p=S.props.slice().sort((a,b)=>b.value-a.value)[0],gap=-S.cash;S.rescue=false;p.loan=(p.loan||0)+gap;S.cash=0;S.borrowed=true;T.c.rescues++;tlog('rescue',{gap:Math.round(gap),debt:Math.round(debt())});toast('Rescue cover stopped a repossession. '+money(gap)+' went onto your loan for '+p.addr+'.','up');}
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()){const p=S.props.slice().sort((a,b)=>(b.loan||0)-(a.loan||0)||b.value-a.value)[0];T.c.foreclosures++;tlog('foreclosure',{tier:p.ti,value:Math.round(p.value),loan:Math.round(p.loan||0),cash:Math.round(S.cash),debt:Math.round(debt())});sellProp(p,p.value*0.85,'repossessed');sfx('lose');}
  if(!S.props.length&&S.cash<0){bankrupt();return;}
  if(S.autoPay&&debt()>0){const net=rentTick-B.total;if(net>0){const paid=applyRepay(net);T.c.autoPaid+=Math.round(paid);if(debt()<1){toast('Auto-pay cleared your last loan. Debt free.','up');sfx('win');}}}
  if(S.calm>0)S.calm--;
+ if(S.lock>0){S.lock--;if(!S.lock)toast('Your rate lock ended. Loans are back to 6% a year.','down');}
  marketTick();offMarketTick();
  if(--digestIn<=0)flushDigest();
  if(S.props.length){S.eventIn--;if(S.eventIn<=0){S.eventIn=Math.round(rnd(40,80));marketEvent();}}
@@ -1221,7 +1255,7 @@ function marketEvent(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm|
  else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.12);sfx('cash');
   toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
- for(let i=0;i<n;i++){costs+=bills().total;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
+ for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
 function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag('clock_backwards',{secs:Math.round(secs)});if(secs>30*86400)tflag('away_over_30_days',{secs:Math.round(secs)});
  const n=Math.min(Math.floor(secs/20),120);if(n<3||!S.props.length)return;
@@ -1232,7 +1266,7 @@ function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag(
 /* ---------- empire ---------- */
 let builtIds='',armed=null,armTimer=null,resetArmed=false,legArmed=false,pf='all',psort='new',pg=0;
 const PAGE=8;
-const flowOf=p=>p.vacant>0?-propCost(p,bills().landRate)-(p.loan||0)*INTEREST:rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*INTEREST;
+const flowOf=p=>p.vacant>0?-propCost(p,bills().landRate)-(p.loan||0)*rate():rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();
 /* order is fixed when the list is built, so rows never jump while values tick */
 const SORTS={new:null,value:(a,b)=>b.value-a.value,flow:(a,b)=>flowOf(b)-flowOf(a),gain:(a,b)=>(b.value/basis(b))-(a.value/basis(a)),loss:(a,b)=>flowOf(a)-flowOf(b),suburb:(a,b)=>a.sub.localeCompare(b.sub)||b.value-a.value};
 const sig=()=>pf+':'+psort+':'+pg+':'+S.props.map(p=>p.id).join(',');
@@ -1258,8 +1292,9 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  const payable=Math.min(dt,Math.max(0,S.cash-B.total));$('#debtBox').hidden=!(dt>0);const rb=$('#repayBtn');rb.disabled=payable<1000;
  if(!payArmed)rb.textContent=payable>=dt-1?'Pay off all '+money(dt)+' debt':'Pay off '+money(payable)+' of '+money(dt);
  const ap=$('#autoPayBtn');ap.setAttribute('aria-pressed',!!S.autoPay);ap.textContent='Auto-pay: '+(S.autoPay?'on':'off');
+ renderBank(dt);
  $('#debtNote').textContent=S.autoPay?'Spare rent goes straight onto your loans every month. Your cash stays put for bidding.':'Turn on auto-pay to put spare rent onto your loans every month.';
- $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>over $2M of property</small>',-B.land],['Mortgage interest <small>6% a year</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
+ $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>over $2M of property</small>',-B.land],['Mortgage interest <small>'+((S.lock||0)>0?'4.5% a year, locked':'6% a year')+'</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
  $('#billNote').textContent=`Also: stamp duty of 3 to 7% on every purchase, and capital gains tax on every profitable sale (30%, or 15% once you have held for 12 months). Tax and bills paid so far: ${money(S.paidOut)}.`;
  const pts=Math.floor(Math.sqrt(w/2.5e7)),st=S.legacy||0,lb=$('#legacyBtn');
  $('#legacy').hidden=!(S.legacy||w>=1e7);{const led=$('#ledSum');if(led){const n=rentNow-B.total;led.textContent=sg(n)+'/mo';led.className='fsum '+(n>=0?'pos':'neg');}}drawStars();$('#legacyTxt').textContent=(st?`${st} legacy star${st>1?'s':''}: +${st*10}% rent on every house, ${money(450000+st*100000)} starting cash. `:'Each legacy star adds 10% to all rent and $100K to your starting cash. ')+(w>=1e8?`Cash out now to bank ${pts} more and start a new dynasty.`:`Cash out unlocks at ${money(1e8)} net worth.`);
@@ -1269,7 +1304,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
   el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');
-  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?'Works ':'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*INTEREST;rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
+  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?'Works ':'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');if(armed===p.id){sb.classList.add('armed');sb.textContent='Bank '+money(saleOf(p).bank)+' after tax'+(p.loan?' and loan':'')+'?';}else{sb.classList.remove('armed');sb.textContent='Sell';}}
  const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
@@ -1280,6 +1315,16 @@ $('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset
 $('#psort').onclick=e=>{const b=e.target.closest('[data-ps]');if(!b||b.dataset.ps===psort)return;psort=b.dataset.ps;pg=0;tlog('portfolio_sort',{by:psort});buildEmpire();};
 function goPage(d){pg+=d;buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
 $('#pgPrev').onclick=()=>goPage(-1);$('#pgNext').onclick=()=>goPage(1);
+/* ---------- bank products: bought with game cash now; V2 can sell them in the app. Guaranteed outcomes only ---------- */
+const lockFee=()=>Math.max(2000,roundTo(debt()*0.015,1000)),rescueFee=()=>Math.max(5000,roundTo(holdings()*0.005,1000));
+function renderBank(dt){const box=$('#bankBox');const show=dt>0||S.borrowed||S.cash<0||S.rescue||(S.lock||0)>0;box.hidden=!show;if(!show)return;
+ const lf=lockFee(),rf=rescueFee(),sig=[S.lock||0,!!S.rescue,dt>0,Math.round(lf/1000),Math.round(rf/1000),S.cash>=lf,S.cash>=rf].join('|');if(box.dataset.sig===sig)return;box.dataset.sig=sig;
+ $('#bankRows').innerHTML=`<div class="uprow"><div class="uptxt"><b>Rate lock</b><small>${(S.lock||0)>0?`Locked at 4.5% a year. ${S.lock} months left.`:`4.5% a year instead of 6% on every loan for 24 months.${dt>0?'':' Locks in for loans you take later.'}`}</small></div>${(S.lock||0)>0?'':`<button data-bank="lock"${S.cash<lf?' disabled':''}>${money(lf)}</button>`}</div>`+
+  `<div class="uprow"><div class="uptxt"><b>Rescue cover</b><small>${S.rescue?'Active. If the bank would repossess a home, it adds the shortfall to your loan instead. One use.':'If the bank would repossess a home, it adds the shortfall to your loan instead. One use.'}</small></div>${S.rescue?'':`<button data-bank="rescue"${S.cash<rf?' disabled':''}>${money(rf)}</button>`}</div>`;}
+$('#bankRows').onclick=e=>{const b=e.target.closest('[data-bank]');if(!b)return;const k=b.dataset.bank;
+ if(k==='lock'&&!(S.lock>0)){const f=lockFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.lock=24;T.c.rateLocks++;tlog('bank_buy',{k,fee:Math.round(f),debt:Math.round(debt())});toast('Rate locked at 4.5% for 24 months. Fee '+money(f)+'.','up');sfx('cash');}
+ else if(k==='rescue'&&!S.rescue){const f=rescueFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.rescue=true;T.c.rescueBuys++;tlog('bank_buy',{k,fee:Math.round(f),holdings:Math.round(holdings())});toast('Rescue cover active. Fee '+money(f)+'.','up');sfx('cash');}
+ $('#bankBox').dataset.sig='';updEmpire();save();soonFlush();};
 function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,bank,profit,loan}=saleOf(p,price);
  const holdSec=p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,sinceMkt=T.lastMarket?Math.round((Date.now()-T.lastMarket.at)/1000):null;
  T.c.sells++;T.c.sellProfit+=Math.round(profit);if(profit>0&&how!=='repossessed')award('flip');if(holdSec!==null&&holdSec<20&&profit>0){T.c.quickFlips++;if(T.c.quickFlips>=3)tflag('quick_flip_pattern',{holdSec,profit:Math.round(profit),how});}
@@ -1525,7 +1570,7 @@ function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]
 
 /* ---------- badges ---------- */
 const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak']];
-function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({block:'start'});});sfx('cash');},1800);if(view==='e')renderBadges();}
+function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();regAdd(1,'badge:'+id);tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');$('#badgeFold').open=true;$('#badges').scrollIntoView({block:'start'});});sfx('cash');},1800);if(view==='e')renderBadges();}
 const BQ=[];
 function renderBadges(){const got=S.badges||{};$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
  $('#badges').innerHTML=BADGES.map(([id,n,d])=>`<div class="bdg${got[id]?' on':''}"><i>${got[id]?'&#9733;':'?'}</i><b>${esc(n)}</b><small>${esc(d)}</small></div>`).join('');}
@@ -1537,11 +1582,11 @@ $('#hStreak').onclick=()=>{show('e');$('#badgeFold').open=true;$('#badges').scro
 const dayDiff=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
 function dailyCheck(){const td=today();if(S.lastDay===td)return;if(S.freezes==null)S.freezes=1;const gap=S.lastDay?dayDiff(S.lastDay,td):null;let used=false;
  if(gap===1)S.streak=(S.streak||0)+1;else if(gap===2&&S.freezes>0){S.freezes--;S.streak=(S.streak||0)+1;used=true;}else S.streak=1;
- S.lastDay=td;S.bestStreak=Math.max(S.bestStreak||0,S.streak);if(S.streak%7===0&&S.freezes<2)S.freezes++;
+ S.lastDay=td;S.bestStreak=Math.max(S.bestStreak||0,S.streak);const regGot=regAdd(2,'streak');if(S.streak%7===0&&S.freezes<2)S.freezes++;
  const k=Math.min(S.streak,7),base=Math.max(10000,worth()*0.01),bonus=roundTo(base*(0.5+0.25*k),1000),next=roundTo(base*(0.5+0.25*Math.min(S.streak+1,7)),1000);S.cash+=bonus;
  if(S.streak>=3)award('streak3');if(S.streak>=7)award('streak7');drawStreak();tlog('streak',{streak:S.streak,used,bonus:Math.round(bonus)});track('Streak',{days:S.streak});save();
  if(gap===null){toast(`Day 1 streak: +${money(bonus)}. Come back tomorrow for ${money(next)}.`,'up');return;}
- const html=`<h3>Day ${S.streak} streak</h3><div class="pips">${[1,2,3,4,5,6,7].map(i=>`<i class="${i<=k?'on':''}">${i}</i>`).join('')}</div><span class="big">+${money(bonus)}</span><p>${used?'A freeze saved your streak. ':''}Come back tomorrow for ${money(next)}. You have ${S.freezes} freeze${S.freezes===1?'':'s'}: a missed day uses one instead of resetting.</p>`;
+ const html=`<h3>Day ${S.streak} streak</h3><div class="pips">${[1,2,3,4,5,6,7].map(i=>`<i class="${i<=k?'on':''}">${i}</i>`).join('')}</div><span class="big">+${money(bonus)}</span><p>${used?'A freeze saved your streak. ':''}${regGot?'Plus '+regGot+' bidder registrations. ':''}Come back tomorrow for ${money(next)}. You have ${S.freezes} freeze${S.freezes===1?'':'s'}: a missed day uses one instead of resetting.</p>`;
  if($('#modal').hidden)modal(html,'Collect',()=>{sfx('cash');confetti(false);});else toast(`Day ${S.streak} streak: +${money(bonus)}`,'up');}
 
 /* ---------- coach marks: one line, at the moment it matters ---------- */

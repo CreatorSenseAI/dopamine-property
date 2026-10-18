@@ -94,10 +94,12 @@ with sync_playwright() as p:
     for i in range(1, 21):
         s = subs[i % 3]; v = random.uniform(250e3, 420e3)
         props.append(dict(id=i, addr=f"{i} Banksia Street", street="Banksia Street", sub=s[0], st=s[1], ti=0, style="cottage", seed=i * 7919, rare=False, paid=v, duty=v * .03, prem=0, heat=0, age=20, value=v, vacant=0, boughtAt=0, loan=0))
-    props[0].update(land=700, value=585e3, paid=560e3)  # first card: room for a pool, close to the Family line
-    seed = dict(cash=500000, props=props, wins=20, rules=3, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
+    props[0].update(land=700, value=585e3, paid=560e3)
+    props[1].update(loan=150000)  # first card: room for a pool, close to the Family line
+    seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=3, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1)
     pg = page(b, "light", seed)
     pg.wait_for_timeout(1500)
+    print("today's lot tag:", pg.is_visible("#art .daily"))
     pg.screenshot(path=str(out / "v11-streak.png"))
     print("streak sheet:", pg.inner_text("#sheet")[:80].replace("\n", " ") if pg.is_visible("#modal") else "none")
     close_sheets(pg)
@@ -121,6 +123,27 @@ with sync_playwright() as p:
     print("after makeover:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
     assert "Family" in pg.inner_text(card + " .psub"), "makeover should push it into Family"
     pg.locator(card).screenshot(path=str(out / "v14-upgraded.png"))
+    # ---------- bank: rate lock ----------
+    pg.evaluate("document.querySelector('.bills.fold').open=true"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
+    pg.screenshot(path=str(out / "v15-bank.png"))
+    pg.click('[data-bank="lock"]'); pg.wait_for_timeout(1200)
+    print("bank:", pg.inner_text("#bankRows").replace("\n", " | ")[:160])
+    pg.close()
+
+    # ---------- registrations (limited variant, nearly out) ----------
+    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","new_class","nemesis","streak3","streak7"]}
+    seed2 = dict(seed, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
+    pg = page(b, "dark", seed2); close_sheets(pg)
+    print("reg line:", pg.inner_text("#regInfo"))
+    res = play_lot(pg); print("reg lot:", res[:60]); pg.wait_for_timeout(4500); close_sheets(pg)
+    pg.wait_for_timeout(300)
+    for _ in range(40):
+        bidtxt = pg.inner_text("#bidBtn")
+        if "NO REGOS" in bidtxt.upper(): break
+        close_sheets(pg); pg.wait_for_timeout(250)
+    pg.screenshot(path=str(out / "v15-reg-out.png"))
+    print("reg after:", pg.inner_text("#regInfo"), "| bid:", bidtxt)
+    assert "NO REGOS" in bidtxt.upper(), "should be out of registrations"
     pg.close()
     b.close()
 

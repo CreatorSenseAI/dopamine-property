@@ -107,7 +107,15 @@ function stats() {
   const byTier = {}; for (const u of unlocks) (byTier[u.tier] = byTier[u.tier] || []).push(Math.round(u.playSec / 60));
   const versions = {}; for (const s of S) versions[s.version] = (versions[s.version] || 0) + 1;
   const zones = {}; for (const a of wins) if (a.zone) zones[a.zone] = (zones[a.zone] || 0) + 1;
+  // A/B: bidder registrations (players.regVar 1 = limited, 0 = control)
+  const ab = [1, 0].map(v => {
+    const ps = P.filter(p => p.regVar === v), ss = S.filter(s => (s.meta || {}).regVar === v);
+    let n1 = 0, dd1 = 0; for (const p of ps) { const days = p.days || [], f = days[0]; if (!f || dayDiff(f, today) < 1) continue; dd1++; if (days.some(d => dayDiff(f, d) === 1)) n1++; }
+    const c = k => ss.reduce((n, s) => n + ((s.counters || {})[k] || 0), 0);
+    return { v, players: ps.length, d1: pct(n1, dd1), medMin: med(ss.map(s => s.playSec / 60))?.toFixed(1) ?? "–", join: pct(c("auctionsJoined"), c("auctionsSeen")), winsPerSession: ss.length ? (c("wins") / ss.length).toFixed(1) : "–", blocked: c("regBlocked"), used: c("regUsed") };
+  });
   return {
+    ab, dailyLots: sum("dailyLots"), rateLocks: sum("rateLocks"), rescueBuys: sum("rescueBuys"), rescues: sum("rescues"),
     players: P.length, sessions: S.length,
     d1: pct(d1n, d1d), d1n: `${d1n}/${d1d}`, d7: pct(d7n, d7d), d7n: `${d7n}/${d7d}`,
     medSessionMin: med(S.map(s => s.playSec / 60))?.toFixed(1), medActiveMin: med(S.map(s => s.activeSec / 60))?.toFixed(1),
@@ -145,6 +153,7 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
 <h2>Auctions</h2><div class="g">${tile("Auctions seen", s.auctionsSeen)}${tile("Joined", s.joinRate, "of lots shown")}${tile("Win rate", s.winRate, "of lots joined")}${tile("Wins paid over value", s.overpaidWins)}${tile("Wins by zone", Object.entries(s.winZones).map(([z, n]) => z + " " + n).join(" · ") || "–")}${tile("Near-misses", s.nearMiss)}${tile("Win combos", s.combos)}${tile("Background auto-bids", s.liveAutos)}${tile("Hot lot taps", s.quickPlays)}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}</div>
+<h2>A/B: bidder registrations</h2><div class="g">${s.ab.map(a => tile(a.v ? "Limited (8, refill 12 min)" : "Control (no limit)", a.join + " join", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · ${a.winsPerSession} wins/session${a.v ? ` · ${a.used} used · out ${a.blocked}×` : ""}`)).join("")}${tile("Today's lots", s.dailyLots)}${tile("Bank: rate locks", s.rateLocks)}${tile("Bank: rescue cover", s.rescueBuys, s.rescues + " repossessions stopped")}</div>
 <h2>Market and interruptions</h2><div class="g">${tile("Market buys", s.mktBuys)}${tile("Offers accepted", s.offerAccept, s.offersMade + " made")}${tile("Off-market bought", s.offmkt)}${tile("Searches", s.searches)}${tile("Watches", s.watches)}${tile("Notices swiped away", s.toastSwipes)}${tile("Real-listing clicks", s.affClicks)}</div>
 <h2>Where time goes</h2><div class="g">${tile("Auction tab", pct(tabs[0], tabTotal))}${tile("Market tab", pct(tabs[1], tabTotal))}${tile("Empire tab", pct(tabs[2], tabTotal))}</div>
 <h2>Versions</h2><p>${Object.entries(s.versions).map(([v, n]) => esc(v) + ": " + n).join(" · ")}</p>
