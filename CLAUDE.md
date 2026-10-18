@@ -51,11 +51,11 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 1. What is it worth? (valuer's estimate + meter zones)
 2. When do I stop? (walk-away line)
 3. What does it do to my month? (cash flow, income before → after)
-4. What am I working towards? (goal strip)
+4. What am I working towards? (goal chip in the top row, Empire overview goal bar)
 
 ## Declutter rules (v12, from playtest feedback)
 - One notification on screen at a time (`toast()` queues; swipe sideways or tap to clear). Coach tips hold the queue.
-- Only show what matters now: details sit behind a tap (`<details>` for If you win, ledger, badges, play stats); tier chips appear once a second tier unlocks; auto-bid limit shows only when auto is on.
+- Only show what matters now: details sit behind a tap (If you win popover from the verdict; Empire sections behind the dropdown); tier chips appear once a second tier unlocks; auto-bid limit shows only when auto is on.
 - Header = EAT mark, Dynasty star, streak, net worth (+ income/mo under it), cash, menu. Nothing else.
 
 ## One-screen layout (v25)
