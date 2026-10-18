@@ -82,7 +82,15 @@ Product ids (create the same ids in App Store Connect and Play Console):
 
 All guaranteed results: no paid chance, no paid auction wins, game cash never converts back to money. The catalogue lives in `IAP` in `public/index.html`; `/admin` shows shop opens, purchases by id and restores (revenue is in App Store Connect and Play Console).
 
-## Photoreal home images (OpenAI)
+## Photoreal home images (OpenAI, generated on Railway)
+
+1. Railway → Dopamine Property → `game` → Variables: add `OPENAI_API_KEY`.
+2. Open `/admin/gen-images?key=<ADMIN_KEY>&go=1&per=6` once (30 images, ~US$2 with gpt-image-1 medium). Reload `/admin/gen-images?key=<ADMIN_KEY>` to watch progress.
+3. Images are saved on the `/data` volume and served at `/img/*`; the game picks them up on the next load. Run again to add more.
+
+The key never reaches the browser or the repo. The local script below still works if you'd rather generate on your own machine.
+
+## Photoreal home images (OpenAI) — local alternative
 
 ```bash
 OPENAI_API_KEY=sk-... node tools/gen_images.mjs          # 6 per style, 30 images

@@ -25,7 +25,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - Sets: `sets()` counts homes per suburb and per street (cached), `setMult()` feeds `rentOf()`. 3 in a suburb = +10% rent, 2 on a street = +5%. Streets per suburb are fixed by `streetsFor(sub)` so pairs happen.
 - `carry()` lists account-level state (test groups, purchases, privacy, streak, badges, tips) kept through cash-out, bankruptcy and reset. Add new account-level fields there.
 - Retention: `dailyCheck()` (streak, freezes, bonus), `award(id)` + `BADGES`, `recap()` every 10 focused lots.
-- `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
+- `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Photos are generated on Railway (`/admin/gen-images?key=…&go=1`, needs `OPENAI_API_KEY` on the service), stored in `DATA_DIR/img` and merged into `/img/manifest.json` by `serveImg()`; `tools/gen_images.mjs` is the local alternative.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).
 - v20 auctions first, as a 50/50 test (`CONFIG.market` 'ab'|'on'|'off', `S.mkVar` 1 = Market kept, 0 = no Market; `?mkt=1|0` forces it; `mktOn()`). Without the Market, `marketTick`/`offMarketTick` don't run and the tab is hidden (`drawTabs`). Selling at auction exists in both. `/admin` compares the groups.
 - Rival stakes: when you win, every rival who bid loses 12% of the lot's value from their rich-list worth (they gain the same when they win); `richRank()` before/after drives a "Rich list: up to #N, past X" toast.

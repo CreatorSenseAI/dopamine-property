@@ -105,6 +105,63 @@ function boardGet(req, res, url) {
   send(req, res, 200, "application/json", JSON.stringify({ day: d, count: all.length, rank: rank || null, top }), { "cache-control": "no-store" });
 }
 
+// ---------- photoreal house images, generated on the server (the OpenAI key never leaves Railway) ----------
+// GET /admin/gen-images?key=ADMIN_KEY            → progress
+// GET /admin/gen-images?key=ADMIN_KEY&go=1&per=6 → start a batch (per style; 5 styles), saved to DATA_DIR/img and served at /img/*
+const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+const IMG_DIR = path.join(DATA, "img");
+fs.mkdirSync(IMG_DIR, { recursive: true });
+const IMG_BASE = "Photorealistic real-estate listing photo, exterior, shot from the street at eye level, wide angle, soft natural light, invented house that does not exist, no people, no cars in focus, no text, no signage, no logos, no watermarks.";
+const IMG_STYLES = {
+  cottage: ["weatherboard Queenslander cottage on stumps with a wide verandah and tin roof, leafy suburban yard", "1950s red-brick Australian bungalow with a tiled roof, low front fence and lawn", "renovated fibro beach shack painted white with a timber deck and frangipani tree"],
+  unit: ["three-storey 1970s red-brick walk-up apartment block with balconies, Australian suburb", "modern low-rise apartment building with timber screens and planter boxes", "art deco apartment block in cream render with curved balconies"],
+  villa: ["Mediterranean-style rendered villa with arched windows, terracotta roof and a manicured garden", "Hamptons-style family home with white weatherboards, grey roof and hedges", "Spanish mission home with stucco walls, palms and a courtyard gate"],
+  modern: ["architect-designed contemporary home with timber cladding, floor-to-ceiling glass and a pool", "minimalist concrete and glass house cantilevered on a hillside with ocean views at golden hour", "luxury two-storey modern home with a stone facade and landscaped garden at dusk"],
+  tower: ["luxury residential tower with glass balconies overlooking a harbour at dusk, penthouse lights on", "sleek high-rise apartment tower on a waterfront promenade at blue hour", "boutique luxury residential tower with sculpted balconies and a rooftop garden at sunset"],
+};
+const GEN = { running: false, done: 0, failed: 0, total: 0, errors: [], startedAt: null, finishedAt: null };
+const imgManifestFile = path.join(IMG_DIR, "manifest.json");
+const readImgManifest = () => { try { return JSON.parse(fs.readFileSync(imgManifestFile, "utf8")); } catch { return {}; } };
+async function genOne(prompt) {
+  const r = await fetch("https://api.openai.com/v1/images/generations", { method: "POST", headers: { authorization: "Bearer " + OPENAI_KEY, "content-type": "application/json" },
+    body: JSON.stringify({ model: process.env.IMAGE_MODEL || "gpt-image-1", prompt, size: "1536x1024", quality: process.env.IMAGE_QUALITY || "medium", n: 1, output_format: "webp", output_compression: 80 }) });
+  if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 200));
+  const j = await r.json(), b64 = j.data && j.data[0] && j.data[0].b64_json;
+  if (!b64) throw new Error("no image in response");
+  return Buffer.from(b64, "base64");
+}
+async function genImages(per) {
+  if (GEN.running || !OPENAI_KEY) return;
+  Object.assign(GEN, { running: true, done: 0, failed: 0, total: per * Object.keys(IMG_STYLES).length, errors: [], startedAt: new Date().toISOString(), finishedAt: null });
+  const man = readImgManifest();
+  for (const [style, variants] of Object.entries(IMG_STYLES)) {
+    man[style] = man[style] || [];
+    for (let i = 0; i < per; i++) {
+      const file = `${style}-${Date.now().toString(36)}-${i}.webp`;
+      try {
+        fs.writeFileSync(path.join(IMG_DIR, file), await genOne(`${IMG_BASE} Subject: ${variants[(man[style].length + i) % variants.length]}.`));
+        man[style].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++;
+      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); if (GEN.failed >= 5 && GEN.done === 0) { GEN.running = false; GEN.finishedAt = new Date().toISOString(); return; } }
+    }
+  }
+  GEN.running = false; GEN.finishedAt = new Date().toISOString();
+}
+function serveImg(req, res, url) {
+  if (url.pathname === "/img/manifest.json") {
+    const vol = readImgManifest(), pub = files.get("/img/manifest.json");
+    let base = {}; try { base = pub ? JSON.parse(pub.body.toString()) : {}; } catch { }
+    for (const [k, v] of Object.entries(vol)) base[k] = [...(base[k] || []), ...v];
+    return send(req, res, 200, "application/json", JSON.stringify(base), { "cache-control": "no-cache" }), true;
+  }
+  const name = path.basename(url.pathname);
+  if (!/^[a-z]+-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
+  const f = path.join(IMG_DIR, name);
+  if (!fs.existsSync(f)) return false;
+  res.writeHead(200, { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff" });
+  res.end(req.method === "HEAD" ? undefined : fs.readFileSync(f));
+  return true;
+}
+
 // ---------- admin ----------
 let cache = null;
 function loadAll() {
@@ -217,6 +274,13 @@ http.createServer(async (req, res) => {
     if (url.pathname === "/healthz") return send(req, res, 200, "text/plain", "ok");
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
+    if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
+    if (url.pathname === "/admin/gen-images") {
+      if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
+      if (url.searchParams.get("go") === "1" && OPENAI_KEY && !GEN.running) genImages(Math.max(1, Math.min(12, +url.searchParams.get("per") || 6)));
+      const man = readImgManifest();
+      return send(req, res, 200, "application/json", JSON.stringify({ keySet: !!OPENAI_KEY, ...GEN, images: Object.fromEntries(Object.entries(man).map(([k, v]) => [k, v.length])) }, null, 2), { "cache-control": "no-store" });
+    }
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
       if (url.pathname === "/admin") return send(req, res, 200, "text/html; charset=utf-8", adminPage(url.searchParams.get("key")), { "cache-control": "no-store", "x-robots-tag": "noindex" });
