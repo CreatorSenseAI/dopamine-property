@@ -1021,6 +1021,8 @@ function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.is
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
 /* homes bought before v18 had no land size: give each a fixed one from its seed and market */
+/* v26: redevelopment used to drop the Rare tag; a featured win is always a rare listing, so give it back */
+for(const p of S.props)if(p.dwell&&p.feat&&!p.rare)p.rare=true;
 for(const p of S.props){if(p.land==null){const st=p.style;p.land=st==='unit'||st==='tower'?0:Math.round(([450,520,750,1400,4000][p.ti0!=null?p.ti0:p.ti]+mulberry(p.seed|0)()*([250,380,850,2800,36000][p.ti0!=null?p.ti0:p.ti]))/5)*5;}}
 RIVALS.forEach(r=>{if(!(r.name in S.board))S.board[r.name]=r.worth;});
 /* ---------- bidder registrations (scarcity test): each auction you bid in uses one, like a real auction. Watching, the Market and the Empire are never limited ---------- */
