@@ -48,18 +48,35 @@ const CONFIG={
 };
 ```
 
-## Remove ads (one-time purchase, web)
+## In-app purchases (mobile app only)
 
-1. In Stripe, create a Product "Remove ads" with a one-time price (e.g. A$4.99) and a **Payment Link** for it.
-2. Payment Link → After payment → "Don't show confirmation page" → redirect to `https://<your-domain>/?paid={CHECKOUT_SESSION_ID}`.
-3. Railway variables:
-   - `STRIPE_SECRET_KEY` — a restricted key with read access to Checkout Sessions
-   - `STRIPE_REMOVE_ADS_LINK` — the Payment Link URL (`https://buy.stripe.com/...`)
-   - `STRIPE_REMOVE_ADS_LINK_ID` — its id (`plink_...`), so only that link unlocks
-   - `REMOVE_ADS_PRICE` — the label shown in game, e.g. `A$4.99`
-   - `UNLOCK_SECRET` — long random string (signs unlock tokens)
+The web game sells nothing. Purchases switch on only inside the native iOS/Android app, through Apple's App Store and Google Play billing (no Stripe, no web checkout).
 
-The menu and the ad slot then show "Remove ads". The server checks every payment with Stripe before unlocking; players on a new device use "Restore" with the email they paid with. Purchases (no email or card data) are listed on `/admin`. Leave the variables unset until ads are switched on, so there's nothing to remove before then.
+The app wrapper (planned: Capacitor + RevenueCat) must put this object on `window` before the game loads:
+
+```js
+window.DPStore = {
+  available: async () => true,                 // store billing is ready
+  products: async ids => [{ id, price }],      // localised price strings from the store, e.g. "A$4.99"
+  buy: async id => ({ ok: true }),             // resolves after the store confirms (and the receipt is validated)
+  owned: async () => ["remove_ads"],           // non-consumables this account owns (checked on launch)
+  restore: async () => ["remove_ads"],         // the "Restore purchases" button (Apple requires one)
+};
+```
+
+Product ids (create the same ids in App Store Connect and Play Console):
+
+| id | type | gives |
+| --- | --- | --- |
+| `remove_ads` | non-consumable | no ads |
+| `regos_10` | consumable | 10 bidder registrations |
+| `cash_small` | consumable | +$250K game cash |
+| `cash_large` | consumable | +$3M game cash |
+| `rescue` | consumable | stops one repossession |
+| `rate_lock` | consumable | 4.5% on loans for 24 months |
+| `finish_works` | consumable | finishes every upgrade under way |
+
+All guaranteed results: no paid chance, no paid auction wins, game cash never converts back to money. The catalogue lives in `IAP` in `public/index.html`; `/admin` shows shop opens, purchases by id and restores (revenue is in App Store Connect and Play Console).
 
 ## Photoreal home images (OpenAI)
 
