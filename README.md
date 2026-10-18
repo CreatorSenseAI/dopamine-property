@@ -4,6 +4,8 @@ A fast property-auction browser game. Bid against rival investors, collect rent,
 
 Single page, no build step, no dependencies. Game state lives in the player's `localStorage`.
 
+Live: https://game-production-ee8e.up.railway.app (Railway project "Dopamine Property", service `game`, volume `play-logs` at `/data`).
+
 ## Run locally
 
 ```bash
