@@ -2,7 +2,7 @@
   "name": "dopamine-property",
   "version": "1.0.0",
   "private": true,
-  "description": "Dopamine Property: a fast property-auction browser game.",
+  "description": "Empire Auction Tycoon (EAT): a fast property-auction browser game.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

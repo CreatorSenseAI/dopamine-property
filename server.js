@@ -1,4 +1,4 @@
-// Dopamine Property: zero-dependency server for Railway (or any Node 18+ host).
+// Empire Auction Tycoon (EAT): zero-dependency server for Railway (or any Node 18+ host).
 // - serves public/ with gzip and sensible caching, /healthz for the health check
 // - POST /api/play  receives anonymous play logs from the game (random install id, no personal data, no IPs stored)
 // - GET  /admin     play-stats dashboard, protected by the ADMIN_KEY env var (404 when unset)
@@ -147,7 +147,7 @@ function adminPage(k) {
   const tile = (label, value, note) => `<div class="t"><small>${esc(label)}</small><b>${esc(value ?? "–")}</b>${note ? `<em>${esc(note)}</em>` : ""}</div>`;
   const max = Math.max(1, ...s.dau.map(d => d[1]));
   const tabs = s.tabSec, tabTotal = Math.max(1, tabs[0] + tabs[1] + tabs[2]);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dopamine Property stats</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Empire Auction Tycoon stats</title>
 <style>:root{--bg:#0c1220;--s:#151e31;--ink:#eef2f8;--mu:#97a3b9;--line:#29354f;--g:#3fd08f;--r:#ff4b61;--y:#f2bb45}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;padding:16px;max-width:960px;margin:auto}
 h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:22px 0 8px}
@@ -156,7 +156,7 @@ h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-tran
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
 .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}.bars i{display:block;width:100%;background:var(--y);border-radius:3px 3px 0 0}.bars span{font-size:10px;color:var(--mu)}
 a{color:var(--y)}p{color:var(--mu)}</style></head><body>
-<h1>Dopamine Property: play stats</h1><p>${s.players} players · ${s.sessions} sessions · refreshed every 30s · <a href="/admin/export.json?key=${encodeURIComponent(k)}">export JSON</a></p>
+<h1>Empire Auction Tycoon: play stats</h1><p>${s.players} players · ${s.sessions} sessions · refreshed every 30s · <a href="/admin/export.json?key=${encodeURIComponent(k)}">export JSON</a></p>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
@@ -203,4 +203,4 @@ http.createServer(async (req, res) => {
     console.error(e);
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
-}).listen(PORT, () => console.log(`Dopamine Property on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+}).listen(PORT, () => console.log(`Empire Auction Tycoon on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));

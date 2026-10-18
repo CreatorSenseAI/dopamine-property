@@ -1,4 +1,6 @@
-# Dopamine Property
+# Empire Auction Tycoon (EAT)
+
+Formerly "Dopamine Property" (the repo, Railway project and save key keep the old name).
 
 A fast property-auction browser game. Bid against rival investors, collect rent, dodge the bills, unlock bigger markets and climb the rich list.
 

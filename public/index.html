@@ -3,14 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Dopamine Property</title>
+<title>Empire Auction Tycoon</title>
+<meta name="application-name" content="Empire Auction Tycoon">
+<meta name="apple-mobile-web-app-title" content="EAT">
 <meta name="description" content="Bid against rival investors, build a property empire and climb the rich list. A fast, free browser game about Aussie property auctions.">
 <meta name="theme-color" content="#13203a">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Dopamine Property">
+<meta property="og:title" content="Empire Auction Tycoon">
 <meta property="og:description" content="Bid against rival investors at live auctions, collect rent, dodge the bills and climb the rich list. Free in your browser.">
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='6' width='52' height='52' rx='8' fill='%23d7263d' transform='rotate(-4 32 32)'/%3E%3Ctext x='32' y='43' font-family='Impact,Arial Black,sans-serif' font-size='28' fill='white' text-anchor='middle'%3EDP%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='6' width='52' height='52' rx='8' fill='%23d7263d' transform='rotate(-4 32 32)'/%3E%3Ctext x='32' y='43' font-family='Impact,Arial Black,sans-serif' font-size='21' fill='white' text-anchor='middle'%3EEAT%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Familjen+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
@@ -46,7 +48,7 @@ button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 /* header ledger */
 .top{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
 .mark{display:flex;align-items:center;gap:8px;min-width:0}
-.mark b{display:grid;place-items:center;width:30px;height:30px;background:var(--red);color:var(--on-red);font-family:var(--f-display);font-size:15px;letter-spacing:.02em;transform:rotate(-4deg)}
+.mark b{display:grid;place-items:center;min-width:30px;padding:0 5px;height:30px;background:var(--red);color:var(--on-red);font-family:var(--f-display);font-size:15px;letter-spacing:.02em;transform:rotate(-4deg)}
 .stars{border:0;background:var(--gold-fill);color:var(--on-gold);font-family:var(--f-mono);font-weight:700;font-size:12px;padding:3px 7px;border-radius:999px;line-height:1.2}
 .mark span{font-family:var(--f-display);font-size:15px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
 .ledger{margin-left:auto;display:flex;gap:14px;text-align:right}
@@ -504,7 +506,7 @@ h2{font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.0
 .ledger em{font-style:normal;font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--muted);line-height:1.1}
 .ledger em.pos{color:var(--green)}.ledger em.neg{color:var(--red)}
 .help{color:var(--ink)}
-.mark b{width:28px;height:28px;font-size:14px}
+.mark b{min-width:28px;height:28px;font-size:14px}
 details.ifwin{padding:0}
 details.ifwin>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;font-family:var(--f-display);font-size:16px;letter-spacing:.04em;text-transform:uppercase}
 details.ifwin>summary::-webkit-details-marker,details.fold>summary::-webkit-details-marker{display:none}
@@ -625,7 +627,7 @@ details.bills.fold[open]>summary{margin-bottom:6px}
 <body>
 <div id="app">
   <header class="top">
-    <div class="mark"><b>DP</b><span>Dopamine<br>Property</span><button class="stars" id="hStars" hidden aria-label="Legacy stars"></button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
+    <div class="mark"><b>EAT</b><span>Empire Auction<br>Tycoon</span><button class="stars" id="hStars" hidden aria-label="Legacy stars"></button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
     <div class="ledger">
       <div><small>Net worth</small><strong id="hWorth">$0</strong><em id="hInc">+$0/mo</em></div>
       <div><small>Cash</small><strong id="hCash">$0</strong></div>
@@ -854,7 +856,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v22-web';
+const VERSION='v23-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,

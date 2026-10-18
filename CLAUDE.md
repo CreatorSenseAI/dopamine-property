@@ -1,4 +1,6 @@
-# Dopamine Property: notes for Claude Code
+# Empire Auction Tycoon (EAT): notes for Claude Code
+
+Player-facing name is Empire Auction Tycoon, logo mark "EAT". The repo, Railway project and the save key (`dopamine-property-v1`) keep the old "Dopamine Property" name on purpose: renaming the save key would wipe every player's game.
 
 ## What this is
 Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS + one IIFE script). Served by `server.js` on Railway; pushing to `main` deploys.
