@@ -82,6 +82,7 @@ with sync_playwright() as p:
         if pg.is_enabled("#verdict"):
             pg.click("#verdict"); pg.wait_for_timeout(300)
             if pg.is_visible("#ifwin"): pg.screenshot(path=str(out / f"v25-ifwin-{scheme}.png")); pg.click("#iwX")
+            elif pg.is_visible("#modal"): print(scheme, "verdict opened the cash sheet:", pg.inner_text("#sheet")[:60].replace("\n", " ")); pg.screenshot(path=str(out / f"v26-cash-{scheme}.png")); close_sheets(pg)
         pg.click("#tE"); pg.wait_for_timeout(800)
         fits(pg, "#vEmpire", scheme + " empire overview")
         pg.screenshot(path=str(out / f"v25-overview-{scheme}.png"))

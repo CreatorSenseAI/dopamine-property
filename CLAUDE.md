@@ -15,7 +15,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 ## Engine map (inside the script)
 - `TIERS` markets (Starter → Icon) and unlock thresholds; `RENT`, `DUTY`, `COUNCIL`, `UPKEEP`, `STRATA`, `INTEREST`, `LVR` are the economy knobs.
 - `makeLot()` builds a property; `L.value` is the hidden true value, `L.guide` is 82–94% of it.
-- `startAuction()` sets rivals (each with a private `max`) and `A.est`, the valuer's estimate shown to the player (true value ±5% centre, ±8% band). The walk-away line is `A.est.hi`.
+- `startAuction()` sets rivals (each with a private `max`) and `A.est`, the valuer's estimate shown to the player (true value ±5% centre, ±8% band). The walk-away line is `A.est.wa` (the estimate's middle, read through `waOf(e)`); it used to be `est.hi`, which made every win ~8% over value. Zones: Steal under guide/est.lo, Good under 97% of the walk-away, Fair up to it, Overpaying past it. About 1 lot in 5 has a stubborn rival (`r.stub`, max +5–12%).
 - `auctionTick()` runs every 100ms; `econTick()` every 1s (1s = 1 game month: rent, bills, growth, events).
 - `project(price, tier, value, style)` is the "if you win" maths: cash out today, loan, monthly net cash flow, day-one equity.
 - `updDeal()` draws the meter marker, the dock verdict and the If-you-win panel. `drawMeter()` draws the zones per lot. If you win is a popover (`#ifwin`, `closeIw()`) opened by tapping the dock verdict.
@@ -65,3 +65,13 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - Empire is sections behind a dropdown (`#eSec`, `ESECS`, `eGo(k)`): Overview (hero, goal bar, 12 tiles, no scroll), Portfolio, Money and bank, Suburb sets, Rich list, Badges, Dynasty and play. Jump to a section with `show('e');eGo('pf')`. The section survives tab switches within a session.
 - Dynasty: header star always shows (★ 0 too) and opens `dynastySheet()`: stars, prestige title (`RANKS`, `rankOf()`), cash-out (`cashOut()`), lifetime stats (`S.life`, kept in `carry()`). Title badges `rank1…rank25` via `rankBadges()`. Stars also on the share card and the showdown board (`stars` in `/api/board`).
 
+## Cash and balance (v26, from the 19 Oct play logs)
+- Equity loan: `borrowable()` = 60% (`EQ_LVR`) of the value of homes not being rebuilt, minus debt; `borrowEquity(amt)` spreads it onto home loans (0.5% fee). Bank shows it whenever there's room (`eqSteps()`).
+- Out of reach: tapping the dock verdict opens `cashSheet()` (borrow enough for this lot, app-only cash packs, or sell a home) instead of If you win.
+- `spendCheck()` arms the upgrade/build button with a warning when the spend leaves less than a deposit for your tier (`curTier()`).
+- Cash packs (`cash_small`/`cash_large`, app only) scale with your markets (`cashPack()`).
+- Redevelopment keeps `rare` and `rarity` on the new build (both duplex halves). It used to drop the Rare tag, which looked like the home vanished.
+- Noise: vacancy 0.35%/home/month, repairs 0.15%; market events: rate hike −3%, cut +3%, correction −10%, suburb boom +8%. Build blowouts go on the site's loan when cash can't cover them.
+- Offers (Market group) last 40s (bidding wars 30s); an ignored offer at/over value comes back once as a final offer (+2%, 25s).
+- Background live lots spawn only at a tier you can pay for.
+- Logs: `/admin/digest.txt?key=…&since=ISO&page=n` (compact text, 12K/page); `&log=1` also writes it to the Railway service log (read it with the Railway logs tool, filter `DG`).

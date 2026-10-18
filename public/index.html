@@ -778,6 +778,10 @@ main{padding:8px 14px 10px;gap:8px}
 .sheet .legbtn:disabled{background:var(--sunk);color:var(--muted);box-shadow:none}
 .sheet .legbtn.armed{background:var(--red);color:var(--on-red);box-shadow:0 3px 0 #8c1426}
 .sheet p.rankup{color:var(--gold);font-size:16px}
+.uprow:has(.eqbtns){flex-wrap:wrap}
+.eqbtns{display:flex;gap:6px;flex:1 1 100%}.eqbtns button{flex:1}
+.sheet .uprow button.armed{background:var(--red);color:var(--on-red)}
+.sheet p.upnote.warn{color:var(--red);text-align:left;margin:-2px 0 8px}
 </style>
 </head>
 <body>
@@ -989,7 +993,7 @@ const gradeOf=prem=>prem<0?'Bargain':prem<0.1?'Fair price':prem<0.25?'Hot buy':'
 const growPct=h=>((BASEG+(h||0))*1200).toFixed(1);
 /* ---------- deal reading: zones on the meter and what a house does to your month ---------- */
 const ZONES={steal:'Steal',good:'Good buy',fair:'Fair price',over:'Overpaying'};
-const zoneOf=(q,L,e)=>q<Math.min(L.guide,e.lo)?'steal':q<e.lo?'good':q<=e.hi?'fair':'over';
+const waOf=e=>e.wa||e.hi,zoneOf=(q,L,e)=>q<Math.min(L.guide,e.lo)?'steal':q<waOf(e)*0.97?'good':q<=waOf(e)?'fair':'over';
 const sg=n=>(n>=0?'+':'')+money(n);
 const landTax=h=>0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8);
 function project(price,ti,val,style){const pay=payFor(price,ti),h=holdings(),strata=style==='unit'||style==='tower';
@@ -1040,7 +1044,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v25-web';
+const VERSION='v26-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1142,9 +1146,9 @@ function startRedev(p,k){const r=REDEV.find(x=>x.k===k);if(!r||p.works||r.why(p)
  toast(r.name+' build started at '+p.addr+'. '+money(-c)+'. No rent for '+r.mo+' months; bills keep coming.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
 /* things that go wrong on a build site, at most once each per build */
 function buildEvents(p){const w=p.works;if(!w||!w.redev)return;
- if(!w.blown&&Math.random()<0.02){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000);S.cash-=x;S.paidOut+=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x)});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+'.','down',true);}
+ if(!w.blown&&Math.random()<0.02){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000),onLoan=S.cash<x;if(onLoan){p.loan=(p.loan||0)+x;S.borrowed=true;}else S.cash-=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x),onLoan});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+(onLoan?', added to the loan on the site.':'.'),'down',true);}
  if(!w.late&&Math.random()<0.01){w.late=true;p.vacant+=6;T.c.buildDelays++;tlog('build_delay',{k:w.k});note('build','Builder delay at '+p.addr+': 6 more months.','down',true);}}
-function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,total=p.value*w.end;p.up={};p.dwell=w.k;p.heat=0;p.rare=false;let out=[p];
+function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,total=p.value*w.end;p.up={};p.dwell=w.k;p.heat=0;let out=[p];/* rare + rarity carry to the new build (both duplex halves) */
  if(w.k==='mansion'){p.value=total;p.style='villa';p.beds=Math.max(p.beds||5,6);p.feats=['New build','Mansion'];}
  else{const land=Math.round((p.land||0)/2),half={paid:p.paid/2,duty:(p.duty||0)/2,capex:(p.capex||0)/2};
   const b=Object.assign({},p,half,{id:S.nextId++,addr:'2/'+p.addr,value:total/2,land,loan:0,seed:(p.seed|0)+7,style:'modern',feats:['New build','Duplex'],boughtAt:Date.now(),vacant:0,ti0:p.ti0,up:{}});
@@ -1153,14 +1157,17 @@ function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,
  const after=out.reduce((n,q)=>n+q.value,0);T.c.redevDone++;award('developer');tlog('redev_done',{k:w.k,tier:p.ti,mult:+w.end.toFixed(2),moved,valueBefore:Math.round(before),valueAfter:Math.round(after),blown:!!w.blown,late:!!w.late});
  if(!quiet){toast((w.k==='mansion'?'Mansion finished at '+p.addr+'. Worth '+money(after):'Duplex finished: two homes worth '+money(after)+' together')+', up '+money(after-before)+(moved?'. New category: '+TIERS[p.ti].name+'.':'.'),'up');sfx('rare');confetti(true);}
  builtIds='';}
+function spendCheck(b,c,go){const t=curTier(),need=depositFor(typicalOpen(t),t),left=S.cash-c;
+ if(left<need&&!b.dataset.ok){b.dataset.ok='1';b.classList.add('armed');b.textContent='Go ahead';const n=document.createElement('p');n.className='upnote warn';n.textContent=`That leaves ${money(left)}, under the ${money(need)} deposit for ${TIERS[t].name} lots. You'll sit out auctions until rent comes in or you borrow against your homes.`;b.closest('.uprow').after(n);T.c.spendWarns=(T.c.spendWarns||0)+1;tlog('spend_warn',{cost:Math.round(c),left:Math.round(left),need:Math.round(need)});return;}
+ go();}
 function upgradeSheet(p){const nl=classLine(p.ti);
  const rows=UPG.map(u=>{const done=p.up&&p.up[u.k],why=u.why(p),c=upCost(p,u),lo=p.value*u.lift[0],hi=p.value*u.lift[1];
   return `<div class="uprow${done||why?' off':''}"><div class="uptxt"><b>${u.name}${done?' ✓':''}</b><small>${done?'Done':why?esc(why):`${esc(u.desc)} Adds ${money(lo)} to ${money(hi)} to the value. ${u.mo} months of works, no rent.`}</small></div>${done||why?'':`<button data-upk="${u.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
  const busy=buildsOn()>=REDEV_MAX;const rrows=p.dwell||isStrata(p)||S.maxTier<1?'':'<h4 class="uph">Redevelop</h4>'+(busy?`<p class="upnote">Your builder is on ${REDEV_MAX} sites already. One build at a time per site, ${REDEV_MAX} at once.</p>`:'')+REDEV.map(x=>{const why=busy?'Builder busy on '+REDEV_MAX+' sites':x.why(p),c=upCost(p,x),lo=p.value*x.end[0],hi=p.value*x.end[1];return `<div class="uprow${why?' off':''}"><div class="uptxt"><b>${x.name}</b><small>${why?esc(why):`${esc(x.desc)} Ends up worth ${money(lo)} to ${money(hi)}${x.k==='duplex'?' for the pair':''}. ${x.mo} months to build; cost blowouts and delays can happen.`}</small></div>${why?'':`<button data-rdk="${x.k}"${S.cash<c?' disabled':''}>${money(c)}</button>`}</div>`;}).join('');
  $('#sheet').innerHTML=`<div class="upg"><h3>Upgrade</h3><p>${esc(p.addr)}, ${esc(p.sub)}<br>Worth ${money(p.value)}${p.land?' · '+p.land+' m² of land':''} · you have ${money(S.cash)}</p>${rows}${rrows}${nl<Infinity?`<p class="upnote">Lift it past ${money(nl)} and it becomes a ${TIERS[p.ti+1].name} home, worth 6% more.</p>`:''}<button class="sec" id="upClose">Close</button></div>`;
  $('#modal').hidden=false;$('#upClose').onclick=()=>{$('#modal').hidden=true;};
- $('#sheet').querySelectorAll('[data-upk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startWorks(p,b.dataset.upk);});
- $('#sheet').querySelectorAll('[data-rdk]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;startRedev(p,b.dataset.rdk);});
+ $('#sheet').querySelectorAll('[data-upk]').forEach(b=>b.onclick=()=>spendCheck(b,upCost(p,UPG.find(x=>x.k===b.dataset.upk)),()=>{$('#modal').hidden=true;startWorks(p,b.dataset.upk);}));
+ $('#sheet').querySelectorAll('[data-rdk]').forEach(b=>b.onclick=()=>spendCheck(b,upCost(p,REDEV.find(x=>x.k===b.dataset.rdk)),()=>{$('#modal').hidden=true;startRedev(p,b.dataset.rdk);}));
  T.c.upgradeViews++;tlog('upgrade_view',{tier:p.ti,options:upgAvail(p).length,cash:Math.round(S.cash)});}
 const cost=n=>n*(1+DUTY[A.lot.ti]);
 const maxBid=L=>Math.max(0,Math.floor(S.cash/(1-LVR+DUTY[L.ti])/L.inc)*L.inc);
@@ -1340,9 +1347,10 @@ function startAuction(){
 function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
+ if(!first&&!daily&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
  const X={rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):0,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
- {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.hi));}
+ {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
  T.c.auctionsSeen++;if(L.rare)T.c.rareSeen++;if(!X.st.couldAfford)T.c.cantAfford++;
  return X;}
@@ -1351,7 +1359,7 @@ function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',pre
  T.auctions.push({t:tnow(),no:L.no,tier:L.ti,rare:L.rare,style:L.style,value:Math.round(L.value),guide:Math.round(L.guide),hammer:Math.round(A.bid),winner,rival:rival||null,
   rivals:A.rivals.map(r=>r.style),rivalBids:s.rivalBids,bidders:A.rivals.filter(r=>r.bids>0).length,outs:s.outs,thinks:s.thinks,counters:s.counters,war:A.warUsed,nemesis:A.rivals.some(r=>r.name===S.nemesis)?S.nemesis:null,yourHand:s.hand,yourAuto:s.auto,yourBig:s.big,folds:s.folds,snipes:s.snipes,firstBidClock:s.firstClock,lastBidClock:s.lastClock,maxYou:Math.round(s.maxYou),
   autoOn:!!A.auto,bg:!!A.bg,autoMax:Math.round(A.autoMax),cashAt:s.cashAt,couldAfford:s.couldAfford,durSec:Math.round((Date.now()-s.t0)/1000),
-  estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,daily:!!A.daily,reg:!!A.reg,featured:!!A.featured,find:A.find||null,cue:!!A.cue,
+  estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,estWa:A.est?Math.round(waOf(A.est)):null,stubborn:!!(A.rivals||[]).some(r=>r.stub),zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,daily:!!A.daily,reg:!!A.reg,featured:!!A.featured,find:A.find||null,cue:!!A.cue,
   overGuidePct:prem===null?null:+(prem*100).toFixed(2),growPctYr:you?+growPct(heatOf(A.bid,L.guide)):null,duty:you?Math.round(A.bid*DUTY[L.ti]):null,
   equityPct:you?+((L.value/A.bid-1)*100).toFixed(2):null,hammerVsValuePct:A.bid?+((A.bid/L.value-1)*100).toFixed(2):null});
  if(T.auctions.length>200)T.auctions.shift();T.dirty=true;}
@@ -1450,10 +1458,10 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   else{toast(`Won ${L.sub}: ${L.addr} for ${money(A.bid)}.`+(fnd&&fnd.kind!=='flaw'?` Inspection: ${fnd.label.toLowerCase()}, +${money(fAmt)}.`:fnd?` Inspection: ${fnd.label.toLowerCase()}, ${money(fAmt)}.`:` ${sg(pn)}/mo.`),'up');sfx(fnd&&fnd.kind==='jackpot'?'rare':'ding',combo);buzz(30);}
   buildEmpire();
  }else if(A.leader){if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(null,d),3200);}if(youBidAny)S.losses++;S.board[A.leader.name]=(S.board[A.leader.name]||0)+L.value*0.12;
-  const near=youBidAny&&A.st.maxYou>0&&A.bid<=A.st.maxYou+2*L.inc&&A.bid<=A.est.hi,one=A.bid-A.st.maxYou<=L.inc;
+  const near=youBidAny&&A.st.maxYou>0&&A.bid<=A.st.maxYou+2*L.inc&&A.bid<=waOf(A.est),one=A.bid-A.st.maxYou<=L.inc;
   if(near){T.c.nearMiss=(T.c.nearMiss||0)+1;tlog('near_miss',{gap:Math.round(A.bid-A.st.maxYou),tier:L.ti});}
   if(ui){stp.className='stamp '+(near?'near':'gone');stp.innerHTML=near?`<div class="stamp-in"><b>Pipped!</b><small>${one?'By one bid':'By two bids'} · ${full(A.bid)}</small></div>`:`<div class="stamp-in"><b>Sold</b><small>${esc(A.leader.name)} · ${full(A.bid)}</small></div>`;
-   res.className='result bad';res.textContent=near?`So close. ${A.leader.name} paid ${money(A.bid)}, still under your walk-away of ${money(A.est.hi)}. One more bid would have taken it.`:youBidAny?`Outbid. ${A.leader.name} took it for ${money(A.bid)}. ${rm(A.leader).short} is your nemesis now.`:`${A.leader.name} took it for ${money(A.bid)}. Valued at ${money(L.value)}.`;sfx(near?'near':'lose');if(near)buzz([60,40,60]);}
+   res.className='result bad';res.textContent=near?`So close. ${A.leader.name} paid ${money(A.bid)}, still under your walk-away of ${money(waOf(A.est))}. One more bid would have taken it.`:youBidAny?`Outbid. ${A.leader.name} took it for ${money(A.bid)}. ${rm(A.leader).short} is your nemesis now.`:`${A.leader.name} took it for ${money(A.bid)}. Valued at ${money(L.value)}.`;sfx(near?'near':'lose');if(near)buzz([60,40,60]);}
   else if(youBidAny)toast(`${near?'Pipped by '+(one?'one bid':'two bids'):'Outbid'} in ${L.sub}. ${rm(A.leader).short} paid ${money(A.bid)}.`,'down');
  }else if(ui){stp.className='stamp gone';stp.innerHTML='<div class="stamp-in"><b>Passed in</b><small>No bids</small></div>';res.className='result';res.textContent='Nobody bid. Next lot coming up.';}
  if(ui){res.hidden=false;$('#art').appendChild(stp);const rl=stp.querySelector('[data-roll]');if(rl)rollTo(rl,+rl.dataset.roll,v=>(v>=0?'+':'')+money(v)+' equity');updAuction();SESS.focusLots++;if(SESS.focusLots%10===0)setTimeout(()=>{if($('#modal').hidden)recap(true);},2200);}
@@ -1477,8 +1485,8 @@ function renderLot(){const L=A.lot,T=TIERS[L.ti];
 const mScale=()=>{const L=A.lot,lo=L.open,hi=A.est.hi*1.18;return x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));};
 function drawMeter(){const L=A.lot,e=A.est,pc=mScale(),a=Math.min(L.guide,e.lo);
  const seg=(cls,x0,x1)=>{const l=pc(x0),w=pc(x1)-l;return w>0?`<i class="z-${cls}" style="left:${l}%;width:${w}%"></i>`:'';};
- $('#track').innerHTML=seg('steal',L.open,a)+seg('good',a,e.lo)+seg('fair',e.lo,e.hi)+seg('over',e.hi,e.hi*1.18);
- $('#waMk').style.left=pc(e.hi)+'%';$('#estTxt').textContent=money(e.lo)+' – '+money(e.hi);$('#waTxt').textContent=money(e.hi);dealSig='';}
+ const wa=waOf(e),g=Math.max(a,wa*0.97);$('#track').innerHTML=seg('steal',L.open,a)+seg('good',a,g)+seg('fair',g,wa)+seg('over',wa,e.hi*1.18);
+ $('#waMk').style.left=pc(wa)+'%';$('#estTxt').textContent=money(e.lo)+' – '+money(e.hi);$('#waTxt').textContent=money(wa);dealSig='';}
 let dealSig='';
 function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid||L.open):mine?A.bid:nextBid(),pc=mScale(),x=pc(q);
  const mk=$('#mk');mk.style.left=x+'%';mk.className='mk'+(x<14?' l':x>86?' r':'');
@@ -1488,7 +1496,7 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  if(A.sell){const rv=A.sell.reserve,ok2=A.leader&&A.bid>=rv;$('#verdict').innerHTML=`<span class="vd ${ok2?'good':'na'}">${A.ended?(ok2?'Sold':'Passed in'):ok2?'On the market':'Under reserve'}</span><span class="vtxt">Reserve <b>${money(rv)}</b> · top <b>${A.leader?money(A.bid):'none'}</b></span>`;closeIw();return;}
  const v=$('#verdict');
  if(A.ended){const p0=A.leader==='you'&&S.props[0],pn=p0?rentOf(p0)-propCost(p0,bills().landRate)-(p0.loan||0)*rate():0;v.innerHTML=p0?`<span class="vd steal">Yours</span><span class="vtxt">Cash flow <b class="${pn>=0?'pos':'neg'}">${sg(pn)}/mo</b> · see Empire</span>`:`<span class="vd na">${A.leader?'Sold':'Passed in'}</span><span class="vtxt">Next lot is on its way</span>`;}
- else if(!ok)v.innerHTML=`<span class="vd na">Out of reach</span><span class="vtxt">Need <b>${money(depositFor(q,L.ti))}</b> deposit + duty</span>`;
+ else if(!ok)v.innerHTML=`<span class="vd na">Out of reach</span><span class="vtxt">Need <b>${money(depositFor(q,L.ti))}</b> deposit · tap for cash</span>`;
  else v.innerHTML=`<span class="vd ${z}">${ZONES[z]}</span><span class="vtxt">${mine?'At':'Win at'} <b>${money(q)}</b>: ${pr.day1>=0?'<b class="pos">'+sg(pr.day1)+'</b> equity':'<b class="neg">'+money(pr.day1)+'</b> on day one'} · <b class="${pr.net>=0?'pos':'neg'}">${sg(pr.net)}</b>/mo</span>`;
  if(A.ended){closeIw();return;}
  $('#iwHead').textContent=A.ended?'What you just bought':(mine?'If you win at ':'If you win at ')+money(q);
@@ -1496,8 +1504,17 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  $('#iwSum').textContent=sg(pr.net)+'/mo';$('#iwSum').className='iwsum '+(pr.net>=0?'pos':'neg');const f=$('#iwFlow');f.textContent=sg(pr.net)+'/mo';f.className=pr.net>=0?'pos':'neg';$('#iwFlowN').textContent='Rent '+money(pr.rent)+', costs '+money(pr.costs);
  const w=$('#iwWorth');w.textContent=sg(pr.day1);w.className=pr.day1>=0?'pos':'neg';$('#iwWorthN').textContent='Grows '+growPct(heatOf(q,L.guide))+'%/yr';
  $('#iwInc').innerHTML=A.ended?'':`Your income <b class="${now>=0?'pos':'neg'}">${sg(now)}/mo</b> → <b class="${now+pr.net>=0?'pos':'neg'}">${sg(now+pr.net)}/mo</b>`+(now+pr.net<0?'. Negative income drains your cash.':'');}
+function cashSheet(q,ti){T.c.cashSheets=(T.c.cashSheets||0)+1;tlog('cash_sheet',{tier:ti,need:Math.round(depositFor(q,ti)),cash:Math.round(S.cash),borrowable:Math.round(borrowable())});
+ const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=inApp()?IAP.filter(x=>/^cash_/.test(x.id)&&x.show()&&PRICES[x.id]):[];
+ $('#sheet').innerHTML=`<div class="upg"><h3>Get back in</h3><p>This lot needs about <b>${money(need)}</b> for the deposit and stamp duty. You have <b>${money(S.cash)}</b>.</p>
+ ${amt>=1e4?`<div class="uprow"><div class="uptxt"><b>Borrow against your homes</b><small>${money(amt)} onto your loans at ${(S.lock||0)>0?'4.5':'6'}% a year, 0.5% fee. ${money(av)} available.</small></div><button data-cs="eq">${money(amt)}</button></div>`:`<p class="upnote">Nothing left to borrow: your loans are at 60% of your homes' value.</p>`}
+ ${packs.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ <button class="sec" id="csSell">Sell a home</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
+ const eb=$('#sheet').querySelector('[data-cs="eq"]');if(eb)eb.onclick=()=>{$('#modal').hidden=true;borrowEquity(amt,'dock');};
+ $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
+ $('#csSell').onclick=()=>{$('#modal').hidden=true;show('e');eGo('pf');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
 function closeIw(){const p=$('#ifwin');if(p.hidden)return;p.hidden=true;$('#verdict').setAttribute('aria-expanded','false');}
-$('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.ended||A.sell){closeIw();return;}if(p.hidden){p.hidden=false;$('#verdict').setAttribute('aria-expanded','true');T.c.ifwinOpens=(T.c.ifwinOpens||0)+1;dealSig='';updDeal();}else closeIw();};
+$('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.ended||A.sell){closeIw();return;}{const q=A.leader==='you'?A.bid:nextBid();if(!canPay(q,A.lot.ti)){closeIw();cashSheet(q,A.lot.ti);return;}}if(p.hidden){p.hidden=false;$('#verdict').setAttribute('aria-expanded','true');T.c.ifwinOpens=(T.c.ifwinOpens||0)+1;dealSig='';updDeal();}else closeIw();};
 $('#iwX').onclick=closeIw;
 function renderFeed(){if(A&&A.bg)return;if(!$('#feed'))return;$('#feed').innerHTML=A.feed.length?A.feed.map(f=>`<li class="${f.you?'you':''}"><span>${esc(f.who)}</span><span class="num">${full(f.amt)}</span></li>`).join(''):`<li><span>Room is quiet. Opening at</span><span class="num">${full(A.lot.open)}</span></li>`;}
 function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
@@ -1540,8 +1557,8 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  const damp=growthDamp();
  for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((BASEG+(p.heat||0))*damp*ageDamp(p)+0.007*gauss());
   if(p.heat){if(p.heat>=0.0015&&Math.random()<0.004){p.value*=0.75;p.heat=0;T.c.bubblePops++;tlog('bubble_pop',{tier:p.ti,value:Math.round(p.value)});note('bubble','Bubble bursts at '+p.addr+'. Down 25%.','down',true);}else p.heat*=0.985;}
-  if(Math.random()<0.003){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
-  buildEvents(p);if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.006){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
+  if(Math.random()<0.0015){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
+  buildEvents(p);if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(Math.random()<0.0035){p.vacant=Math.round(rnd(8,22));T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant});note('vac','Tenant moved out of '+p.addr+'. Rent paused.','down');}}}
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
  if(S.cash<0){if(!S.od){S.od=true;T.c.overdrafts++;tlog('overdraft',{cash:Math.round(S.cash),worth:Math.round(worth()),props:S.props.length});toast('Cash is below zero. Bills are going on the overdraft at 6% a year. Sell a house or wait for rent.','down');}}else S.od=false;
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()&&S.rescue){const p=S.props.slice().sort((a,b)=>b.value-a.value)[0],gap=-S.cash;S.rescue=false;p.loan=(p.loan||0)+gap;S.cash=0;S.borrowed=true;T.c.rescues++;tlog('rescue',{gap:Math.round(gap),debt:Math.round(debt())});toast('Rescue cover stopped a repossession. '+money(gap)+' went onto your loan for '+p.addr+'.','up');}
@@ -1558,13 +1575,13 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
 /* market events: roughly balanced up and down; a downturn buys 60 months of calm so crashes can't stack */
 function marketEvent(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm||0)>0){T.c.calmSaves++;tlog('market',{kind:'quiet'});return;}if(down)S.calm=60;if(roll>=0.9){tlog('market',{kind:'quiet'});return;}
  const before=holdings();T.c.marketEvents++;T.lastMarket={at:Date.now(),down};const kind=roll<0.08?'correction':roll<0.42?'rate_hike':roll<0.66?'rate_cut':'suburb_boom';setTimeout(()=>tlog('market',{kind,before:Math.round(before),after:Math.round(holdings())}),0);
- if(kind==='correction'){S.props.forEach(p=>p.value*=0.8);toast('Market correction. Values down 20%. Hold your nerve.','down');sfx('lose');}
- else if(kind==='rate_hike'){S.props.forEach(p=>p.value*=0.93);toast('Rates up. Buyers pull back, values slide 7%.','down');}
- else if(kind==='rate_cut'){S.props.forEach(p=>p.value*=1.05);toast('Rate cut. Values up 5%.','up');sfx('cash');}
- else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.12);sfx('cash');
-  toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 12%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');eGo('pf');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
+ if(kind==='correction'){S.props.forEach(p=>p.value*=0.9);toast('Market correction. Values down 10%. Hold your nerve.','down');sfx('lose');}
+ else if(kind==='rate_hike'){S.props.forEach(p=>p.value*=0.97);toast('Rates up. Buyers pull back, values slip 3%.','down');}
+ else if(kind==='rate_cut'){S.props.forEach(p=>p.value*=1.03);toast('Rate cut. Values up 3%.','up');sfx('cash');}
+ else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.08);sfx('cash');
+  toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 8%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');eGo('pf');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
- for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.006)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
+ for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(Math.random()<0.0035)p.vacant=Math.round(rnd(8,22));}}for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
 function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag('clock_backwards',{secs:Math.round(secs)});if(secs>30*86400)tflag('away_over_30_days',{secs:Math.round(secs)});
  const n=Math.min(Math.floor(secs/20),120);if(n<3||!S.props.length)return;
@@ -1638,11 +1655,21 @@ function goPage(d){pg+=d;buildEmpire();$('#vEmpire').scrollTop=0;}
 $('#pgPrev').onclick=()=>goPage(-1);$('#pgNext').onclick=()=>goPage(1);
 /* ---------- bank products: bought with game cash now; V2 can sell them in the app. Guaranteed outcomes only ---------- */
 const lockFee=()=>Math.max(2000,roundTo(debt()*0.015,1000)),rescueFee=()=>Math.max(5000,roundTo(holdings()*0.005,1000));
-function renderBank(dt){const box=$('#bankBox');const show=dt>0||S.borrowed||S.cash<0||S.rescue||(S.lock||0)>0;box.hidden=!show;if(!show)return;
- const lf=lockFee(),rf=rescueFee(),sig=[S.lock||0,!!S.rescue,dt>0,Math.round(lf/1000),Math.round(rf/1000),S.cash>=lf,S.cash>=rf].join('|');if(box.dataset.sig===sig)return;box.dataset.sig=sig;
- $('#bankRows').innerHTML=`<div class="uprow"><div class="uptxt"><b>Rate lock</b><small>${(S.lock||0)>0?`Locked at 4.5% a year. ${S.lock} months left.`:`4.5% a year instead of 6% on every loan for 24 months.${dt>0?'':' Locks in for loans you take later.'}`}</small></div>${(S.lock||0)>0?'':`<button data-bank="lock"${S.cash<lf?' disabled':''}>${money(lf)}</button>`}</div>`+
+/* equity loan: borrow against what you own, up to 60% of the portfolio's value in total debt (leaves room for 80% mortgages on new buys) */
+const EQ_LVR=0.6,EQ_FEE=0.005;
+const borrowable=()=>Math.max(0,Math.floor((EQ_LVR*S.props.filter(p=>!(p.works&&p.works.redev)).reduce((a,p)=>a+p.value,0)-debt())/1e4)*1e4);
+const curTier=()=>Math.max(S.tier,A&&!A.sell?A.lot.ti:0);
+function borrowEquity(amt,from){amt=Math.min(amt,borrowable());if(amt<1e4)return 0;const fee=Math.round(amt*EQ_FEE);let left=amt;
+ for(const p of S.props.filter(p=>!(p.works&&p.works.redev)).sort((a,b)=>b.value-a.value)){if(left<=0)break;const room=Math.max(0,EQ_LVR*p.value-(p.loan||0)),take=Math.min(room,left);if(take>0){p.loan=(p.loan||0)+take;left-=take;}}
+ const got=amt-left;S.cash+=got-fee;S.paidOut+=fee;S.borrowed=true;T.c.equityLoans=(T.c.equityLoans||0)+1;T.c.equityBorrowed=(T.c.equityBorrowed||0)+Math.round(got);tlog('equity_loan',{amt:Math.round(got),fee,from:from||'bank',debtAfter:Math.round(debt()),cashAfter:Math.round(S.cash)});
+ toast(`Borrowed ${money(got)} against your homes. Fee ${money(fee)}. Interest comes out of rent each month.`,'up');sfx('cash');$('#bankBox').dataset.sig='';updEmpire();updAuction();dealSig='';updDeal();save();soonFlush();return got;}
+function eqSteps(){const av=borrowable(),t=S.maxTier,need=Math.ceil(depositFor(typicalOpen(t),t)*1.5/1e4)*1e4,a1=Math.min(av,need);return av<5e4?[]:av>a1*2?[a1,Math.floor(av/2/1e4)*1e4,av]:av>a1*1.3?[a1,av]:[av];}
+function renderBank(dt){const box=$('#bankBox');const av=borrowable(),show=dt>0||S.borrowed||S.cash<0||S.rescue||(S.lock||0)>0||(S.props.length&&av>=5e4);box.hidden=!show;if(!show)return;
+ const lf=lockFee(),rf=rescueFee(),sig=[S.lock||0,!!S.rescue,dt>0,Math.round(lf/1000),Math.round(rf/1000),S.cash>=lf,S.cash>=rf,eqSteps().join(',')].join('|');if(box.dataset.sig===sig)return;box.dataset.sig=sig;
+ $('#bankRows').innerHTML=`<div class="uprow"><div class="uptxt"><b>Borrow against your homes</b><small>${av>=5e4?`Up to ${money(av)} at ${(S.lock||0)>0?'4.5':'6'}% a year, 0.5% fee. It goes on your loans and the interest comes out of rent. Keeps you bidding without selling.`:'Your loans are already at 60% of what your homes are worth. Pay some down or grow the portfolio to borrow more.'}</small></div><div class="eqbtns">${eqSteps().map(v=>`<button data-bank="eq" data-amt="${v}">${money(v)}</button>`).join('')}</div></div>`+`<div class="uprow"><div class="uptxt"><b>Rate lock</b><small>${(S.lock||0)>0?`Locked at 4.5% a year. ${S.lock} months left.`:`4.5% a year instead of 6% on every loan for 24 months.${dt>0?'':' Locks in for loans you take later.'}`}</small></div>${(S.lock||0)>0?'':`<button data-bank="lock"${S.cash<lf?' disabled':''}>${money(lf)}</button>`}</div>`+
   `<div class="uprow"><div class="uptxt"><b>Rescue cover</b><small>${S.rescue?'Active. If the bank would repossess a home, it adds the shortfall to your loan instead. One use.':'If the bank would repossess a home, it adds the shortfall to your loan instead. One use.'}</small></div>${S.rescue?'':`<button data-bank="rescue"${S.cash<rf?' disabled':''}>${money(rf)}</button>`}</div>`;}
 $('#bankRows').onclick=e=>{const b=e.target.closest('[data-bank]');if(!b)return;const k=b.dataset.bank;
+ if(k==='eq'){borrowEquity(+b.dataset.amt,'bank');return;}
  if(k==='lock'&&!(S.lock>0)){const f=lockFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.lock=24;T.c.rateLocks++;tlog('bank_buy',{k,fee:Math.round(f),debt:Math.round(debt())});toast('Rate locked at 4.5% for 24 months. Fee '+money(f)+'.','up');sfx('cash');}
  else if(k==='rescue'&&!S.rescue){const f=rescueFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.rescue=true;T.c.rescueBuys++;tlog('bank_buy',{k,fee:Math.round(f),holdings:Math.round(holdings())});toast('Rescue cover active. Fee '+money(f)+'.','up');sfx('cash');}
  $('#bankBox').dataset.sig='';updEmpire();save();soonFlush();};
@@ -1665,7 +1692,7 @@ function newSellAuction(p,reserve){const inc=niceInc(p.value)*2;/* bigger steps 
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:p.value*(r.style==='aggro'?rnd(0.95,1.22):r.style==='cautious'?rnd(0.8,1.02):rnd(0.88,1.12))}));
  T.c.auctionsSeen++;
  return{lot:L,bg:false,auto:false,first:false,daily:false,joined:true,sell:{pid:p.id,reserve},bid:0,leader:null,clock:14,total:14,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:0,autoWarned:true,war:null,warUsed:false,warOk:true,say:null,lastSec:null,
-  st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:true,cashOnly:true},est:{lo:roundTo(p.value*0.92,inc),hi:roundTo(p.value*1.08,inc),mid:p.value}};}
+  st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:true,cashOnly:true},est:{lo:roundTo(p.value*0.92,inc),hi:roundTo(p.value*1.08,inc),mid:p.value,wa:roundTo(p.value,inc)}};}
 function endSell(){A.ended=true;A.nextIn=A.bg?2.5:5;const ui=!A.bg,L=A.lot,p=S.props.find(x=>x.id===A.sell.pid),res=ui?$('#result'):null,stp=ui?document.createElement('div'):null,reserve=A.sell.reserve;
  if(ui){const cb0=$('#callBig');if(cb0)cb0.className='callbig';A.say=null;renderChat();}
  if(!p){if(ui){res.hidden=false;res.textContent='That home is no longer yours.';}return;}
@@ -1777,11 +1804,12 @@ function refill(){let g=0;while(LST.length<10&&g++<20){const l=makeListing();if(
  if(LST.length>24)LST=LST.filter(matches).concat(LST.filter(l=>!matches(l)).slice(-8));}
 function marketTick(){
  for(const l of LST){l.ttl--;if(WATCH.has(l.mid)&&l.ttl===5&&view!=='m')toast(`Watched ${l.sub} listing goes in 5s. Tap to see it.`,'down',()=>show('m'));}LST=LST.filter(l=>l.ttl>0);
- for(const o of OFF)o.ttl--;const exp=OFF.filter(o=>o.ttl<=0||!S.props.some(p=>p.id===o.pid));if(exp.length){T.c.offersExpired+=exp.length;OFF=OFF.filter(o=>!exp.includes(o));}
+ for(const o of OFF)o.ttl--;const exp=OFF.filter(o=>o.ttl<=0||!S.props.some(p=>p.id===o.pid));if(exp.length){T.c.offersExpired+=exp.length;OFF=OFF.filter(o=>!exp.includes(o));
+  for(const o of exp){const p=S.props.find(q=>q.id===o.pid);if(!p||o.final||p.works||o.amt<p.value)continue;const amt=roundTo(o.amt*1.02,niceInc(p.value));OFF.push({oid:mid++,pid:p.id,amt,ttl:25,ttl0:25,war:o.war,final:true});T.c.offerComebacks=(T.c.offerComebacks||0)+1;tlog('offer_comeback',{tier:p.ti,amt:Math.round(amt)});toast(`The buyer for ${p.addr} came back: final offer ${money(amt)}. Tap to see it.`,'up',()=>show('m'));}}
  if(S.props.length>=3){S.offerIn=(S.offerIn==null?15:S.offerIn)-1;
   if(S.offerIn<=0&&OFF.length<1){S.offerIn=Math.round(rnd(80,140));const cand=S.props.filter(p=>!p.works&&!OFF.some(o=>o.pid===p.id)&&p.value>basis(p)*1.08);
    if(cand.length){/* buyers chase your best houses: pick weighted by value */let r=Math.random()*cand.reduce((a,q)=>a+q.value,0),p=cand[0];for(const q of cand){r-=q.value;if(r<=0){p=q;break;}}
-    const roll=Math.random(),war=roll<0.2,hi=war||roll<0.85,amt=roundTo(p.value*(war?rnd(1.18,1.25):hi?rnd(1.03,1.12):rnd(0.9,0.98)),niceInc(p.value)),ttl=war?12:15;
+    const roll=Math.random(),war=roll<0.2,hi=war||roll<0.85,amt=roundTo(p.value*(war?rnd(1.18,1.25):hi?rnd(1.03,1.12):rnd(0.9,0.98)),niceInc(p.value)),ttl=war?30:40;
     OFF.push({oid:mid++,pid:p.id,amt,ttl,ttl0:ttl,war});T.c.offersMade++;if(war){T.c.offerWars++;sfx('cash');}
     if(hi&&view!=='m')toast(`${war?'Bidding war on':'Offer on'} ${p.addr}: ${money(amt)}, ${Math.round((amt/p.value-1)*100)}% over value. Tap to see it.`,'up',()=>show('m'));}}}
  refill();
@@ -1948,7 +1976,7 @@ function headLoop(){const tc=S.cash,tw=worth();dCash+=(tc-dCash)*0.18;dWorth+=(t
 /* ---------- live strip: other auctions running at once ---------- */
 let LIVE=[],lvSig='';
 const liveCap=()=>!S.wins?0:S.wins<10?2:3;
-function spawnLive(){const ti=pickTier(true);const x=newAuction(ti,null,true);x.total=x.clock=rnd(16,30);LIVE.push(x);}
+function spawnLive(){let ti=pickTier(true);if(!canPay(typicalOpen(ti),ti))ti=Math.min(ti,affordTier());const x=newAuction(ti,null,true);x.total=x.clock=rnd(16,30);LIVE.push(x);}
 function liveTick(dt){const keep=A;try{for(const x of LIVE){A=x;auctionTick(dt);}}finally{A=keep;}
  LIVE=LIVE.filter(x=>!x.dead);const cap=liveCap();let g=0;while(LIVE.length<cap&&g++<3&&!(A&&A.ended&&!LIVE.length))spawnLive();
  if(cap&&!S.coach?.live&&LIVE.length&&A&&!A.ended&&$('#coach').hidden)coach('live','More auctions are running. Tap Auto on one to bid on it while you play this lot.');renderLive();}
@@ -2030,11 +2058,12 @@ function track(name,props){try{if(window.plausible)window.plausible(name,{props}
 /* ---------- in-app purchases: ONLY inside the native iOS/Android app, through Apple and Google's stores. The web game sells nothing.
    The app wrapper provides window.DPStore (e.g. Capacitor + RevenueCat); see README "In-app purchases (app only)".
    Every item is a guaranteed result: no paid chance, no paid auction wins, nothing converts back to money. ---------- */
+const cashPack=big=>[250e3,1e6,4e6,30e6,200e6][Math.min(4,S.maxTier)]*(big?8:1);
 const IAP=[
  {id:'remove_ads',kind:'non_consumable',name:'Remove ads',desc:'No ads, ever. Changes nothing else in the game.',show:()=>CONFIG.ads.enabled&&!adFree(),grant:()=>{S.adFree={at:Date.now()};document.querySelectorAll('.adslot').forEach(x=>x.remove());}},
  {id:'regos_10',kind:'consumable',name:'10 bidder registrations',desc:'Bid in 10 more auctions now instead of waiting for refills.',show:()=>regOn(),grant:()=>{regRefill();S.reg.n+=10;}},
- {id:'cash_small',kind:'consumable',name:'Cash top-up',desc:'+$250K game cash.',show:()=>true,grant:()=>{S.cash+=250e3;}},
- {id:'cash_large',kind:'consumable',name:'Big cash top-up',desc:'+$3M game cash.',show:()=>S.maxTier>=1,grant:()=>{S.cash+=3e6;}},
+ {id:'cash_small',kind:'consumable',name:'Cash top-up',get desc(){return '+'+money(cashPack(0))+' game cash, sized to your markets.';},show:()=>true,grant:()=>{S.cash+=cashPack(0);}},
+ {id:'cash_large',kind:'consumable',name:'Big cash top-up',get desc(){return '+'+money(cashPack(1))+' game cash, sized to your markets.';},show:()=>S.maxTier>=1,grant:()=>{S.cash+=cashPack(1);}},
  {id:'rescue',kind:'consumable',name:'Rescue cover',desc:'Stops one repossession: the shortfall goes on your loan instead.',show:()=>S.props.length>0&&!S.rescue,grant:()=>{S.rescue=true;}},
  {id:'rate_lock',kind:'consumable',name:'Rate lock',desc:'4.5% instead of 6% on every loan for 24 months.',show:()=>!(S.lock>0)&&(debt()>0||S.borrowed),grant:()=>{S.lock=24;}},
  {id:'finish_works',kind:'consumable',name:'Finish all works now',desc:'Every upgrade under way finishes today.',show:()=>S.props.some(p=>p.works),grant:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}}}
