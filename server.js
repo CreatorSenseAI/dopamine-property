@@ -262,6 +262,27 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>Versions</h2><p>${Object.entries(s.versions).map(([v, n]) => esc(v) + ": " + n).join(" · ")}</p>
 </body></html>`;
 }
+// GET /admin/digest.txt?key=…&since=2026-10-18T11:00Z&page=1 → compact text log of recent sessions, ~12K chars a page (readable by a fetch tool)
+function digest(url) {
+  const since = Date.parse(url.searchParams.get("since") || "") || Date.now() - 48 * 3600e3, page = Math.max(1, +url.searchParams.get("page") || 1), ver = url.searchParams.get("ver") || "";
+  const kv = o => Object.entries(o || {}).filter(([, v]) => v !== 0 && v !== null && v !== false && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) => k + "=" + (typeof v === "object" ? JSON.stringify(v) : v)).join(" ");
+  const M = v => typeof v === "number" ? (Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(2) + "M" : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + "K" : String(Math.round(v))) : v;
+  const { sessions } = loadAll();
+  const list = sessions.filter(x => Date.parse(x.lastSeen || x.start) >= since && (!ver || x.version === ver)).sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+  const out = [];
+  for (const x of list) {
+    const sn = x.snapshot || {}, lines = [];
+    lines.push(`== ${x.sid} ${x.version} ${x.installId} start=${x.start} last=${x.lastSeen} play=${x.playSec}s active=${x.activeSec}s hidden=${x.hiddenSec || 0}s tabs=${kv(x.tabSec)} screen=${(x.device||{}).w}x${(x.device||{}).h}${/iPhone|iPad/.test((x.device||{}).ua||"")?" iOS":/Android/.test((x.device||{}).ua||"")?" Android":""}`);
+    lines.push(`snapshot: worth=${M(sn.worth)} cash=${M(sn.cash)} debt=${M(sn.debt)} props=${sn.props} maxTier=${sn.maxTier} tier=${sn.tier} legacy=${sn.legacy} dynasties=${sn.dynasties} bills=${M(sn.billsPerMonth)} autoOn=${sn.autoOn}`);
+    lines.push(`counters: ${kv(x.counters)}`);
+    lines.push(`derived: ${kv(x.derived)} | funnel: ${kv(x.funnel)} | flags: ${kv(x.flags)} | taps: ${kv(x.taps)}`);
+    for (const a of x.auctions || []) lines.push(`A t=${a.t} #${a.no} T${a.tier} ${a.style}${a.rare ? " rare" : ""}${a.bg ? " bg" : ""}${a.daily ? " daily" : ""}${a.featured ? " feat" : ""}${a.sell ? " SELL" : ""} val=${M(a.value)} est=${M(a.estLo)}-${M(a.estHi)} guide=${M(a.guide)} hammer=${M(a.hammer)} win=${a.winner} zone=${a.zone} you:hand=${a.yourHand} auto=${a.yourAuto} big=${a.yourBig} max=${M(a.maxYou)} bidders=${a.bidders} rbids=${a.rivalBids}${a.war ? " war" : ""} dur=${a.durSec}s eq=${a.equityPct ?? "-"}% afford=${a.couldAfford} cash=${M(a.cashAt)}${a.rarity != null ? " rar=" + a.rarity : ""}${a.find ? " find=" + a.find : ""}${a.nearMiss ? " NEARMISS" : ""}`);
+    for (const e of x.log || []) { const { t, type, ...r } = e; lines.push(`L t=${t} ${type} ${Object.entries(r).map(([k, v]) => k + "=" + (typeof v === "number" ? M(v) : typeof v === "object" ? JSON.stringify(v) : v)).join(" ")}`); }
+    out.push(lines.join("\n"));
+  }
+  const text = out.join("\n\n"), size = 12000, pages = Math.max(1, Math.ceil(text.length / size));
+  return `digest since ${new Date(since).toISOString()} · ${list.length} sessions · page ${page}/${pages}\n\n` + text.slice((page - 1) * size, page * size);
+}
 function authed(url) {
   if (!ADMIN_KEY) return false;
   const k = url.searchParams.get("key") || "";
@@ -282,6 +303,10 @@ http.createServer(async (req, res) => {
       if (url.searchParams.get("go") === "1" && OPENAI_KEY && !GEN.running) genImages(Math.max(1, Math.min(12, +url.searchParams.get("per") || 6)));
       const man = readImgManifest();
       return send(req, res, 200, "application/json", JSON.stringify({ keySet: !!OPENAI_KEY, ...GEN, images: Object.fromEntries(Object.entries(man).map(([k, v]) => [k, v.length])) }, null, 2), { "cache-control": "no-store" });
+    }
+    if (url.pathname === "/admin/digest.txt") {
+      if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
+      return send(req, res, 200, "text/plain; charset=utf-8", digest(url), { "cache-control": "no-store", "x-robots-tag": "noindex" });
     }
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
