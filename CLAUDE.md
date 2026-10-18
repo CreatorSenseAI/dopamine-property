@@ -21,6 +21,7 @@ Mobile-first property-auction game in one file: `public/index.html` (HTML + CSS 
 - Multi-auction: `A` is the lot on screen; `LIVE` holds background lots (`x.bg=true`). `liveTick()` swaps `A` to each background lot and runs the same `auctionTick()`; every DOM function returns early when `A.bg`. `focusLive(no)` swaps a background lot onto the screen. `quickPlay()` = Hot lot.
 - `endAuction()` handles both: bookkeeping is shared, presentation splits on `ui=!A.bg`. Near-miss = lost within two bids and under the walk-away. `noteWin()` runs the combo chime.
 - Sets: `sets()` counts homes per suburb and per street (cached), `setMult()` feeds `rentOf()`. 3 in a suburb = +10% rent, 2 on a street = +5%. Streets per suburb are fixed by `streetsFor(sub)` so pairs happen.
+- `carry()` lists account-level state (test groups, purchases, privacy, streak, badges, tips) kept through cash-out, bankruptcy and reset. Add new account-level fields there.
 - Retention: `dailyCheck()` (streak, freezes, bonus), `award(id)` + `BADGES`, `recap()` every 10 focused lots.
 - `artOf(p)` returns a photo from `img/manifest.json` when present, else `houseSVG(p)`. Generate photos with `tools/gen_images.mjs`.
 - `CONFIG` at the top of the script: affiliate link, ads (off), analytics (off).

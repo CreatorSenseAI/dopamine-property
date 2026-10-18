@@ -179,6 +179,17 @@ with sync_playwright() as p:
     if pg.locator(".reveal").count(): print("reveal:", pg.inner_text(".reveal").replace("\n", " | ")); pg.screenshot(path=str(out / "v20-reveal.png"))
     pg.close()
 
+    # ---------- dynasty cash-out keeps account-level state ----------
+    big = dict(id=1, addr="1 Harbourview Road", street="Harbourview Road", sub="Vaucluse", st="NSW", ti=3, style="villa", land=3000, seed=99, rare=False, paid=5e7, duty=0, prem=0, heat=0, age=30, value=1.3e8, vacant=0, boughtAt=0, loan=0)
+    seed6 = dict(days=[yday], cash=1e6, props=[big], wins=9, rules=4, tour=1, nextId=2, maxTier=3, regVar=1, mkVar=0, joined=40, reg=dict(n=3, at=time.time()*1000), adFree=dict(at=1), badges={"first_win": 1, "rare": 1}, streak=6, lastDay=datetime.date.today().isoformat(), dailyDay=datetime.date.today().isoformat(), saved=time.time() * 1000)
+    pg = page(b, "light", seed6, ""); close_sheets(pg); pg.click("#tE"); pg.wait_for_timeout(500)
+    pg.locator("#legacyBtn").scroll_into_view_if_needed(); pg.click("#legacyBtn"); pg.wait_for_timeout(200); pg.click("#legacyBtn"); pg.wait_for_timeout(800); close_sheets(pg); pg.wait_for_timeout(3500)
+    st = pg.evaluate("JSON.parse(localStorage.getItem('dopamine-property-v1'))")
+    kept = {k: st.get(k) for k in ["regVar", "mkVar", "joined", "adFree", "streak", "dynasties", "legacy"]}; kept["badges"] = sorted((st.get("badges") or {}).keys())
+    print("after cash-out:", kept, "| market tab visible:", pg.is_visible("#tM"))
+    assert st.get("regVar") == 1 and st.get("mkVar") == 0 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
+    pg.close()
+
     # ---------- Market A/B: control group keeps the Market tab ----------
     pg = page(b, "light", None, "?mkt=1"); close_sheets(pg)
     print("market kept: tab in DOM", pg.locator("#tM").count(), "| visible before first win:", pg.is_visible("#tM"))

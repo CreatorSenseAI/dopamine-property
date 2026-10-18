@@ -824,6 +824,8 @@ const STREETS=['Banksia','Jacaranda','Waratah','Coral','Kingfisher','Ironbark','
 const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terrace'];
 
 const KEY='dopamine-property-v1';
+/* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
+function carry(){const o={};for(const k of ['regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -852,7 +854,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v21-web';
+const VERSION='v22-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1453,7 +1455,7 @@ $('#plist').onclick=e=>{const ub=e.target.closest('[data-up]');if(ub){const p=S.
  const p=S.props.find(q=>q.id===id);if(p)sellSheet(p);};
 function bankrupt(){const owed=-S.cash;T.c.bankruptcies++;tlog('bankrupt',{owed:Math.round(owed),sessionPlaySec:T.playSec,legacy:S.legacy||0});
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,rules:4,legacy:S.legacy||0,dynasties:S.dynasties||0,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
- S=Object.assign(fresh(),keep);S.cash=450000+(S.legacy||0)*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();sfx('lose');
+ S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+(S.legacy||0)*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();sfx('lose');
  modal(`<h3>Bankrupt</h3><p>The bank sold every house and you still owed ${money(owed)}. The debt is written off and you start again.</p><span class="big">${money(S.cash)}</span><p>Your legacy stars are safe. Borrowing makes the wins bigger and the falls harder.</p>`,'Start again');}
 function applyRepay(amt){amt=Math.min(amt,debt(),Math.max(0,S.cash));if(amt<=0)return 0;const paid=amt;S.cash-=amt;
  for(const p of S.props.slice().sort((a,b)=>(b.loan||0)-(a.loan||0))){if(amt<=0)break;const x=Math.min(p.loan||0,amt);p.loan=(p.loan||0)-x;amt-=x;}return paid;}
@@ -1467,9 +1469,9 @@ $('#legacyBtn').onclick=e=>{const b=e.currentTarget,w=worth();if(w<1e8)return;co
  if(!legArmed){legArmed=true;b.classList.add('armed');b.textContent='Sell everything for +'+pts+'★?';setTimeout(()=>{legArmed=false;b.classList.remove('armed');updEmpire();},3500);return;}
  legArmed=false;b.classList.remove('armed');T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:Math.max(S.bestWorth,w),muted:S.muted,tour:S.tour,rules:S.rules,legacy:(S.legacy||0)+pts,dynasties:(S.dynasties||0)+1,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
- S=Object.assign(fresh(),keep);S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();
+ S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();
  modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span><p>${S.legacy} legacy stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});};
-$('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep);S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
+$('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
  else{resetArmed=true;b.classList.add('armed');b.textContent='Tap again to wipe everything';setTimeout(()=>{resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';},3500);}};
 
 /* ---------- instant market: fixed-price listings you swipe through, plus buyer offers on your houses ---------- */
@@ -1788,6 +1790,8 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){hiddenAt=D
 window.addEventListener('pagehide',()=>{save();if(WEB_STATS&&statsOn()&&navigator.sendBeacon){try{const d=sessionDoc();d.log=d.log.slice(-30);d.auctions=d.auctions.slice(-20);d.curve=d.curve.slice(-20);navigator.sendBeacon('/api/play',new Blob([JSON.stringify({session:d,player:playerDoc()})],{type:'application/json'}));}catch(e){}}else flushPlay();});
 setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
+/* every session opens with a featured auction within 90 seconds: a reason to start playing now */
+if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
 drawMute();drawStars();drawStreak();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
