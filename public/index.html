@@ -805,6 +805,78 @@ html,body{overflow-x:clip}
 #vAuction .lotinfo{min-width:0}#vAuction .guide{min-width:0}
 .dock .row,.bidrow{min-width:0}.dock .skip{white-space:nowrap}
 .tabs button{min-width:0;overflow:hidden}
+
+/* ---------- v27 game feel ---------- */
+.lot::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;transition:box-shadow .25s;z-index:3}
+.lot[data-fin="1"]::after{box-shadow:inset 0 0 22px 2px rgba(215,38,61,.28)}
+.lot[data-fin="2"]::after{box-shadow:inset 0 0 34px 6px rgba(215,38,61,.45)}
+.lot[data-fin="3"]::after{animation:finpulse .5s ease-in-out infinite alternate}
+@keyframes finpulse{from{box-shadow:inset 0 0 30px 4px rgba(215,38,61,.4)}to{box-shadow:inset 0 0 50px 12px rgba(215,38,61,.7)}}
+.lot[data-fin="2"] .art>svg,.lot[data-fin="2"] .art>img,.lot[data-fin="3"] .art>svg,.lot[data-fin="3"] .art>img{transform:scale(1.05);transition:transform .6s ease}
+.art>svg,.art>img{transition:transform .6s ease}
+.lot.duel{border-color:var(--red);box-shadow:0 0 0 2px var(--red),0 8px 24px var(--shadow)}
+.callbig.duelc{background:#111;color:#ff5a6e;border:2px solid #ff5a6e}
+.pad.hit b{animation:padhit .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes padhit{0%{transform:scale(1)}40%{transform:scale(1.35);box-shadow:0 0 0 3px var(--surface),0 0 0 7px var(--pc),0 0 18px var(--pc)}100%{transform:scale(1)}}
+.pad.boss em{color:var(--gold);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--f-body)}
+.pad.boss b{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--gold)}
+.art .daily.boss{left:auto;right:10px;bottom:10px;background:#111;color:var(--gold)}
+#app.slam{animation:slamshake .35s ease-out}
+@keyframes slamshake{0%{transform:translateY(0)}25%{transform:translateY(5px)}50%{transform:translateY(-3px)}75%{transform:translateY(2px)}100%{transform:none}}
+.keys{position:absolute;left:50%;top:-30px;font-size:34px;z-index:5;animation:keysdrop 1.6s cubic-bezier(.3,1.4,.5,1) forwards;pointer-events:none}
+@keyframes keysdrop{0%{transform:translate(-50%,0) rotate(-30deg);opacity:0}25%{opacity:1}60%{transform:translate(-50%,120px) rotate(10deg)}100%{transform:translate(-50%,110px) rotate(0);opacity:0}}
+.combopop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);z-index:40;text-align:center;pointer-events:none;animation:combo 1.4s ease-out forwards}
+.combopop b{display:block;font-family:var(--f-display);font-size:72px;line-height:1;color:var(--gold);text-shadow:0 4px 0 #8a5d00,0 0 30px rgba(242,193,78,.6)}
+.combopop small{display:block;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 2px 6px #000}
+@keyframes combo{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}35%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(1);opacity:0}}
+/* cards */
+.cardwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.card3d{--w:min(290px,74vw,calc(58vh*5/7));width:var(--w);aspect-ratio:5/7;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,1.2,.4,1);transform:perspective(900px) rotateX(var(--rx,0)) rotateY(var(--ry,0));cursor:pointer;--mx:50%;--my:50%}
+.card3d.flip{transform:perspective(900px) rotateX(var(--rx,0)) rotateY(calc(180deg + var(--ry,0)))}
+.card3d.down{transform:perspective(900px) rotateY(180deg)}
+.cface{position:absolute;inset:0;border-radius:16px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:6px solid var(--rc);background:#10172a;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.cback{transform:rotateY(180deg);padding:14px;text-align:left;overflow:auto;background:linear-gradient(160deg,#141d33,#0b1020)}
+.card3d.down .cback{background:repeating-linear-gradient(45deg,#1a2442 0 10px,#141d36 10px 20px)}
+.card3d.down .cback>*{display:none}
+.card3d.down .cback::after{content:"EAT";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-display);font-size:64px;color:var(--rc);opacity:.85}
+.cart{position:absolute;inset:0 0 34% 0}.cart svg,.cart img{width:100%;height:100%;object-fit:cover;display:block}
+.ctop{position:absolute;left:8px;right:8px;top:8px;display:flex;justify-content:space-between;gap:6px}
+.ctier,.cgem{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(10,14,24,.75)}
+.cgem{background:var(--rc);color:#fff}
+.cbot{position:absolute;left:0;right:0;bottom:0;height:34%;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(#10172a,#0b1020)}
+.cbot b{font-size:17px;line-height:1.15}.cbot small{color:#9fb0cc;font-size:13px}.cbot em{margin-top:auto;font-style:normal;font-family:var(--f-mono);font-size:11px;color:#9fb0cc}
+.cback h4{margin:0;font-size:16px}.cback .csub{color:#9fb0cc;font-size:12px}
+.cback table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}
+.cback th{text-align:left;color:#9fb0cc;font-weight:500;padding:4px 6px 4px 0;vertical-align:top;white-space:nowrap}
+.cback td{text-align:right;font-family:var(--f-mono);padding:4px 0}
+.cback i{font-style:normal}.cback .pos{color:#3ddc84}.cback .neg{color:#ff6b6b}
+.foil{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0}
+.r2 .foil{opacity:.35;background:linear-gradient(115deg,transparent calc(var(--mx) - 25%),rgba(160,200,255,.7) var(--mx),transparent calc(var(--mx) + 25%))}
+.r3 .foil,.r4 .foil{opacity:.8;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.55),transparent 45%),conic-gradient(from calc(var(--mx) * 3.6deg) at 50% 50%,#ff5f9e66,#ffd16666,#6effa866,#6ecbff66,#c38bff66,#ff5f9e66)}
+.r4 .foil{animation:shimmer 3s linear infinite}
+@keyframes shimmer{to{filter:hue-rotate(360deg)}}
+.r4 .cface{border-color:#e0a020;box-shadow:0 0 0 2px #fff3c4,0 0 28px rgba(224,160,32,.6),0 12px 30px rgba(0,0,0,.35)}
+.frame-gold .cface{border-image:linear-gradient(135deg,#fff3c4,#e0a020,#8a5d00,#ffe28a) 1}
+.card3d.sold .cfront{filter:grayscale(.85) brightness(.8)}
+.card3d.sold .cfront::after{content:"SOLD";position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) rotate(-12deg);font-family:var(--f-display);font-size:42px;color:#fff;border:4px solid #fff;padding:2px 14px;opacity:.85}
+.cardhint{font-size:12.5px;color:var(--muted);margin:0}
+.cardbtns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%}.sheet .cardbtns button{width:auto;flex:1 1 30%;margin:0}
+.pullhead{font-family:var(--f-display);font-size:22px;letter-spacing:.06em;text-transform:uppercase;margin:0;color:var(--ink)}
+.pullbox{border-radius:18px;animation:pullglow 1.2s ease-in-out infinite alternate}
+.pullbox.r3{animation:pullglow 1.2s ease-in-out infinite alternate,pullshake 2.4s ease-in-out infinite}.pullbox.r4{animation:pullglow .7s ease-in-out infinite alternate,pullshake 1.2s ease-in-out infinite}
+@keyframes pullglow{from{box-shadow:0 0 10px 0 var(--rc)}to{box-shadow:0 0 40px 8px var(--rc)}}
+@keyframes pullshake{0%,80%,100%{transform:rotate(0)}84%{transform:rotate(-2deg)}88%{transform:rotate(2deg)}92%{transform:rotate(-1deg)}}
+/* album */
+.ahead h2,.esec h3{margin:0}.esec h3{font-family:var(--f-display);font-weight:400;font-size:16px;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.apages{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.apage{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:13px}.apage small{color:var(--muted);font-family:var(--f-mono)}
+.apage i{grid-column:1/-1;height:4px;border-radius:4px;background:var(--gold);display:block;max-width:100%}
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.acard{border:3px solid var(--rc);border-radius:10px;background:var(--surface);color:var(--ink);padding:0 0 6px;display:flex;flex-direction:column;text-align:left;overflow:hidden;min-width:0}
+.acard .aart{display:block;aspect-ratio:4/3}.acard .aart svg,.acard .aart img{width:100%;height:100%;object-fit:cover;display:block}
+.acard b{font-size:11.5px;padding:4px 6px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acard small{font-size:10.5px;color:var(--muted);padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acard.r4{box-shadow:0 0 12px rgba(224,160,32,.6)}.acard.sold{opacity:.55;filter:grayscale(.7)}
+.prop{cursor:pointer}
 </style>
 </head>
 <body>
@@ -918,6 +990,7 @@ html,body{overflow-x:clip}
     <ol class="rich" id="rich"></ol>
     <button class="sec sdboard" id="sdBoardBtn" hidden>Today's showdown leaderboard</button>
     </div>
+    <div class="esec" data-s="alb" hidden><div id="albumBox"></div></div>
     <div class="esec" data-s="bad" hidden>
     <details class="fold plain" id="badgeFold" open><summary><h2>Badges</h2><span class="fsum" id="bCount"></span></summary><div class="badges" id="badges"></div></details>
     </div>
@@ -1038,12 +1111,14 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
 /* homes bought before v18 had no land size: give each a fixed one from its seed and market */
+/* v27: start the card album from what you own today */
+if(!Array.isArray(S.album)){S.album=[];for(const p of S.props.slice().reverse())if(p.rarity!=null)S.album.push(albumRec(p));}
 /* v26: redevelopment used to drop the Rare tag; a featured win is always a rare listing, so give it back */
 for(const p of S.props)if(p.dwell&&p.feat&&!p.rare)p.rare=true;
 for(const p of S.props){if(p.land==null){const st=p.style;p.land=st==='unit'||st==='tower'?0:Math.round(([450,520,750,1400,4000][p.ti0!=null?p.ti0:p.ti]+mulberry(p.seed|0)()*([250,380,850,2800,36000][p.ti0!=null?p.ti0:p.ti]))/5)*5;}}
@@ -1069,7 +1144,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v26b-web';
+const VERSION='v27-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1201,10 +1276,14 @@ function syncTier(){const w=worth();for(let i=TIERS.length-1;i>=0;i--){if(w>=TIE
 /* ---------- house art ---------- */
 let svgN=0;
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const SKY_T=[['#9fd3ff','#eaf6ff',0],['#ffb07a','#ffe2b8',1],['#0e1838','#3b4a7d',1]];
+const TZ={NSW:'Australia/Sydney',VIC:'Australia/Melbourne',QLD:'Australia/Brisbane',SA:'Australia/Adelaide',WA:'Australia/Perth',TAS:'Australia/Hobart',California:'America/Los_Angeles',London:'Europe/London',Dubai:'Asia/Dubai',Monaco:'Europe/Monaco',France:'Europe/Paris','New York':'America/New_York',Auckland:'Pacific/Auckland',NZ:'Pacific/Auckland'};
+function localHour(st){try{return +new Intl.DateTimeFormat('en-GB',{hour:'numeric',hourCycle:'h23',timeZone:TZ[st]||'Australia/Sydney'}).format(new Date());}catch(e){return new Date().getHours();}}
+const skyAt=st=>{const h=localHour(st);return h>=7&&h<17?0:(h>=17&&h<20)||(h>=5&&h<7)?1:2;};
 function houseSVG(p){
  const r=mulberry(p.seed),R=a=>a[Math.floor(r()*a.length)],id='hs'+(++svgN);
  const skies=[['#9fd3ff','#eaf6ff',0],['#ffc49c','#ffe9c7',1],['#2e3a6b','#f0936a',1],['#b8e1ff','#fdf2d8',0],['#6f56a3','#ffb38a',1]];
- const sk=R(skies),dusk=sk[2];
+ let sk=R(skies);if(p.sky!=null)sk=SKY_T[p.sky];const dusk=sk[2];
  const coast=/Heads|Palm|Bondi|Cottesloe|Burleigh|Malibu|Jumeirah|Monte|Piper|Vaucluse|Noosa|Fremantle|Newcastle|Wollongong/.test(p.sub);
  let wall=R(['#f6f0e6','#eadac6','#ffffff','#dbe3ec','#cbb59c','#f3e3d6','#d3ddd5']);
  const roof=R(['#34314a','#7c3f2e','#55636e','#2c3a42','#9a5a3c']);if(p.up&&p.up.reno)wall='#fbfaf6';
@@ -1336,14 +1415,15 @@ const RMETA={
  'Marchetti Family Office':{ini:'MF',short:'Marchetti',col:'#b7791f',bid:['For the family.','Sì.'],think:['Marchetti is making a call…'],out:['Another time.'],win:['Grazie.'],counter:['Marchetti doesn’t lose.']},
  'Aurelian Sovereign Fund':{ini:'AF',short:'Aurelian',col:'#2c7a7b',bid:['Mandate approved.','Deep pockets.'],think:['Aurelian is checking the mandate…'],out:['Outside our mandate.'],win:['Acquired.'],counter:['The Fund responds.']}};
 const rm=r=>RMETA[r.name]||{ini:r.name.slice(0,2).toUpperCase(),short:r.name,col:'#56647c',bid:['Bid.'],think:['Thinking…'],out:['Out.'],win:['Mine.'],counter:['Again.']};
-function rivalSay(r,kind){A.say={r,kind,text:pick(rm(r)[kind]),t:kind==='think'?6:2.8};renderChat();}
+const GRUDGE=['You again.','Not this time.','I remember you.','This one’s personal.'],BOSS=['Let’s finish this.','You’ve had your run.','Everything I’ve got.'];
+function rivalSay(r,kind){A.say={r,kind,text:pick(kind==='grudge'?GRUDGE:kind==='boss'?BOSS:rm(r)[kind]),t:kind==='think'?6:2.8};renderChat();}
 function renderChat(){if(A&&A.bg)return;const c=$('#chat');if(!c)return;if(!A||!A.say||A.ended){c.classList.remove('on');return;}const sy=A.say;
  if(sy.kind==='war')c.innerHTML=`<span class="ctext war">${esc(sy.text)}</span>`;
  else{const m=rm(sy.r);c.innerHTML=`<span class="cini" style="--pc:${m.col}">${m.ini}</span><span class="ctext">${sy.kind==='think'?'<i>'+esc(sy.text)+'</i>':'<b>'+esc(m.short)+'</b> “'+esc(sy.text)+'”'}</span>`;}
  c.classList.remove('on');void c.offsetWidth;c.classList.add('on');}
 function renderPads(){if(!A||A.bg)return;const rin=A.rivals.filter(r=>!r.out).length,youBid=A.st.hand+A.st.auto+A.st.big>0,h2h=S.h2h||{};
- const html=`<div class="pad you${A.leader==='you'?' lead':''}" style="--pc:var(--green)"><b>YOU</b><small>You</small></div>`+A.rivals.map(r=>{const m=rm(r),h=h2h[r.name],nem=S.nemesis===r.name,st=r.out?'out':A.leader===r?'lead':r.think>0?'think':'';
-  return `<div class="pad ${st}${nem?' nem':''}" style="--pc:${m.col}" title="${esc(r.name)}"><b>${m.ini}</b><small>${esc(m.short)}</small>${nem?'<em>Nemesis</em>':h?`<em>you ${h.w}–${h.l}</em>`:''}${st==='out'?'<span class="ptag">Out</span>':''}${st==='think'?'<span class="dots"><i></i><i></i><i></i></span>':''}</div>`;}).join('');
+ const html=`<div class="pad you${A.leader==='you'?' lead':''}${A.hit==='you'?' hit':''}" style="--pc:var(--green)"><b>YOU</b><small>You</small></div>`+A.rivals.map(r=>{const m=rm(r),h=h2h[r.name],nem=S.nemesis===r.name,st=r.out?'out':A.leader===r?'lead':r.think>0?'think':'';
+  return `<div class="pad ${st}${nem?' nem':''}${A.hit===r.name?' hit':''}${r.boss?' boss':''}" style="--pc:${m.col}" title="${esc(r.name)}"><b>${m.ini}</b><small>${esc(m.short)}</small>${r.boss?'<em>Boss</em>':nem?'<em>Nemesis</em>':r.grudge?'<em>Grudge</em>':h?`<em>you ${h.w}–${h.l}</em>`:''}${st==='out'?'<span class="ptag">Out</span>':''}${st==='think'?'<span class="dots"><i></i><i></i><i></i></span>':''}</div>`;}).join('');
  const pads=$('#pads');if(pads.dataset.sig!==html){pads.dataset.sig=html;pads.innerHTML=html;}
  const ic=$('#inCount');ic.textContent=A.ended?'':rin===0?'Field cleared':rin===1&&youBid?'Head to head':`${rin+(youBid?1:0)} bidder${rin+(youBid?1:0)===1?'':'s'} in`;ic.classList.toggle('hot',!A.ended&&rin<=1&&youBid);}
 function dropOut(r){if(r.out)return;r.out=true;r.think=0;r.counterNext=false;T.c.rivalOuts++;A.st.outs++;if(A.war&&(A.war.a===r||A.war.b===r))A.war=null;if(r.bids>0){rivalSay(r,'out');sfx('drop');}renderPads();}
@@ -1373,7 +1453,10 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
  if(!first&&!daily&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
- const X={rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):0,bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
+ let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
+ L.sky=skyAt(L.st);
+ const X={boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
@@ -1388,8 +1471,11 @@ function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',pre
   overGuidePct:prem===null?null:+(prem*100).toFixed(2),growPctYr:you?+growPct(heatOf(A.bid,L.guide)):null,duty:you?Math.round(A.bid*DUTY[L.ti]):null,
   equityPct:you?+((L.value/A.bid-1)*100).toFixed(2):null,hammerVsValuePct:A.bid?+((A.bid/L.value-1)*100).toFixed(2):null});
  if(T.auctions.length>200)T.auctions.shift();T.dirty=true;}
-function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;if(who==='you'){S.skipStreak=0;A.war=null;const s=A.st;if(T.firstBidSec==null)T.firstBidSec=tnow();if(src==='auto'){s.auto++;T.c.bidsAuto++;}else if(big){s.big++;T.c.bigBids++;}else{s.hand++;T.c.bidsHand++;}if(src!=='auto'&&A.clock<1.5){s.snipes++;T.c.snipes++;}if(s.firstClock===null)s.firstClock=+A.clock.toFixed(1);s.lastClock=+A.clock.toFixed(1);s.maxYou=amt;}else{A.st.rivalBids++;who.bids=(who.bids||0)+1;rivalReact(who,prevLeader,amt,big);}A.bid=amt;A.leader=who;if(A.featured)A.crowd+=Math.round(rnd(8,36));A.feed.unshift({who:who==='you'?(big?'You · big bid':'You'):who.name,amt,you:who==='you'});A.feed=A.feed.slice(0,4);if(A.clock<7)A.clock=7;A.stage=0;A.lastSec=null;A.cue=false;if(prevClock<4)flashReset();
- if(who==='you')hideCoach('bid');if(A.bg)return;const b=$('#bidNow');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');sfx(who==='you'?'bid':'rival',A.est?amt/A.est.hi:0.5);renderFeed();updAuction();}
+function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;if(who==='you'){S.skipStreak=0;A.war=null;const s=A.st;if(T.firstBidSec==null)T.firstBidSec=tnow();if(src==='auto'){s.auto++;T.c.bidsAuto++;}else if(big){s.big++;T.c.bigBids++;}else{s.hand++;T.c.bidsHand++;}if(src!=='auto'&&A.clock<1.5){s.snipes++;T.c.snipes++;}if(s.firstClock===null)s.firstClock=+A.clock.toFixed(1);s.lastClock=+A.clock.toFixed(1);s.maxYou=amt;}else{A.st.rivalBids++;who.bids=(who.bids||0)+1;rivalReact(who,prevLeader,amt,big);}A.bid=amt;A.leader=who;A.crowd+=A.featured?Math.round(rnd(8,36)):Math.round(rnd(0,2));A.feed.unshift({who:who==='you'?(big?'You · big bid':'You'):who.name,amt,you:who==='you'});A.feed=A.feed.slice(0,4);{const ck=A.duel?4.5:7;if(A.clock<ck)A.clock=ck;}A.stage=0;A.lastSec=null;A.cue=false;if(prevClock<4)flashReset();
+ if(who==='you')hideCoach('bid');if(A.bg)return;
+ A.hit=who==='you'?'you':who.name;$('#lotCard').dataset.fin='0';if(who==='you')buzz(12);else if(prevLeader==='you')buzz([15,40,15]);
+ if(!A.duel&&!A.sell&&A.est&&A.st.hand+A.st.auto+A.st.big>0&&A.rivals.filter(r=>!r.out).length===1&&amt>=waOf(A.est)*0.98){A.duel=true;T.c.duels=(T.c.duels||0)+1;tlog('duel',{tier:A.lot.ti});$('#lotCard').classList.add('duel');const el=$('#callBig');if(el){el.textContent='Bidding war!';el.className='callbig duelc';void el.offsetWidth;el.classList.add('on');}sfx('call');buzz([40,40,40,40,80]);}
+ const b=$('#bidNow');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');sfx(who==='you'?'bid':'rival',A.est?amt/A.est.hi:0.5);renderFeed();updAuction();}
 function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
  if(A.ended){A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').textContent='Next lot '+Math.ceil(A.nextIn)+'s';return;}
  A.clock=Math.max(0,A.clock-dt);
@@ -1399,7 +1485,7 @@ function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
   /* a tell: near their limit they hesitate before bidding, and sometimes fold */
   if(r.think>0){r.think-=dt;if(r.think<=0){if(nb>r.max*0.97&&Math.random()<0.35){dropOut(r);continue;}placeBid(r,nb);r.cool=rnd(0.6,1.4);break;}continue;}
   r.cool-=dt;if(r.cool>0)continue;
-  const inWar=!!A.war&&(A.war.a===r||A.war.b===r);
+  const inWar=(!!A.war&&(A.war.a===r||A.war.b===r))||!!A.duel;
   const rate=inWar?7:r.style==='aggro'?1.5:r.style==='cautious'?0.55:(A.clock<3?3.5:0.04);
   if(Math.random()<rate*dt){
    if(r.counterNext){r.counterNext=false;const amt=nb+A.lot.inc*(2+Math.floor(Math.random()*2));if(amt<=r.max){T.c.rivalCounters++;A.st.counters++;placeBid(r,amt,true);rivalSay(r,'counter');r.cool=rnd(0.5,1.2);break;}}
@@ -1408,7 +1494,7 @@ function auctionTick(dt){if(!A||document.hidden||!$('#modal').hidden)return;
    placeBid(r,nb);r.cool=inWar?rnd(0.2,0.45):rnd(0.4,1.3);if(inWar&&A.war&&--A.war.n<=0)A.war=null;break;}}
  if(A.clock<=4)A.fin=true;/* once the final call starts, auto-bid hands the paddle back for the rest of this lot */
  if(A.auto&&A.leader!=='you'&&(A.bg||!A.fin)){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){if(Math.random()<3*dt&&regJoin(A))placeBid('you',nb,false,'auto');}else if(!A.autoWarned&&A.leader){A.autoWarned=true;T.c.autoLimitHits++;if(!A.bg)toast('Auto-bid hit your limit. Bid by hand to stay in.','down');}}
- const st=A.clock<=1?3:A.clock<=2?2:A.clock<=4?1:0;if(st>A.stage){A.stage=st;sfx('call');showCall(st);}
+ const st=A.clock<=1?3:A.clock<=2?2:A.clock<=4?1:0;if(st>A.stage){A.stage=st;sfx('call');showCall(st);if(!A.bg){$('#lotCard').dataset.fin=String(st);buzz(st===3?[30,80,30,80,30]:[25,90,25]);}}
  const sec=Math.ceil(A.clock);if(A.clock<=3&&sec!==A.lastSec){A.lastSec=sec;sfx('tick');}
  if(!A.bg&&A.auto&&!A.sell&&!A.cue&&A.leader&&A.leader!=='you'&&A.fin&&A.clock>0.3){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){A.cue=true;setTimeout(yourCall,300);}}
  if(A.clock<=0)endAuction();
@@ -1454,9 +1540,10 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
  if(A.leader==='you')recordAuction('you');else if(A.leader){recordAuction('rival',A.leader.name);if(A.st.hand+A.st.auto+A.st.big>0){T.c.losses++;T.c.outbid++;}}else{recordAuction('none');T.c.passedIn++;}
  const part=A.rivals.filter(r=>r.bids>0),youBidAny=A.st.hand+A.st.auto+A.st.big>0;S.h2h=S.h2h||{};let beatNem=null;
  if(ui){const cb0=$('#callBig');if(cb0)cb0.className='callbig';A.say=null;renderChat();}
- if(A.leader==='you'){for(const r of part){(S.h2h[r.name]=S.h2h[r.name]||{w:0,l:0}).w++;if(S.nemesis===r.name)beatNem=r;}if(beatNem){S.nemesis=null;T.c.nemesisBeats++;tlog('nemesis_beaten',{rival:beatNem.name});}}
+ if(A.leader==='you'){for(const r of part){const h=(S.h2h[r.name]=S.h2h[r.name]||{w:0,l:0});h.w++;if(S.nemesis===r.name)beatNem=r;if(!A.boss&&!S.bossDue&&h.w-h.l>=5&&!(S.bossDone||{})[r.name]){S.bossDue=r.name;setTimeout(()=>toast(`${rm(r).short} wants a rematch. A final showdown is coming up.`,'up'),3000);}}if(beatNem){S.nemesis=null;T.c.nemesisBeats++;tlog('nemesis_beaten',{rival:beatNem.name});}}
  else if(A.leader&&youBidAny){(S.h2h[A.leader.name]=S.h2h[A.leader.name]||{w:0,l:0}).l++;if(S.nemesis!==A.leader.name){S.nemesis=A.leader.name;tlog('nemesis_new',{rival:S.nemesis});}}
  if(ui&&A.leader&&A.leader!=='you')rivalSay(A.leader,'win');
+ if(A.boss&&A.leader!=='you'){tlog('boss',{rival:A.boss,won:false});if(ui)toast(`${rm({name:A.boss}).short} won the final showdown. Beat them 3 more times to get another shot.`,'down');}
  SESS.lots+=youBidAny||ui?1:0;
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
  if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
@@ -1470,12 +1557,14 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
   award('first_win');if(L.rare)award('rare');if(beatNem)award('nemesis');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
   const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
-  p.feat=!!A.featured;p.nem=!!beatNem;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured,nem:!!beatNem,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
-  if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');lifeWin(p);
+  p.feat=!!A.featured;p.nem=!!beatNem||!!A.boss;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured||!!A.boss,nem:!!beatNem||!!A.boss,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
+  if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');lifeWin(p);addAlbum(p);
+  if(A.boss){S.bossDone=S.bossDone||{};S.bossDone[A.boss]=1;award('boss');T.c.bossWins=(T.c.bossWins||0)+1;tlog('boss',{rival:A.boss,won:true});const h=S.h2h[A.boss];if(h)h.l=h.w;setTimeout(()=>toast(`You beat ${A.boss} in the final showdown. They’re rebuilding.`,'up'),2400);}
   if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(p,d),3600);}
   if(ui){stp.className='stamp '+(L.rare?'rarewin':'win');stp.innerHTML=`<div class="stamp-in"><b>${beatNem?'Nemesis beaten':L.rare?'Rare. Yours':'Sold to you'}</b><small>${full(A.bid)}</small><em data-roll="${Math.round(eq)}">+$0</em></div>`;
    res.className='result '+(L.value>=A.bid?'good':'bad');res.innerHTML=esc((L.value>=A.bid?`Bank values it at ${money(L.value)}: instant equity +${money(L.value-A.bid)}. ${gradeOf(prem)}, growing ${growPct(heat)}% a year.`:`Bank values it at ${money(L.value)}, ${money(A.bid-L.value)} under what you paid. ${gradeOf(prem)}: it grows ${growPct(heat)}% a year, so hold it.`)+` Stamp duty ${money(duty)}.`+(pay.loan?` Borrowed ${money(pay.loan)} at 6%.`:'')+` Cash flow ${sg(pn)}/mo.`)+affiliateHTML(L);
-   sfx(L.rare||beatNem||z==='steal'?'rare':'win');confetti(L.rare||!!beatNem,k);buzz([20,40,20]);if(!reduce&&(L.rare||beatNem||z==='steal')){const lc=$('#lotCard');lc.classList.remove('shake');void lc.offsetWidth;lc.classList.add('shake');}
+   sfx(L.rare||beatNem||z==='steal'?'rare':'win');confetti(L.rare||!!beatNem,k);buzz([70,40,20]);gavel();
+   if(p.rarity>=2)setTimeout(()=>{if($('#modal').hidden)pullCard(p);},3400);if(!reduce&&(L.rare||beatNem||z==='steal')){const lc=$('#lotCard');lc.classList.remove('shake');void lc.offsetWidth;lc.classList.add('shake');}
    setTimeout(()=>showReveal(fnd,fAmt,p),1500);
    if(beatNem){const h=S.h2h[beatNem.name];toast(`You beat ${beatNem.name}, your nemesis. You lead ${h.w}–${h.l}.`,'up');}
    if(S.wins===1){coach('won1','Your first house pays rent every second. Your income is in the top bar.');setTimeout(()=>unlockMarket(),2600);}}
@@ -1491,9 +1580,51 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
  }else if(ui){stp.className='stamp gone';stp.innerHTML='<div class="stamp-in"><b>Passed in</b><small>No bids</small></div>';res.className='result';res.textContent='Nobody bid. Next lot coming up.';}
  if(ui){res.hidden=false;$('#art').appendChild(stp);const rl=stp.querySelector('[data-roll]');if(rl)rollTo(rl,+rl.dataset.roll,v=>(v>=0?'+':'')+money(v)+' equity');updAuction();SESS.focusLots++;if(SESS.focusLots%10===0)setTimeout(()=>{if($('#modal').hidden)recap(true);},2200);}
  save();soonFlush();}
+/* ---------- game feel: gavel, keys, combo meter ---------- */
+function gavel(){if(reduce)return;const app=$('#app');app.classList.remove('slam');void app.offsetWidth;app.classList.add('slam');const art=$('#art');if(art){const k=document.createElement('div');k.className='keys';k.textContent='🔑';art.appendChild(k);setTimeout(()=>k.remove(),1800);}}
+function comboPop(n){const d=document.createElement('div');d.className='combopop';d.innerHTML=`<b>x${n}</b><small>${n===2?'Double hammer':n===3?'Triple!':'On fire'}</small>`;$('#app').appendChild(d);setTimeout(()=>d.remove(),1500);}
+/* ---------- property cards: tap to flip, foil by rarity, tilt for the holo ---------- */
+const STYLE_N={cottage:'Cottage',villa:'Villa',modern:'Modern',unit:'Apartment',tower:'Penthouse',terrace:'Terrace',estate:'Estate'};
+function albumRec(p){return{id:p.id,dyn:S.dynasties||0,addr:p.addr,sub:p.sub,st:p.st,ti:p.ti,style:p.style,seed:p.seed,rarity:p.rarity||0,paid:Math.round(p.paid),value:Math.round(p.value),won:p.boughtAt||Date.now(),feat:!!p.feat,nem:!!p.nem,rivals:p.rivals||0,find:p.find||null,findLabel:p.findLabel||null,land:p.land||0,beds:p.beds||0,sold:null};}
+function addAlbum(p){S.album=S.album||[];S.album.push(albumRec(p));if(S.album.length>400){let i=S.album.findIndex(a=>a.rarity===0);if(i<0)i=0;S.album.splice(i,1);}albumSets();}
+function albumSets(){const A0=S.album||[];for(let ti=0;ti<TIERS.length;ti++){const subs=TIERS[ti].places.map(x=>x[0]);if(subs.length&&subs.every(sb=>A0.some(a=>a.ti===ti&&a.sub===sb))){if(!(S.badges||{}).album_city){award('album_city');S.frame=S.frame||'gold';}}}
+ const styles=new Set(A0.map(a=>a.style));if(['cottage','villa','modern','unit'].every(x=>styles.has(x)))award('album_style');}
+function cardFace(c,live){const r=c.rarity||0,[rn,rc]=RAR[r],eq=(c.value/c.paid-1)*100,frame=S.frame&&r>=2?' frame-'+S.frame:'';
+ const date=new Date(c.won||c.boughtAt||Date.now()).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+ const p=live?c:null,flow=p?rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate():null,yieldPct=p?rentOf(p)*12/p.value*100:null;
+ const rows=[['Bought for',money(c.paid)],[live?'Worth now':'Worth when won',money(c.value)+` <i class="${eq>=0?'pos':'neg'}">${eq>=0?'+':''}${eq.toFixed(0)}%</i>`],...(p?[['Cash flow',(flow>=0?'+':'')+money(flow)+'/mo'],['Rent yield',yieldPct.toFixed(1)+'%']]:[]),
+  ['Home',[c.land?c.land.toLocaleString('en-AU')+' m²':'',c.beds?c.beds+' bed':'',STYLE_N[c.style]||c.style].filter(Boolean).join(' · ')],
+  ...(p&&p.up&&Object.keys(p.up).length?[['Upgrades',Object.keys(p.up).map(k=>(UPG.find(u=>u.k===k)||{}).tag||k).join(', ')]]:[]),
+  ['How you won it',[c.feat?'Featured lot':'',c.nem?'Beat your nemesis':'',c.rivals?c.rivals+' rival'+(c.rivals>1?'s':''):'Uncontested'].filter(Boolean).join(' · ')],
+  ['Inspection',c.findLabel?esc(c.findLabel):'Clean'],...(p?[['Held for',(p.age||0)+' months']]:[]),...(c.sold?[['Sold',money(c.sold.price)+` <i class="${c.sold.profit>=0?'pos':'neg'}">${c.sold.profit>=0?'+':''}${money(c.sold.profit)}</i>`]]:[])];
+ return `<div class="card3d r${r}${frame}${c.sold?' sold':''}" style="--rc:${rc}"><div class="cface cfront"><div class="cart">${artOf(c)}</div><div class="foil"></div><div class="ctop"><span class="ctier">${TIERS[c.ti].name}</span><span class="cgem">${rn}</span></div><div class="cbot"><b>${esc(c.addr)}</b><small>${esc(c.sub)}, ${esc(c.st)}</small><em>Won ${date}${c.dyn?` · Dynasty ${c.dyn+1}`:''}</em></div></div>
+ <div class="cface cback"><h4>${esc(c.addr)}</h4><small class="csub">${esc(c.sub)} · ${rn}</small><table>${rows.map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('')}</table></div></div>`;}
+function tiltOn(el){const set=(x,y)=>{el.style.setProperty('--rx',(y*-10).toFixed(1)+'deg');el.style.setProperty('--ry',(x*12).toFixed(1)+'deg');el.style.setProperty('--mx',(50+x*45).toFixed(0)+'%');el.style.setProperty('--my',(50+y*45).toFixed(0)+'%');};
+ el.addEventListener('pointermove',e=>{const b=el.getBoundingClientRect();set((e.clientX-b.left)/b.width-0.5,(e.clientY-b.top)/b.height-0.5);});el.addEventListener('pointerleave',()=>set(0,0));
+ const ori=e=>{if(!el.isConnected){window.removeEventListener('deviceorientation',ori);return;}if(e.gamma==null)return;set(Math.max(-0.5,Math.min(0.5,e.gamma/40)),Math.max(-0.5,Math.min(0.5,(e.beta-40)/40)));};window.addEventListener('deviceorientation',ori);}
+function cardSheet(c,fromAlbum){const live=!fromAlbum&&S.props.includes(c);T.c.cardViews=(T.c.cardViews||0)+1;tlog('card_view',{r:c.rarity||0,album:!!fromAlbum});
+ $('#sheet').innerHTML=`<div class="cardwrap">${cardFace(c,live)}<p class="cardhint">Tap the card to flip it${(c.rarity||0)>=2?'. Tilt for the foil':''}.</p><div class="cardbtns">${live?`<button class="sec" data-csell="1">Sell</button>${upgOpen(c)?'<button class="sec" data-cup="1">Upgrade</button>':''}<button class="sec" data-ctour="1">Tour</button>`:''}${(c.rarity||0)>=3?'<button class="sec" data-cshare="1">Share</button>':''}<button class="sec" id="cardX">Close</button></div></div>`;$('#modal').hidden=false;
+ const cd=$('#sheet .card3d');tiltOn(cd);cd.onclick=()=>{cd.classList.toggle('flip');sfx('tick');buzz(8);};
+ $('#cardX').onclick=()=>{$('#modal').hidden=true;};const q=s2=>$('#sheet').querySelector(s2);
+ if(q('[data-csell]'))q('[data-csell]').onclick=()=>sellSheet(c);if(q('[data-cup]'))q('[data-cup]').onclick=()=>upgradeSheet(c);if(q('[data-ctour]'))q('[data-ctour]').onclick=()=>houseTour(c,'card');
+ if(q('[data-cshare]'))q('[data-cshare]').onclick=()=>{const p=S.props.find(x=>x.id===c.id);if(p)shareCard(p);else toast('Share works for homes you still own.','');};}
+/* the pull: a Prime or better win is dealt face down and you turn it over */
+function pullCard(p){const r=p.rarity||0;T.c.pulls=(T.c.pulls||0)+1;
+ $('#sheet').innerHTML=`<div class="cardwrap pull"><p class="pullhead">${r>=4?'Something special…':r>=3?'This one shines…':'New card'}</p><div class="pullbox r${r}" style="--rc:${RAR[r][1]}">${cardFace(p,true).replace('card3d','card3d down')}</div><p class="cardhint">Tap to turn it over.</p><button class="sec" id="pullX">Keep</button></div>`;$('#modal').hidden=false;
+ const cd=$('#sheet .card3d');tiltOn(cd);let done=false;cd.onclick=()=>{if(done){cd.classList.toggle('flip');return;}done=true;cd.classList.remove('down');sfx(r>=3?'rare':'win');buzz(r>=4?[60,40,60,40,120]:[30,30,60]);if(r>=3)confetti(true,r>=4?2:1);tlog('pull',{r});};
+ $('#pullX').onclick=()=>{$('#modal').hidden=true;};}
+function renderAlbum(){const box=$('#albumBox');if(!box)return;const al=(S.album||[]).slice().sort((a,b)=>b.rarity-a.rarity||b.value-a.value),n=[0,0,0,0,0];for(const a of al)n[a.rarity]++;
+ const pages=TIERS.map((t,ti)=>{const subs=t.places.map(x=>x[0]),got=subs.filter(sb=>al.some(a=>a.ti===ti&&a.sub===sb)).length;return ti<=S.maxTier||got?`<div class="apage"><b>${t.name}</b><small>${got}/${subs.length} suburbs</small><i style="width:${got/subs.length*100}%"></i></div>`:'';}).join('');
+ const styles=['cottage','villa','modern','unit'],gotS=styles.filter(x=>al.some(a=>a.style===x)).length,show=al.slice(0,3);
+ box.innerHTML=`<section class="ahead"><h2>Card album</h2><p class="bnote">Every home you win, every dynasty. Sold ones stay, greyed out. Tap a card to flip it.</p><div class="coll">${[4,3,2,1,0].filter(i=>n[i]).map(i=>`<span class="rar r${i}">${n[i]} ${RAR[i][0]}</span>`).join('')||'<span class="rar">No cards yet</span>'}</div></section>
+ <section class="apages"><h3>Pages</h3>${pages}<div class="apage"><b>Styles</b><small>${gotS}/${styles.length} styles</small><i style="width:${gotS/styles.length*100}%"></i></div><p class="bnote">Fill a city page for the City page badge and a gold card frame.</p></section>
+ ${show.length?`<h3>Showcase</h3><div class="agrid show">${show.map((a,i)=>mini(a,i)).join('')}</div>`:''}<h3>All cards</h3><div class="agrid">${al.map((a,i)=>mini(a,i)).join('')}</div>`;
+ function mini(a,i){return `<button class="acard r${a.rarity}${a.sold?' sold':''}" data-ai="${(S.album||[]).indexOf(a)}" style="--rc:${RAR[a.rarity][1]}"><span class="aart">${artOf(a)}</span><b>${esc(a.addr)}</b><small>${esc(a.sub)}</small></button>`;}
+ box.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>{const a=S.album[+b.dataset.ai];if(!a)return;const live=S.props.find(p=>p.id===a.id&&a.dyn===(S.dynasties||0)&&!a.sold);cardSheet(live||a,!live);});}
+function houseTour(p){toast('House tours are coming in the next update.','');}
 function rollTo(el,to,fmt,dur){if(reduce){el.textContent=fmt(to);return;}dur=dur||800;const t0=performance.now();const step=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);el.textContent=fmt(Math.round(to*e));if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);}
 let lastWinAt=0,combo=0;
-function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastWinAt=now;if(combo>=2){award('combo2');if(combo>=3)award('combo3');toast(combo===2?'Double hammer!':combo===3?'Ding ding ding! Three wins.':combo+' wins in a row!','up');setTimeout(()=>sfx('combo',combo),250);buzz([30,30,30,30,60]);T.c.combos=(T.c.combos||0)+1;}return combo;}
+function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastWinAt=now;if(combo>=2){comboPop(combo);award('combo2');if(combo>=3)award('combo3');toast(combo===2?'Double hammer!':combo===3?'Ding ding ding! Three wins.':combo+' wins in a row!','up');setTimeout(()=>sfx('combo',combo),250);buzz([30,30,30,30,60]);T.c.combos=(T.c.combos||0)+1;}return combo;}
 function affiliateHTML(L){if(!CONFIG.affiliate.enabled||!AU_STATES.includes(L.st))return '';const slug=L.sub.toLowerCase().replace(/\s+/g,'+');const url=CONFIG.affiliate.au.replace('{slug}',encodeURIComponent(slug).replace(/%2B/g,'+')).replace('{st}',L.st.toLowerCase());return `<br><a class="aff" href="${esc(url)}" target="_blank" rel="sponsored noopener" data-aff="${esc(L.sub)}">See real homes for sale in ${esc(L.sub)} &rsaquo;</a>`;}
 document.addEventListener('click',e=>{const a=e.target.closest('[data-aff]');if(a){T.c.affClicks=(T.c.affClicks||0)+1;tlog('aff_click',{sub:a.dataset.aff});track('Affiliate click',{suburb:a.dataset.aff});}});
 
@@ -1501,7 +1632,9 @@ function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&
 $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag">Lot ${L.no} · ${T.name}</span>`+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">Lot ${L.no} · ${T.name}</span>`+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
+ if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
  $('#addr').textContent=L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
@@ -1560,7 +1693,7 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell;ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
- $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
+ $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`Lot ${L.no} · ${TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.textContent='Your auction';}else if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
 $('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
@@ -1668,10 +1801,10 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  $('#pDays').textContent=S.days.length;$('#pSess').textContent=S.sessions;const pm=Math.round(S.playSec/60);$('#pTime').textContent=pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m';
  const joined=S.wins+S.losses;$('#pRate').textContent=$('#pRate2').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
  $('#rich').innerHTML=rows.map((r,i)=>(i>=5&&!r.me)?'':`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
-const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['bad','Badges'],['dyn','Dynasty and play']];
-function eSel(){const sel=$('#eSec'),labels={pf:`Portfolio (${S.props.length})`,bad:`Badges (${Object.keys(S.badges||{}).length}/${BADGES.length})`,dyn:`Dynasty ★${S.legacy||0}`},sig=ESECS.map(([k,n])=>labels[k]||n).join('|')+eSec;if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
+const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['alb','Card album'],['bad','Badges'],['dyn','Dynasty and play']];
+function eSel(){const sel=$('#eSec'),labels={pf:`Portfolio (${S.props.length})`,bad:`Badges (${Object.keys(S.badges||{}).length}/${BADGES.length})`,dyn:`Dynasty ★${S.legacy||0}`,alb:`Card album (${(S.album||[]).length})`},sig=ESECS.map(([k,n])=>labels[k]||n).join('|')+eSec;if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
  sel.innerHTML=ESECS.map(([k,n])=>`<option value="${k}"${k===eSec?' selected':''}>${esc(labels[k]||n)}</option>`).join('');}
-function eGo(k,quiet){if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+function eGo(k,quiet){if(k==='alb')setTimeout(renderAlbum,0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
 $('#eSec').onchange=e=>eGo(e.target.value);
 $('#oTiles').onclick=e=>{const b=e.target.closest('[data-go]');if(b)eGo(b.dataset.go);};
 $('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset.pf===pf)return;pf=b.dataset.pf;pg=0;buildEmpire();};
@@ -1760,7 +1893,7 @@ async function shareCard(p){if(!p||(p.rarity||0)<3)return;T.c.shareOpens++;tlog(
   const go=$('#shGo');if(go)go.onclick=async()=>{try{await navigator.share(canFile?{files:[file],text,url:shareURL()}:{text,url:shareURL()});T.c.shareDone++;tlog('share_done',{r:p.rarity,how:canFile?'file':'link'});}catch(e){}};
   const dl=$('#sheet').querySelector('.dl');if(dl)dl.onclick=()=>{T.c.shareSaves++;tlog('share_done',{r:p.rarity,how:'save'});};},'image/png');}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-share]');if(!b)return;e.preventDefault();e.stopPropagation();const p=S.props.find(q=>q.id===+b.dataset.share);if(p)shareCard(p);},true);
-function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,mtax,bank,profit,loan}=saleOf(p,price);if(mtax){T.c.mansionTax+=Math.round(mtax);}
+function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{net,tax,mtax,bank,profit,loan}=saleOf(p,price);{const a=(S.album||[]).find(x=>x.id===p.id&&x.dyn===(S.dynasties||0)&&!x.sold);if(a)a.sold={price:Math.round(price),profit:Math.round(profit),how};}if(mtax){T.c.mansionTax+=Math.round(mtax);}
  const holdSec=p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,sinceMkt=T.lastMarket?Math.round((Date.now()-T.lastMarket.at)/1000):null;
  T.c.sells++;T.c.sellProfit+=Math.round(profit);if(profit>0&&how!=='repossessed')award('flip');if(holdSec!==null&&holdSec<20&&profit>0){T.c.quickFlips++;if(T.c.quickFlips>=3)tflag('quick_flip_pattern',{holdSec,profit:Math.round(profit),how});}
  tlog('sell',{how,tier:p.ti,rare:!!p.rare,src:p.src||'auction',paid:Math.round(p.paid),duty:Math.round(p.duty||0),net:Math.round(net),tax:Math.round(tax),loan:Math.round(loan),profit:Math.round(profit),profitPct:+((net-tax)/basis(p)*100-100).toFixed(2),heldMonths:p.age,holdSec,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,afterDownturnSec:T.lastMarket&&T.lastMarket.down?sinceMkt:null,cashAfter:Math.round(S.cash+bank)});
@@ -1768,7 +1901,7 @@ function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;const{ne
  if(how==='repossessed')toast(`The bank repossessed ${p.addr} and sold it for ${money(net)}. ${bank>=0?'You kept '+money(bank):'You still owe '+money(-bank)}.`,'down');
  else{toast(`Sold ${p.addr} for ${money(net)}. ${profit>=0?'Profit +'+money(profit):'Loss '+money(profit)}${tax>0?' after '+money(tax)+' capital gains tax':''}${mtax>0?' and '+money(mtax)+' mansion tax':''}${loan>0?'. Loan of '+money(loan)+' repaid':''}.`,profit>=0?'up':'down');sfx('cash');if(profit>0)confetti(false);}
  buildEmpire();updAuction();if(view==='m'){offSig='';renderMarket();}save();soonFlush();}
-$('#plist').onclick=e=>{const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
+$('#plist').onclick=e=>{if(!e.target.closest('button')){const pe=e.target.closest('.prop');if(pe){const p=S.props.find(q=>q.id===+pe.dataset.id);if(p)cardSheet(p);return;}}const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
  const p=S.props.find(q=>q.id===id);if(p)sellSheet(p);};
 function bankrupt(){const owed=-S.cash;T.c.bankruptcies++;tlog('bankrupt',{owed:Math.round(owed),sessionPlaySec:T.playSec,legacy:S.legacy||0});
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,rules:4,legacy:S.legacy||0,dynasties:S.dynasties||0,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
@@ -2033,7 +2166,7 @@ function renderSets(){const c=sets(),subs=Object.entries(c.sub).sort((a,b)=>b[1]
  $('#setList').innerHTML=subs.map(([s,n])=>`<span class="${n>=SET_N?'done':''}">${esc(s)} ${Math.min(n,SET_N)}/${SET_N}${n>SET_N?' +'+(n-SET_N):''}</span>`).join('');}
 
 /* ---------- badges ---------- */
-const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['developer','Developer','Finish a duplex or a mansion'],['jackpot','Jackpot','Find a jackpot at inspection'],['epic','Epic find','Win an Epic home'],['legendary','Legendary','Win a Legendary home'],['headliner','Headliner','Win a featured auction'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak'],['rank1','Investor','Earn your first legacy star'],['rank3','Baron','Reach 3 legacy stars'],['rank6','Mogul','Reach 6 legacy stars'],['rank10','Tycoon','Reach 10 legacy stars'],['rank15','Titan','Reach 15 legacy stars'],['rank25','Dynasty','Reach 25 legacy stars']];
+const BADGES=[['first_win','First keys','Win your first house'],['steal','Steal','Win in the green Steal zone'],['steal5','Bargain hunter','Win 5 steals'],['rare','Rare find','Win a rare listing'],['combo2','Double hammer','Win 2 auctions within seconds'],['combo3','Ding ding ding','Win 3 auctions within seconds'],['set_suburb','Local legend','Complete a suburb set'],['set_street','Whole street','Own 2 homes on one street'],['landlord10','Landlord','Own 10 homes'],['magnate25','Magnate','Own 25 homes'],['family','Moving up','Unlock Family homes'],['prestige','Prestige','Unlock Prestige homes'],['flip','Quick flip','Sell a house for a profit'],['debt_free','Debt free','Pay off every loan'],['reno','Renovator','Finish a home upgrade'],['developer','Developer','Finish a duplex or a mansion'],['jackpot','Jackpot','Find a jackpot at inspection'],['epic','Epic find','Win an Epic home'],['legendary','Legendary','Win a Legendary home'],['headliner','Headliner','Win a featured auction'],['new_class','New class','Upgrade a home into a higher category'],['nemesis','Score settled','Beat your nemesis'],['streak3','Regular','3-day streak'],['streak7','Devoted','7-day streak'],['boss','Final boss','Win a final showdown against a rival'],['album_city','City page','Collect a home in every suburb of one market'],['album_style','Full house','Win one of every home style'],['rank1','Investor','Earn your first legacy star'],['rank3','Baron','Reach 3 legacy stars'],['rank6','Mogul','Reach 6 legacy stars'],['rank10','Tycoon','Reach 10 legacy stars'],['rank15','Titan','Reach 15 legacy stars'],['rank25','Dynasty','Reach 25 legacy stars']];
 function award(id){S.badges=S.badges||{};if(S.badges[id])return;const b=BADGES.find(x=>x[0]===id);if(!b)return;S.badges[id]=Date.now();regAdd(1,'badge:'+id);tlog('badge',{id});BQ.push(b[1]);clearTimeout(BQ.t);BQ.t=setTimeout(()=>{const n=BQ.splice(0);if(!n.length)return;toast((n.length>1?'Badges unlocked: ':'Badge unlocked: ')+n.join(', '),'up',()=>{show('e');eGo('bad');});sfx('cash');},1800);if(view==='e')renderBadges();}
 const BQ=[];
 function renderBadges(){const got=S.badges||{};$('#bCount').textContent=Object.keys(got).length+'/'+BADGES.length;
@@ -2136,7 +2269,8 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();rankBadges();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+if(/[?&]debug=1/.test(location.search))window.__eat={get S(){return S;},get A(){return A;},pullCard,cardSheet,houseTour:(p,f)=>houseTour(p,f),eGo,show,startAuction,award};
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
 if((S.rules||0)<4)modal('<h3>What’s new</h3>'+((S.rules||0)<2?'<p>Owning costs money: stamp duty when you buy, rates, upkeep and land tax every month, and capital gains tax when you sell at a profit. Paying over the guide makes a house grow faster.</p>':'')+(mktOn()?'<p><b>Sell at auction.</b> Tap Sell on a home, set a reserve and watch rivals bid it up. The Market tab is still there for quick buys.</p>':'<p><b>Auctions first.</b> The Market is gone: every home is won at auction, and you sell at auction too. Tap Sell on a home, set a reserve and watch rivals bid it up.</p>')+'<p><b>Your call.</b> Auto-bid gets you to the final call, then the last seconds are yours.</p><p><b>Inspection.</b> After you win, the inspector reports: most homes are as described, some hide a find, a few a jackpot.</p><p><b>Featured auctions</b> every few minutes: a rare home, more rivals, a packed room.</p><p><b>Mortgages.</b> Short on cash? Bid anyway. The bank lends only what you are short, up to 80% of the price, at 6% a year. Sink too deep into overdraft and it repossesses a house.</p>','Got it',()=>{S.rules=4;tlog('rules_seen');save();awayCredit(since);});
