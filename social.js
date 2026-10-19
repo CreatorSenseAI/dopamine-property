@@ -33,7 +33,9 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       .sort((a, b) => b.worth - a.worth);
     const feed = g.feed.slice(-30).reverse().map(e => ({ eid: e.eid, t: e.t, nick: e.nick, kind: e.kind, text: e.text, card: e.card || null, reacts: Object.fromEntries(REACTS.map(r => [r, (e.reacts && e.reacts[r] || []).length])), mine: REACTS.filter(r => (e.reacts && e.reacts[r] || []).includes(me)) }));
     const duels = (g.duels || []).slice(-20).map(id => read(dFile(id))).filter(Boolean).filter(d => d.from === me || d.to === me || d.done).slice(-10).map(d => duelView(d, me, g));
-    return { code: g.code, name: g.name, owner: g.owner === me, members, feed, duels };
+    const ms = Object.values(g.members), gainer = ms.filter(m => m.week && m.week.at === ws).sort((a, b) => ((b.worth || 0) - b.week.worth) - ((a.worth || 0) - a.week.worth))[0], find = ms.filter(m => m.best).sort((a, b) => b.best.rarity - a.best.rarity || b.best.value - a.best.value)[0];
+    const trophies = { gainer: gainer && (gainer.worth || 0) - gainer.week.worth > 0 ? gainer.nick : null, find: find && find.best.rarity >= 2 ? find.nick : null };
+    return { code: g.code, name: g.name, owner: g.owner === me, members, feed, duels, trophies };
   }
   function keyToId(g, key) { return Object.keys(g.members).find(id => crypto.createHash("sha1").update(g.code + id).digest("hex").slice(0, 10) === key); }
   function duelView(d, me, g) { const nick = id => (g && g.members[id] && g.members[id].nick) || d.nicks[id] || "Player";
@@ -62,7 +64,9 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       if ((g.banned || []).includes(b.installId)) return bad(req, res, "You can't join this group.", 403);
       const mine = myGroups(b.installId);
       if (!g.members[b.installId]) { if (Object.keys(g.members).length >= MAX_MEMBERS) return bad(req, res, "That group is full (" + MAX_MEMBERS + ")."); if (mine.length >= MAX_GROUPS) return bad(req, res, "You're in " + MAX_GROUPS + " groups already. Leave one first.");
-        g.members[b.installId] = { nick, joined: new Date().toISOString(), ...statsOf(b), week: { at: weekStart(), worth: statsOf(b).worth } }; post(g, b.installId, "joined", nick + " joined"); writeJSON(gFile(code), g); writeJSON(mFile(b.installId), mine.concat(code)); }
+        g.members[b.installId] = { nick, joined: new Date().toISOString(), ...statsOf(b), week: { at: weekStart(), worth: statsOf(b).worth } };
+        const inv = b.ref && keyToId(g, String(b.ref)); if (inv && inv !== b.installId) { g.members[inv].refs = (g.members[inv].refs || 0) + 1; g.members[b.installId].referred = true; }
+        post(g, b.installId, "joined", nick + " joined" + (inv ? " on " + g.members[inv].nick + "'s invite" : "")); writeJSON(gFile(code), g); writeJSON(mFile(b.installId), mine.concat(code)); }
       ok(req, res, { code, group: view(g, b.installId) }); },
     async "POST /api/group/leave"(req, res) { const b = await body(req, res); if (!b) return; const g = read(gFile(String(b.code))); if (!g || !g.members[b.installId]) return ok(req, res);
       delete g.members[b.installId]; writeJSON(mFile(b.installId), myGroups(b.installId).filter(c => c !== g.code));
@@ -78,7 +82,8 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
     async "POST /api/group/sync"(req, res) { const b = await body(req, res); if (!b) return; const st = statsOf(b), nick = clean(b.nick), ws = weekStart(), out = [];
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g || !g.members[b.installId]) continue; const m = g.members[b.installId];
         Object.assign(m, st); if (NICK.test(nick)) m.nick = nick; if (!m.week || m.week.at !== ws) m.week = { at: ws, worth: st.worth }; m.seen = new Date().toISOString(); writeJSON(gFile(c), g); out.push({ code: c, name: g.name, n: Object.keys(g.members).length }); }
-      ok(req, res, { groups: out }); },
+      let refs = 0, referred = false; for (const c of myGroups(b.installId)) { const g = read(gFile(c)); const m = g && g.members[b.installId]; if (m) { refs += m.refs || 0; referred = referred || !!m.referred; } }
+      ok(req, res, { groups: out, refs, referred }); },
     async "POST /api/group/event"(req, res) { const b = await body(req, res); if (!b) return; if (!KINDS.includes(b.kind)) return bad(req, res, "bad kind");
       const card = b.card && typeof b.card === "object" ? { addr: clean(b.card.addr).slice(0, 40), sub: clean(b.card.sub).slice(0, 30), rarity: num(b.card.rarity, 0, 4), value: Math.round(num(b.card.value, 0, 1e12)), paid: Math.round(num(b.card.paid, 0, 1e12)), style: clean(b.card.style).slice(0, 10), seed: Math.round(num(b.card.seed, -2e9, 2e9)), ti: num(b.card.ti, 0, 4) } : null;
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g) continue; post(g, b.installId, b.kind, b.text, card); writeJSON(gFile(c), g); } ok(req, res); },
@@ -89,6 +94,10 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       if (!g || !g.members[me]) return bad(req, res, "Not a member", 404); ok(req, res, { group: view(g, me) }); },
     "GET /api/groups"(req, res, url) { const me = url.searchParams.get("me") || ""; if (!ID.test(me)) return bad(req, res, "bad id");
       ok(req, res, { groups: myGroups(me).map(c => { const g = read(gFile(c)); return g ? { code: c, name: g.name, n: Object.keys(g.members).length } : null; }).filter(Boolean) }); },
+    "GET /api/group/board"(req, res, url) { const me = url.searchParams.get("me") || "", d = String(url.searchParams.get("day") || ""), g = read(gFile(String(url.searchParams.get("code") || "").toUpperCase()));
+      if (!g || !g.members[me] || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return bad(req, res, "Not a member", 404);
+      const all = Object.entries(read(path.join(DATA, "boards", d + ".json")) || {}).filter(([id]) => g.members[id]).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.score - a.score);
+      const rank = all.findIndex(e => e.id === me) + 1; ok(req, res, { day: d, count: all.length, rank: rank || null, top: all.slice(0, 50).map(e => ({ nick: e.nick, score: e.score, rarity: e.rarity, stars: e.stars || 0, me: e.id === me })) }); },
     "GET /api/group/rivals"(req, res, url) { const me = url.searchParams.get("me") || ""; if (!ID.test(me)) return bad(req, res, "bad id"); const seen = new Set(), out = [];
       for (const c of myGroups(me)) { const g = read(gFile(c)); if (!g) continue; for (const [id, m] of Object.entries(g.members)) if (id !== me && !seen.has(id)) { seen.add(id); out.push({ nick: m.nick, style: m.style || "sniper", stars: m.stars || 0 }); } }
       ok(req, res, { rivals: out.slice(0, 30) }); },

@@ -74,8 +74,11 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | --- | --- | --- |
 | `remove_ads` | non-consumable | no ads |
 | `regos_10` | consumable | 10 bidder registrations |
-| `cash_small` | consumable | +$250K game cash |
-| `cash_large` | consumable | +$3M game cash |
+| `cash_small` | consumable | game cash sized to your markets ($250K at Starter up to $200M at Icon) |
+| `cash_large` | consumable | 8× the small pack (Family and up) |
+| `season_pass` | consumable | this season's premium reward column (cosmetics + registrations) |
+| `cosmetic_pack` | non-consumable | neon, marble and holo card frames; gold, neon and black paddles |
+| `city_pack` | consumable | opens the next country one market early |
 | `rescue` | consumable | stops one repossession |
 | `rate_lock` | consumable | 4.5% on loans for 24 months |
 | `finish_works` | consumable | finishes every upgrade under way |

@@ -19,7 +19,7 @@ def page(b, scheme, seed=None, q="?mkt=0"):
     pg.on("console", lambda m: m.type == "error" and not any(s in m.text for s in IGNORE) and errors.append(f"{scheme} console: {m.text}"))
     if seed:
         pg.add_init_script("if(!sessionStorage.getItem('seeded')){localStorage.setItem('dopamine-property-v1',%s);sessionStorage.setItem('seeded','1')}" % json.dumps(json.dumps(seed)))
-    pg.goto(url + q); pg.wait_for_timeout(700)
+    pg.set_default_timeout(10000); pg.goto(url + q); pg.wait_for_timeout(700)
     return pg
 
 
@@ -71,6 +71,7 @@ with sync_playwright() as p:
             pg.screenshot(path=str(out / f"v11-live-{scheme}.png"))
             pg.locator(".lvmain").last.click(); pg.wait_for_timeout(400)
             print(scheme, "focused lot:", pg.inner_text("#addr"))
+        if pg.is_visible("#coach"): pg.click("#coach button")
         pg.click(".tright .hotbtn") if pg.is_visible(".tright .hotbtn") else None
         pg.wait_for_timeout(200)
         # a few more lots to exercise background resolution
@@ -176,7 +177,10 @@ with sync_playwright() as p:
         if any("mansion tax" in y for y in toasts) or not pg.locator(".toast").count(): break
         pg.locator(".toast").first.click(); pg.wait_for_timeout(700)
     print("sale:", [y for y in toasts if "Sold" in y][:1])
-    assert any("mansion tax" in x for x in toasts), "mansion tax should show on the sale"
+    _sold = [x for x in toasts if "Sold" in x]
+    _big = bool(_sold) and ("M." in _sold[0].split(" for $")[1][:8]) and float(_sold[0].split(" for $")[1].split("M")[0]) >= 5
+    # events (v29) can knock the value under the $5M line, so only check the tax when it applies
+    assert (not _big) or any("mansion tax" in x for x in toasts), "mansion tax should show on the sale"
     pg.close()
 
     # ---------- sell at auction + featured auction ----------
@@ -226,8 +230,10 @@ with sync_playwright() as p:
     print("market kept: tab visible after a win:", pg.is_visible("#tM")); pg.close()
 
     # ---------- registrations (limited variant, nearly out) ----------
-    allb = {k: 1 for k in ["first_win","steal","steal5","rare","combo2","combo3","set_suburb","set_street","landlord10","magnate25","family","prestige","flip","debt_free","reno","developer","jackpot","headliner","epic","legendary","new_class","nemesis","streak3","streak7"]}
-    seed2 = dict(seed, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
+    import re as _re
+    _html = (ROOT / "public/index.html").read_text(); _b = _html[_html.index("const BADGES=["):]; _b = _b[:_b.index("]];")]
+    allb = {k: 1 for k in _re.findall(r"\['([a-z0-9_]+)','", _b)}
+    seed2 = dict(seed, miles={k: 1 for k in ["w1m","w10m","w100m","w1b","h10","h25","life50","epic3","storm","lucky5","turf","world3"]}, cash=3e6, badges=allb, regVar=1, joined=25, reg=dict(n=1, at=time.time() * 1000), dailyDay=datetime.date.today().isoformat(), lastDay=datetime.date.today().isoformat(), coach={"bid": 1, "won1": 1})
     pg = page(b, "dark", seed2); close_sheets(pg)
     print("reg line:", pg.inner_text("#regInfo"))
     res = play_lot(pg, 600); print("reg lot:", res[:60]); pg.wait_for_timeout(4500); close_sheets(pg)
