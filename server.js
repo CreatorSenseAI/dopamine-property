@@ -349,7 +349,10 @@ function logDigest() {
   try {
     const u = new URL("http://x/?since=" + new Date(dgSince).toISOString()), first = digest(u), pages = +(first.match(/page 1\/(\d+)/) || [0, 1])[1];
     dgSince = Date.now();
-    for (let p = 1; p <= Math.min(pages, 20); p++) { u.searchParams.set("page", p); (p === 1 ? first : digest(u)).split("\n").forEach((l, i) => l && console.log("DG " + String(p).padStart(2, "0") + "." + String(i).padStart(4, "0") + " " + l)); }
+    /* Railway drops log lines past ~500/s, so drip them out: 40 lines every 200ms */
+    const out = [];
+    for (let p = 1; p <= Math.min(pages, 30); p++) { u.searchParams.set("page", p); (p === 1 ? first : digest(u)).split("\n").forEach((l, i) => l && out.push("DG " + String(p).padStart(2, "0") + "." + String(i).padStart(4, "0") + " " + l)); }
+    const drip = () => { out.splice(0, 40).forEach(l => console.log(l)); if (out.length) setTimeout(drip, 200); }; drip();
   } catch (e) { console.log("DG error " + e.message); }
 }
 setTimeout(logDigest, 8000); setInterval(logDigest, 30 * 60e3);
