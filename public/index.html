@@ -502,7 +502,8 @@ button.pill.rar{font-family:inherit;cursor:pointer}
 .tour p{color:var(--ink);opacity:.85}
 .tour p b{opacity:1}
 .tour .demo{background:var(--sunk);border-radius:12px;padding:6px 12px 10px;margin:4px 0 14px}
-.tour .dots{display:flex;gap:6px;justify-content:center;margin:2px 0 12px}
+.tour .dots{display:flex;gap:6px;justify-content:center;margin:2px 0 12px;position:static;background:none;border:0;padding:0}
+.tour .dots i{animation:none}
 .tour .dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
 .tour .dots i.on{background:var(--red)}
 .tour .tbtns{display:flex;gap:8px}
@@ -1115,6 +1116,12 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
 .dock{padding:6px 14px;gap:5px}
 .dock .bid{padding:8px 12px}
 .dock .bigbid{padding:3px 6px}
+.lotback .setchip,#vAuction .lotback .setchip{position:static;box-shadow:none;background:none;padding:0;white-space:normal;max-width:none;overflow:visible}
+.lotback{cursor:pointer}
+.lotback .iwtop{row-gap:6px}
+.lotback .iwx{background:var(--ink);color:var(--bg)}
+.backhint{margin-top:auto;text-align:center;font-size:11.5px;color:var(--muted)}
+#vAuction .pad em{display:none}
 .dock .bid small{display:block;font-family:var(--f-body);font-size:11px;letter-spacing:.06em;opacity:.85;margin-top:1px}
 
 /* v30b: no verdict row (the card's back has it), smaller bid buttons, no Hot lot / Showdown in the top row, swipe tour */
@@ -1192,6 +1199,7 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
         <div class="specs" id="specs"></div>
         <div class="setchip" id="setChip" hidden></div>
         <div class="backnote" id="backNote"></div>
+        <div class="backhint">Tap anywhere on this side to flip back</div>
       </div>
     </section>
 
@@ -1416,7 +1424,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v30-web';
+const VERSION='v30b-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1985,13 +1993,13 @@ $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)retu
 function chipAct(b){if(b.dataset.world){worldSheet();return;}if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();}
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+T.name}</span>`+(A.run?`<span class="daily feat runtag">${A.run.kind==='night'?'Auction Night':A.run.kind==='takeover'?'Takeover: '+esc(A.run.sub):A.run.kind==='defend'?'Defend '+esc(A.run.sub):'Duel vs '+esc(A.run.vs)} · ${A.run.i}/${A.run.n}${A.run.kind==='night'&&A.run.i===A.run.n?' · Headliner':''}</span>`:'')+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':`<div class="galdots" id="galDots">${'<i></i>'.repeat(1+(L.style==='unit'||L.style==='tower'?ROOMS_U:ROOMS_H).length)}</div><button class="galnav prev" data-gn="-1" aria-label="Previous room">‹</button><button class="galnav next" data-gn="1" aria-label="Next room">›</button>`)+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';GAL=0;updDots();$('#pads').dataset.sig='';renderPads();renderChat();if(!A.sell&&!A.first&&!A.bg&&S.wins>=1)setTimeout(()=>coach('swipe','Swipe the photo to walk through the rooms. Glowing spots are clues that move your walk-away.'),1500);
+ $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+T.name}</span>`+(A.run?`<span class="daily feat runtag">${A.run.kind==='night'?'Auction Night':A.run.kind==='takeover'?'Takeover: '+esc(A.run.sub):A.run.kind==='defend'?'Defend '+esc(A.run.sub):'Duel vs '+esc(A.run.vs)} · ${A.run.i}/${A.run.n}${A.run.kind==='night'&&A.run.i===A.run.n?' · Headliner':''}</span>`:'')+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':`<div class="galdots" id="galDots">${'<i></i>'.repeat(1+(L.style==='unit'||L.style==='tower'?ROOMS_U:ROOMS_H).length)}</div><button class="galnav prev" data-gn="-1" aria-label="Previous room">‹</button><button class="galnav next" data-gn="1" aria-label="Next room">›</button>`)+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';GAL=0;updDots();closeIw();$('#pads').dataset.sig='';renderPads();renderChat();if(!A.sell&&!A.first&&!A.bg&&S.wins>=1)setTimeout(()=>coach('swipe','Swipe the photo to walk through the rooms. Glowing spots are clues that move your walk-away.'),1500);
  $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
  if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
  $('#addr').textContent=L.mystery&&!A.ended?'Mystery lot':L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;if(L.mystery&&!A.ended){const t=document.createElement('div');t.className='tarp';t.id='tarp';t.innerHTML=`<b>?</b><small>Mystery lot · ${esc(L.sub)} · ${L.land?L.land+' m²':'apartment'}</small>`;$('#art').appendChild(t);}{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
- {const bn=$('#backNote');if(bn)bn.textContent=`Valuer: ${money(A.est.lo)} to ${money(A.est.hi)}. Walk away at ${money(waOf(A.est))}. Risk here: ${hazOf(L).join(', ')}.${L.rare?' Rare listing.':''}${A.sell||A.first?'':' Tap Tour on the photo for clues.'}`;}
+ {const bn=$('#backNote');if(bn)bn.textContent=`Valuer: ${money(A.est.lo)} to ${money(A.est.hi)}. Walk away at ${money(waOf(A.est))}. Risk here: ${hazOf(L).join(', ')}.${L.rare?' Rare listing.':''}${A.sell||A.first?'':' Swipe the photo to tour the rooms.'}`;}
  drawMeter();
  $('#result').hidden=true;$('#skipBtn').textContent='Next lot';renderFeed();updAuction();}
 const mScale=()=>{const L=A.lot,lo=L.open,hi=A.est.hi*1.18;return x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));};
@@ -2029,7 +2037,7 @@ function flipLot(on){const p=$('#ifwin'),c=$('#lotCard');if(on===!p.hidden)retur
 function closeIw(){const p=$('#ifwin');if(p.hidden)return;p.hidden=true;$('#lotCard').classList.remove('flipping');$('#verdict').setAttribute('aria-expanded','false');}
 $('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.sell){closeIw();return;}if(!A.ended){const q=A.leader==='you'?A.bid:nextBid();if(!canPay(q,A.lot.ti)){closeIw();cashSheet(q,A.lot.ti);return;}}flipLot(p.hidden);};
 $('#lotInfo').onclick=()=>{if(!A||A.sell)return;flipLot($('#ifwin').hidden);};
-$('#iwX').onclick=()=>flipLot(false);
+$('#iwX').onclick=e=>{e.stopPropagation();flipLot(false);};$('#ifwin').onclick=e=>{if(e.target.closest('a,input,[data-share]'))return;flipLot(false);};
 function renderFeed(){if(A&&A.bg)return;if(!$('#feed'))return;$('#feed').innerHTML=A.feed.length?A.feed.map(f=>`<li class="${f.you?'you':''}"><span>${esc(f.who)}</span><span class="num">${full(f.amt)}</span></li>`).join(''):`<li><span>Room is quiet. Opening at</span><span class="num">${full(A.lot.open)}</span></li>`;}
 function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  $('#curLbl').textContent=A.leader?(A.ended?'Hammer price':'Current bid'):'Opening bid';
@@ -2878,12 +2886,14 @@ function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id
 /* ---------- walkthrough ---------- */
 const DEMO=`<div class="demo"><div class="meter"><div class="track"><i class="z-steal" style="left:0;width:24%"></i><i class="z-good" style="left:24%;width:22%"></i><i class="z-fair" style="left:46%;width:30%"></i><i class="z-over" style="left:76%;width:24%"></i></div><i class="wa" style="left:76%"></i><i class="mk" style="left:38%"><span>Next bid $395K</span></i></div><div class="legend"><span><i class="z-steal"></i>Steal</span><span><i class="z-good"></i>Good buy</span><span><i class="z-fair"></i>Fair</span><span><i class="z-over"></i>Overpaying</span></div></div>`;
 const TOUR=[
- {h:'Build an empire',b:()=>`<p>You start with <b>${money(450000+(S.legacy||0)*100000)}</b>. Win houses at auction, collect rent, grow your net worth.</p><div class="tiers">${TIERS.map(t=>`<span>${t.name}</span>`).join('')}</div><p>Each milestone unlocks a bigger market. Your next goal is always at the top of the screen.</p>`},
- {h:'Is it a good deal?',b:()=>DEMO+`<p>The <b>valuer&rsquo;s estimate</b> is roughly what the house is really worth. Win it under that and you&rsquo;re richer the moment the hammer falls.</p><p>Green is good. Past the dashed <b>walk-away</b> line you&rsquo;re overpaying.</p>`},
- {h:'Will it pay its way?',b:()=>`<p>One second is one month. Every house earns rent but costs rates, upkeep and loan interest.</p><p><b>If you win</b> shows what a house adds to your monthly income <i>before</i> you bid. Keep income positive or your cash drains away.</p>`},
- {h:'How to bid',b:()=>`<p><b>Bid</b> raises one step. <b>Go big</b> jumps ahead and can scare rivals off.</p><p><b>Auto-bid</b> carries you to the final call, then hands you the paddle: the last seconds are yours. Short on cash? The bank lends up to 80%.</p><p>Win and the <b>inspector</b> reports: sometimes a find, now and then a jackpot.</p>`},
- {h:'Sell at auction',b:()=>`<p>Tap <b>Sell</b> on a home and set a reserve. Rivals bid it up live. Over the reserve it sells; under it, you keep it.</p><p>Every few minutes a <b>featured auction</b> lands: a rare home, more rivals, a packed room.</p>`},
- {h:'Build sets, keep a streak',b:()=>`<p>Own <b>3 homes in one suburb</b> for +10% rent there; two on one street adds +5%.</p><p>After your first win, more auctions run at once. Tap <b>Auto</b> on them and wins land together.</p><p>Come back daily for a <b>streak bonus</b>. A missed day uses a freeze, not your streak.</p>`}];
+ {h:'Build an empire',b:()=>`<p>You start with <b>${money(450000+(S.legacy||0)*100000)}</b>. Win homes at auction, collect rent and grow your net worth.</p><div class="tiers">${TIERS.map(t=>`<span>${t.name}</span>`).join('')}</div><p>Each milestone opens a bigger market. Your next goal is the chip at the top left. The <b>Market</b> button beside it picks what comes up next, and later the world markets.</p>`},
+ {h:'Is it a good deal?',b:()=>DEMO+`<p>The <b>estimate</b> is roughly what the home is really worth. Win it under that and you're richer the moment the hammer falls.</p><p>Green is good. Past the <b>walk-away</b> line you're overpaying.</p>`},
+ {h:'Look closer',b:()=>`<p><b>Swipe the photo</b> to walk through the rooms. Glowing spots are clues: some move your walk-away line, some hint at a find.</p><p><b>Tap the address</b> (the <b>i</b>) to flip the card. The back shows what the home does to your money if you win: cash today, rent minus costs each month, and your net worth. Tap the back to flip it again.</p>`},
+ {h:'How to bid',b:()=>`<p><b>Bid</b> raises one step. <b>Go big</b> jumps ahead and can scare rivals off.</p><p><b>Auto-bid</b> carries you to the final call, then hands you the paddle: the last seconds are yours.</p><p>Short on cash? The button says <b>Need $…</b>. Tap it to borrow against your homes or sell one.</p>`},
+ {h:'After you win',b:()=>`<p>The <b>inspector</b> reports: sometimes a find, now and then a jackpot. Every win becomes a card with a rarity, from Common to Legendary.</p><p>In <b>Empire</b> you can upgrade, rebuild into duplexes or mansions, or sell at auction with a reserve.</p>`},
+ {h:'Grow faster',b:()=>`<p>Own <b>3 homes in one suburb</b> for +10% rent there; two on one street adds +5%. Five in a suburb unlocks a <b>takeover</b>.</p><p>More auctions run in the strip at the top. Tap <b>Auto</b> on one and it bids for you. A <b>featured auction</b> lands every few minutes.</p>`},
+ {h:'Read the news',b:()=>`<p>Floods, fires, rate moves, booms and tenants all hit your homes. Disaster cover is in <b>Money and bank</b>, and every disaster is followed by a rebuild boom.</p><p>Missed something? The <b>bell</b> under the header keeps every notification.</p>`},
+ {h:'Come back daily',b:()=>`<p>Your <b>streak</b> pays more each day, and day 7 brings a Prime lot. Seasons add rewards as you play.</p><p>Past $100M you can <b>cash out</b> for Dynasty stars: start again richer, with a new title. Invite friends to race you in a weekly league.</p>`}];
 function tour(i){i=i||0;const t=TOUR[i],last=i===TOUR.length-1;
  $('#sheet').innerHTML=`<div class="tour"><div class="tstep">${i+1} of ${TOUR.length}</div><h3>${t.h}</h3>${t.b()}<div class="dots">${TOUR.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><div class="tbtns">${i?'<button class="back" id="tBack">Back</button>':''}<button id="tNext">${last?'Start bidding':'Next'}</button></div></div>`;
  $('#modal').hidden=false;tlog('tour',{step:i});
