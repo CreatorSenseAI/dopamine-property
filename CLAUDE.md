@@ -74,7 +74,7 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - Noise: vacancy 0.35%/home/month, repairs 0.15%; market events: rate hike −3%, cut +3%, correction −10%, suburb boom +8%. Build blowouts go on the site's loan when cash can't cover them.
 - Offers (Market group) last 40s (bidding wars 30s); an ignored offer at/over value comes back once as a final offer (+2%, 25s).
 - Background live lots spawn only at a tier you can pay for.
-- Logs: `/admin/digest.txt?key=…&since=ISO&page=n` (compact text, 12K/page); `&log=1` also writes it to the Railway service log (read it with the Railway logs tool, filter `DG`).
+- Logs: `/admin/digest.txt?key=…&since=ISO&page=n` (compact text, 12K/page); `&log=1` also writes it to the Railway service log. The server also drips the digest into the Railway log by itself (last 24h at boot, new sessions every 30 min, 40 lines/200ms so Railway doesn't drop them). Read it with the Railway logs tool, filter `"DG 12."` for page 12 or `"== "` for session headers; no admin key needed.
 - Width: `#app` is `minmax(0,1fr)` and its children `min-width:0`, so Android text scaling can't push the page wider than the screen (it did in v25/v26). If the auction can't fit (big text, short screen) the lot card keeps its content height and `#vAuction` scrolls instead of clipping. Test with `ovf.py`-style font scaling at 1.3×.
 - Live cards show "Past your walk-away" (disabled) instead of offering auto-bid below the current price.
 
