@@ -341,3 +341,15 @@ http.createServer(async (req, res) => {
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
 }).listen(PORT, () => console.log(`Empire Auction Tycoon on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+
+/* play logs straight into the Railway service log (read with the Railway logs tool, filter "DG"; no admin key needed):
+   the last 24h at boot, then new sessions every 30 min */
+let dgSince = Date.now() - 24 * 3600e3;
+function logDigest() {
+  try {
+    const u = new URL("http://x/?since=" + new Date(dgSince).toISOString()), first = digest(u), pages = +(first.match(/page 1\/(\d+)/) || [0, 1])[1];
+    dgSince = Date.now();
+    for (let p = 1; p <= Math.min(pages, 20); p++) { u.searchParams.set("page", p); (p === 1 ? first : digest(u)).split("\n").forEach((l, i) => l && console.log("DG " + String(p).padStart(2, "0") + "." + String(i).padStart(4, "0") + " " + l)); }
+  } catch (e) { console.log("DG error " + e.message); }
+}
+setTimeout(logDigest, 8000); setInterval(logDigest, 30 * 60e3);
