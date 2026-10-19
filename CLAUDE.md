@@ -56,7 +56,7 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 ## Declutter rules (v12, from playtest feedback)
 - One notification on screen at a time (`toast()` queues; swipe sideways or tap to clear). Coach tips hold the queue.
 - Only show what matters now: details sit behind a tap (If you win popover from the verdict; Empire sections behind the dropdown); tier chips appear once a second tier unlocks; auto-bid limit shows only when auto is on.
-- Header = EAT mark, Dynasty star, streak, net worth (+ income/mo under it), cash, menu, and under them one full-width news + bell row (`#news`, v30). Nothing else.
+- Header = season level chip (`#hSea`, `drawSea()`, tap = Season section; replaced the EAT mark in v30d), Dynasty star, streak, net worth (+ income/mo under it), cash, menu, and under them one full-width news + bell row (`#news`, v30). Nothing else.
 
 ## One-screen layout (v25)
 - Auction never scrolls at 360×640 and up: `#vAuction` is a flex column with `overflow:hidden`; the lot card flexes and the art (`.art`, min 56px) takes whatever height is left. Under 600px tall it falls back to scrolling. Keep new auction UI inside the existing rows or the art shrinks to nothing; check `scrollHeight - clientHeight` of `#vAuction` (smoke `fits()`).
@@ -92,3 +92,5 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - How to play (`TOUR`, 8 steps) was rewritten for v30: Market button, swipe tour, flip card, Need $ button, cards and rarity, sets and takeovers, news + bell, streak and Dynasty.
 - Tour button removed: swipe the photo (or the side arrows) through the rooms (`GAL`, `galTo`, `drawGal`, `galHit`, dots in `#galDots`); clues are hotspots on the photo and land as toasts. `houseTour()` is still used from property cards.
 - Feedback still open: "looks cheap and tacky, needs proper game graphics". Photos via `OPENAI_API_KEY` are wired but the key isn't set; an art-direction pass is the next big piece.
+- Quiet rooms (v30c, iOS tester: "wanted more deals", kept stopping at the price guide): 40% of Starter and 20% of Family focused lots cap every rival at 86–100% of the guide (`L.quiet`, no stubborn rival, 3–6 in the room, "quiet room" on the lot tag, `quiet` in the play log). Disasters on a one-home player stay as they are (Matt: funny, keep it).
+

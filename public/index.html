@@ -1145,12 +1145,19 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
 .galnav.prev{left:6px}.galnav.next{right:6px}
 .galnav:disabled{opacity:0;pointer-events:none}
 #vAuction .artwrap{touch-action:pan-y}
+
+/* v30d header: season level chip instead of the EAT mark */
+.seac{display:flex;flex-direction:column;align-items:stretch;gap:3px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:9px;padding:4px 8px 5px;min-width:52px;flex:none;font:inherit;cursor:pointer}
+.seac b{font-family:var(--f-display);font-weight:400;font-size:14px;letter-spacing:.04em;text-transform:uppercase;line-height:1;text-align:center;white-space:nowrap}
+.mark .seac b{display:block;background:none;color:var(--ink);transform:none;height:auto;min-width:0;padding:0;font-size:14px}
+.seac i{display:block;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
+.seac em{display:block;height:100%;width:0;background:var(--gold-fill);transition:width .4s}
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
-    <div class="mark"><b>EAT</b><span>Empire Auction<br>Tycoon</span><button class="stars" id="hStars" aria-label="Dynasty: stars and prestige">★ 0</button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
+    <div class="mark"><button class="seac" id="hSea" aria-label="Season level"><b id="hSeaLv">Lv 0</b><i><em id="hSeaBar"></em></i></button><button class="stars" id="hStars" aria-label="Dynasty: stars and prestige">★ 0</button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
     <div class="ledger">
       <div><small>Net worth</small><strong id="hWorth">$0</strong><em id="hInc">+$0/mo</em></div>
       <div><small>Cash</small><strong id="hCash">$0</strong></div>
@@ -1424,7 +1431,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v30b-web';
+const VERSION='v30d-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1736,13 +1743,15 @@ function startAuction(){
 function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
- if(!first&&!daily&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
+ /* v30c quiet rooms (iOS tester, 19 Oct: "just wanted more deals", kept stopping at the guide): 40% of Starter and 20% of Family lots have rivals who all quit at or under the price guide */
+ const quietP=SD_BUILD||feat||daily||first||bg?0:L.ti===0?0.4:L.ti===1?0.2:0;if(Math.random()<quietP){for(const r of rivals)r.max=Math.min(r.max,L.guide*rnd(0.86,1.0));L.quiet=true;}
+ if(!first&&!daily&&!L.quiet&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
  if(!SD_BUILD){for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
   if(!first&&!daily&&FRIENDS.length&&rivals.length>1&&Math.random()<0.2){const fr=pick(FRIENDS),st=fr.style||'sniper';if(!rivals.some(r=>r.name===fr.nick))rivals[rivals.length-1]={name:fr.nick,style:st,friend:true,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:L.value*(st==='aggro'?rnd(0.92,1.12):st==='cautious'?rnd(0.8,1.0):rnd(0.88,1.06))};}}
  {const w=WM_OF(L);L.fmt=w.fmt;if(w.rivals&&!SD_BUILD&&rivals.length>1&&Math.random()<0.6){const r=rivals[rivals.length-1];if(!r.boss&&!r.friend&&r.name!==S.nemesis){r.name=pick(w.rivals);r.local=true;}}}
  let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
  L.sky=skyAt(L.st);const find0=bg||SD_BUILD?undefined:inspect(feat);
- const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):L.quiet?Math.round(rnd(3,6)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};if(!bg&&!first&&!daily&&!feat&&!SD_BUILD&&S.props.length>=2&&Math.random()<1/12){L.mystery=true;X.est.lo=roundTo(c*0.85,L.inc);X.est.hi=roundTo(c*1.15,L.inc);}X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
@@ -1750,7 +1759,7 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  return X;}
 function recordAuction(winner,rival){const L=A.lot,s=A.st,you=winner==='you',prem=A.bid&&L.guide?A.bid/L.guide-1:null;
  if(s.hand+s.auto+s.big>0)T.c.auctionsJoined++;
- T.auctions.push({t:tnow(),no:L.no,tier:L.ti,rare:L.rare,style:L.style,value:Math.round(L.value),guide:Math.round(L.guide),hammer:Math.round(A.bid),winner,rival:rival||null,
+ T.auctions.push({t:tnow(),no:L.no,tier:L.ti,quiet:!!L.quiet,rare:L.rare,style:L.style,value:Math.round(L.value),guide:Math.round(L.guide),hammer:Math.round(A.bid),winner,rival:rival||null,
   rivals:A.rivals.map(r=>r.style),rivalBids:s.rivalBids,bidders:A.rivals.filter(r=>r.bids>0).length,outs:s.outs,thinks:s.thinks,counters:s.counters,war:A.warUsed,nemesis:A.rivals.some(r=>r.name===S.nemesis)?S.nemesis:null,yourHand:s.hand,yourAuto:s.auto,yourBig:s.big,folds:s.folds,snipes:s.snipes,firstBidClock:s.firstClock,lastBidClock:s.lastClock,maxYou:Math.round(s.maxYou),
   autoOn:!!A.auto,bg:!!A.bg,autoMax:Math.round(A.autoMax),cashAt:s.cashAt,couldAfford:s.couldAfford,durSec:Math.round((Date.now()-s.t0)/1000),
   estLo:A.est?Math.round(A.est.lo):null,estHi:A.est?Math.round(A.est.hi):null,estWa:A.est?Math.round(waOf(A.est)):null,stubborn:!!(A.rivals||[]).some(r=>r.stub),zone:A.est&&A.bid?zoneOf(A.bid,L,A.est):null,yourMaxZone:A.est&&s.maxYou?zoneOf(s.maxYou,L,A.est):null,tierAuto:S.tierAuto!==false,first:!!A.first,daily:!!A.daily,reg:!!A.reg,featured:!!A.featured,find:A.find||null,cue:!!A.cue,
@@ -2057,7 +2066,7 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell&&(S.reg.n<=2||A.joined&&S.reg.n<=1);ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
- $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
+ $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}${L.quiet?' · quiet room':''}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.textContent='Your auction';}else if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
 $('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti)){cashSheet(nb,A.lot.ti);return;}if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
@@ -2120,7 +2129,10 @@ function seaReward(lv,prem){const id=season().id;if(prem)return lv%2===0?{t:'cos
  if(lv===SEA_LV)return{t:'title',v:`Season ${id} Champion`,n:`Title: Season ${id} Champion`};if(lv===5)return{t:'cos',v:'frame:neon',n:'Neon card frame'};if(lv===10)return{t:'cos',v:'paddle:gold',n:'Gold paddle'};if(lv===15)return{t:'cos',v:'frame:holo',n:'Holo card frame'};
  return lv%2?{t:'cash',v:roundTo(cashPack(0)*0.15,1000),n:'Cash bonus'}:{t:'regos',v:2,n:'2 registrations'};}
 function grantReward(r){if(r.t==='cash')S.cash+=r.v;else if(r.t==='regos')regAdd(r.v,'season');else if(r.t==='title')S.sTitles=(S.sTitles||[]).concat(r.v);else if(r.t==='cos'){const [k,v]=r.v.split(':');if(k==='frame'){S.frames=Array.from(new Set((S.frames||[]).concat(v)));}else S.paddles=Array.from(new Set((S.paddles||[]).concat(v)));}}
-function sxp(n,why){const se=season();if(!S.sx||S.sx.id!==se.id)S.sx={id:se.id,xp:0,lv:0,set:0};const before=S.sx.lv;S.sx.xp+=n;S.sx.lv=Math.min(SEA_LV,Math.floor(S.sx.xp/SEA_XP));
+/* v30d: the header shows the season level (replaces the EAT mark); tap opens the Season section */
+function drawSea(){try{const se=season(),x=S.sx&&S.sx.id===se.id?S.sx:{xp:0,lv:0},lv=x.lv||0,max=lv>=SEA_LV,p=max?100:((x.xp||0)%SEA_XP)/SEA_XP*100;$('#hSeaLv').textContent=max?'Max':'Lv '+lv;$('#hSeaBar').style.width=p+'%';$('#hSea').setAttribute('aria-label',`Season ${se.id}, level ${lv}${max?'':', '+Math.round(p)+'% to the next'}`);}catch(e){}}
+$('#hSea').onclick=()=>{T.c.seaTaps=(T.c.seaTaps||0)+1;show('e');eGo('sea');};
+function sxp(n,why){const se=season();if(!S.sx||S.sx.id!==se.id)S.sx={id:se.id,xp:0,lv:0,set:0};const before=S.sx.lv;S.sx.xp+=n;S.sx.lv=Math.min(SEA_LV,Math.floor(S.sx.xp/SEA_XP));setTimeout(drawSea,0);
  for(let lv=before+1;lv<=S.sx.lv;lv++){const r=seaReward(lv,false);grantReward(r);if(S.sp===se.id)grantReward(seaReward(lv,true));T.c.seasonLevels=(T.c.seasonLevels||0)+1;tlog('season_level',{lv,why});toast(`Season level ${lv}: ${r.n}${r.t==='cash'?' '+money(r.v):''}.`,'up');if(lv===SEA_LV){award('champion');sfx('rare');confetti(true,2);}}}
 function renderSeason(){const se=season(),sx=S.sx&&S.sx.id===se.id?S.sx:{xp:0,lv:0,set:0},left=Math.max(0,Math.ceil((se.ends-Date.now())/864e5)),into=sx.lv>=SEA_LV?100:(sx.xp%SEA_XP)/SEA_XP*100,prem=S.sp===se.id;
  $('#seaBox').innerHTML=`<section class="frhero sea"><small>Season ${se.id} · ${left} days left</small><h2>${se.theme.n}</h2><p>${se.theme.d}</p><div class="sealv"><b>Level ${sx.lv}</b><div class="bar"><i style="width:${into}%"></i></div><small>${sx.lv>=SEA_LV?'Maxed out':(SEA_XP-sx.xp%SEA_XP)+' XP to level '+(sx.lv+1)}</small></div><p class="upnote">XP: win a lot 30 (60 on theme), join 5, tour 5, good news 10, rebuild boom 25, daily 20, duel 30, Auction Night 50, takeover 100. Season set: ${Math.min(sx.set||0,5)}/5 theme wins.</p></section>
@@ -2917,7 +2929,7 @@ else awayCredit(since);
 setInterval(()=>{auctionTick(0.1);liveTick(0.1);},100);
 setInterval(econTick,1000);
 setInterval(save,3000);
-setTimeout(dailyCheck,900);setTimeout(drawBell,300);
+setTimeout(dailyCheck,900);setTimeout(drawBell,300);setTimeout(drawSea,300);
 })();
 </script>
 </body>
