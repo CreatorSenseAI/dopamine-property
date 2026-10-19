@@ -1152,6 +1152,31 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
 .mark .seac b{display:block;background:none;color:var(--ink);transform:none;height:auto;min-width:0;padding:0;font-size:14px}
 .seac i{display:block;height:4px;border-radius:4px;background:var(--line);overflow:hidden}
 .seac em{display:block;height:100%;width:0;background:var(--gold-fill);transition:width .4s}
+
+/* v30e dock: a 2 x 2 grid of even buttons (Bid, Go big / Auto, Next). No 3D underlay: it stayed red under the green "You lead" button. The auto limit row shows above only while auto is on. */
+.dock .dock4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.dock .dock4>button{height:46px;min-width:0;margin:0;padding:0 10px;border-radius:12px;display:flex;flex-direction:row;align-items:baseline;justify-content:center;gap:7px;line-height:46px;font-family:var(--f-display);font-weight:400;font-size:19px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;width:auto;flex:none;box-shadow:none!important;transform:none}
+.dock .dock4>button:active{transform:scale(.97)}
+.dock .dock4>button small{display:inline;font-family:var(--f-mono);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.92;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dock .dock4 .bid{background:var(--red);color:var(--on-red)}
+.dock .dock4 .bid.lead{background:var(--green);color:#fff;opacity:1}
+.dock .dock4 .bid.need{background:var(--sunk);color:var(--ink)}
+.dock .dock4 .bigbid{background:var(--gold-fill);color:var(--on-gold)}
+.dock .dock4 .bigbid b{font-size:19px;font-weight:400;line-height:1}
+.dock .dock4>button{align-items:center}
+.dock .dock4>button small,.dock .dock4 .bigbid span{line-height:1;position:relative;top:1px}
+.dock .dock4 .bigbid span{font-family:var(--f-mono);font-size:13px;font-weight:600}
+.dock .dock4 .bigbid:disabled{background:var(--sunk);color:var(--muted)}
+.dock .dock4 .autob,.dock .dock4 .skip{border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.dock .dock4 .autob[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dock .dock4>button:disabled{opacity:.6}
+.dock .dock4 .bigbid[hidden]{display:none}
+.dock .autorow{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.dock .autorow:not(.on){display:none}
+.dock .autorow .alab{color:var(--muted);flex:none}
+.dock .autorow .lim{flex:1;text-align:center}
+.dock .autorow .step{width:34px;height:28px}
+.dock:has(.bigbid[hidden]) .dock4 .bid{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -1297,15 +1322,12 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
   <div class="dock" id="dock">
     <button class="verdict" id="verdict" aria-expanded="false" aria-controls="ifwin"></button>
     <div class="reginfo" id="regInfo" hidden></div>
-    <div class="bidrow"><button class="bid" id="bidBtn">Bid</button><button class="bigbid" id="bigBtn" aria-label="Go big: jump the bidding"><b>Go big</b><span id="bigAmt"></span></button></div>
-    <div class="row">
-      <div class="auto">
-        <button class="toggle" id="autoBtn" aria-pressed="false">Auto-bid</button>
-        <button class="step" id="autoDn" aria-label="Lower auto-bid limit">&minus;</button>
-        <span class="lim" id="autoLim">Max $0</span>
-        <button class="step" id="autoUp" aria-label="Raise auto-bid limit">+</button>
-      </div>
-      <button class="skip" id="skipBtn">Next lot</button>
+    <div class="auto autorow"><span class="alab">Auto-bid up to</span><button class="step" id="autoDn" aria-label="Lower auto-bid limit">&minus;</button><span class="lim" id="autoLim">Max $0</span><button class="step" id="autoUp" aria-label="Raise auto-bid limit">+</button></div>
+    <div class="dock4">
+      <button class="bid" id="bidBtn">Bid</button>
+      <button class="bigbid" id="bigBtn" aria-label="Go big: jump the bidding"><b>Go big</b><span id="bigAmt"></span></button>
+      <button class="toggle autob" id="autoBtn" aria-pressed="false">Auto</button>
+      <button class="skip" id="skipBtn">Next</button>
     </div>
   </div>
 
@@ -1431,7 +1453,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v30d-web';
+const VERSION='v30f-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1772,7 +1794,7 @@ function placeBid(who,amt,big,src){const prevClock=A.clock,prevLeader=A.leader;i
  if(!A.duel&&!A.sell&&A.est&&A.st.hand+A.st.auto+A.st.big>0&&A.rivals.filter(r=>!r.out).length===1&&amt>=waOf(A.est)*0.98){A.duel=true;T.c.duels=(T.c.duels||0)+1;tlog('duel',{tier:A.lot.ti});$('#lotCard').classList.add('duel');const el=$('#callBig');if(el){el.textContent='Bidding war!';el.className='callbig duelc';void el.offsetWidth;el.classList.add('on');}sfx('call');buzz([40,40,40,40,80]);}
  const b=$('#bidNow');b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump');sfx(who==='you'?'bid':'rival',A.est?amt/A.est.hi:0.5);renderFeed();updAuction();}
 function auctionTick(dt){if(!A||document.hidden||(!$('#modal').hidden&&!TOURING))return;
- if(A.ended){if(TOURING&&!A.bg)return;A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').textContent='Next lot '+Math.ceil(A.nextIn)+'s';return;}
+ if(A.ended){if(TOURING&&!A.bg)return;A.nextIn-=dt;if(A.bg){if(A.nextIn<=0)A.dead=true;return;}if(A.nextIn<=0)startAuction();else $('#skipBtn').innerHTML='Next lot<small>'+Math.ceil(A.nextIn)+'s</small>';return;}
  A.clock=Math.max(0,A.clock-dt);
  if(A.say){A.say.t-=dt;if(A.say.t<=0){A.say=null;renderChat();}}
  for(const r of A.rivals){if(r.out||A.leader===r)continue;const nb=nextBid();
@@ -2010,7 +2032,7 @@ function renderLot(){const L=A.lot,T=TIERS[L.ti];
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
  {const bn=$('#backNote');if(bn)bn.textContent=`Valuer: ${money(A.est.lo)} to ${money(A.est.hi)}. Walk away at ${money(waOf(A.est))}. Risk here: ${hazOf(L).join(', ')}.${L.rare?' Rare listing.':''}${A.sell||A.first?'':' Swipe the photo to tour the rooms.'}`;}
  drawMeter();
- $('#result').hidden=true;$('#skipBtn').textContent='Next lot';renderFeed();updAuction();}
+ $('#result').hidden=true;$('#skipBtn').innerHTML='Next lot';renderFeed();updAuction();}
 const mScale=()=>{const L=A.lot,lo=L.open,hi=A.est.hi*1.18;return x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));};
 function drawMeter(){const L=A.lot,e=A.est,pc=mScale(),a=Math.min(L.guide,e.lo);
  const seg=(cls,x0,x1)=>{const l=pc(x0),w=pc(x1)-l;return w>0?`<i class="z-${cls}" style="left:${l}%;width:${w}%"></i>`:'';};
@@ -2056,18 +2078,18 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  $('#clockTxt').textContent=A.ended?'Hammer down':A.clock.toFixed(1)+'s';
  const cb=$('#clockBar');cb.style.width=(A.clock/A.total*100)+'%';cb.className=!A.ended&&A.clock<=3?'hot pulse':A.clock<=4?'hot':'';renderPads();
  const bb=$('#bidBtn');bb.classList.toggle('lead',A.leader==='you'&&!A.ended);bb.classList.remove('need');
- if(A.sell){bb.disabled=true;bb.textContent=A.ended?(A.leader&&A.bid>=A.sell.reserve?'Sold':'Passed in'):'Selling…';}
- else if(A.ended){bb.disabled=true;bb.textContent=A.leader==='you'?'Yours':'Hammer down';}
- else if(A.leader==='you'){bb.disabled=true;bb.textContent='You lead';}
- else if(regOut(A)){bb.disabled=true;bb.textContent='No regos left';}
- else if(!canPay(nb,L.ti)){bb.disabled=false;bb.classList.add('need');bb.innerHTML='Need '+money(depositFor(nb,L.ti))+'<small>tap for ways to pay</small>';}
- else{bb.disabled=false;if(needsLoan(nb,L.ti))bb.innerHTML='Bid '+money(nb)+'<small>with a loan</small>';else bb.textContent='Bid '+full(nb);}
+ if(A.sell){bb.disabled=true;bb.innerHTML=A.ended?(A.leader&&A.bid>=A.sell.reserve?'Sold':'Passed in'):'Selling…';}
+ else if(A.ended){bb.disabled=true;bb.innerHTML=A.leader==='you'?'Yours':'Sold';}
+ else if(A.leader==='you'){bb.disabled=true;bb.innerHTML='You lead';}
+ else if(regOut(A)){bb.disabled=true;bb.innerHTML='No regos';}
+ else if(!canPay(nb,L.ti)){bb.disabled=false;bb.classList.add('need');bb.innerHTML='Need<small>'+money(depositFor(nb,L.ti))+'</small>';}
+ else{bb.disabled=false;bb.innerHTML='Bid<small>'+money(nb)+'</small>';bb.setAttribute('aria-label','Bid '+full(nb)+(needsLoan(nb,L.ti)?' with a loan':''));}
  const ga=nb+L.inc*4;$('#bigBtn').disabled=!!A.sell||A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A);$('.auto').hidden=!!A.sell;$('#bigBtn').hidden=!!A.sell;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell&&(S.reg.n<=2||A.joined&&S.reg.n<=1);ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
- $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
+ $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').innerHTML=A.auto?'Auto-bid<small>on</small>':'Auto-bid';$('#autoBtn').disabled=!!A.sell;
  $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}${L.quiet?' · quiet room':''}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
- const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.textContent='Your auction';}else if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
+ const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.innerHTML='Selling';}else if(!A.ended)sb.innerHTML=sl>0?'Skip<small>'+Math.ceil(sl)+'s</small>':'Next lot';}
 $('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti)){cashSheet(nb,A.lot.ti);return;}if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
 $('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(!canPay(amt,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}let folded=null;
