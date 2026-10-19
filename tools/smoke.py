@@ -80,10 +80,15 @@ with sync_playwright() as p:
         print(scheme, "reveal shown:", pg.locator(".reveal").count() > 0 or "after win only")
         fits(pg, "#vAuction", scheme + " auction")
         pg.screenshot(path=str(out / f"v25-auction-{scheme}.png"))
-        if pg.is_enabled("#verdict"):
-            pg.click("#verdict"); pg.wait_for_timeout(300)
-            if pg.is_visible("#ifwin"): pg.screenshot(path=str(out / f"v25-ifwin-{scheme}.png")); pg.click("#iwX")
-            elif pg.is_visible("#modal"): print(scheme, "verdict opened the cash sheet:", pg.inner_text("#sheet")[:60].replace("\n", " ")); pg.screenshot(path=str(out / f"v26-cash-{scheme}.png")); close_sheets(pg)
+        if pg.is_visible("#coach"): pg.click("#coach button")
+        if pg.inner_text("#bidBtn").upper().startswith("NEED"):
+            pg.click("#bidBtn"); pg.wait_for_timeout(300)
+            if pg.is_visible("#modal"): print(scheme, "bid button opened the cash sheet:", pg.inner_text("#sheet")[:60].replace("\n", " ")); pg.screenshot(path=str(out / f"v26-cash-{scheme}.png")); close_sheets(pg)
+        pg.click("#lotInfo"); pg.wait_for_timeout(500)
+        if pg.is_visible("#ifwin"): pg.screenshot(path=str(out / f"v25-ifwin-{scheme}.png")); pg.click("#iwX"); pg.wait_for_timeout(400)
+        # swipe tour: the next-room arrow on the photo
+        if pg.locator("#art .galnav.next").count() and pg.is_enabled("#art .galnav.next"):
+            pg.click("#art .galnav.next"); pg.wait_for_timeout(400); print(scheme, "gallery room:", pg.inner_text("#art .galname") if pg.locator("#art .galname").count() else "none"); pg.screenshot(path=str(out / f"v30-gallery-{scheme}.png"))
         pg.click("#tE"); pg.wait_for_timeout(800)
         fits(pg, "#vEmpire", scheme + " empire overview")
         pg.screenshot(path=str(out / f"v25-overview-{scheme}.png"))

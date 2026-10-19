@@ -1021,6 +1021,123 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
 .ev-flood .evcap,.ev-shark .evcap{background:rgba(20,70,140,.9)}.ev-fire .evcap,.ev-war .evcap,.ev-crash .evcap,.ev-recession .evcap,.ev-arrest .evcap{background:rgba(160,20,30,.9)}
 .ev-good .evcap,.ev-station .evcap,.ev-film .evcap,.ev-celeb .evcap,.ev-grant .evcap,.ev-lease .evcap,.ev-school .evcap,.ev-refund .evcap,.ev-games .evcap,.ev-rebuild .evcap,.ev-cut .evcap,.ev-prize .evcap,.ev-rezone .evcap,.ev-scandal .evcap{background:var(--gold-fill);color:var(--on-gold);text-shadow:none}
 #lotCard:has(.runtag) .setchip,.art:has(.runtag) #featTag{display:none}
+
+/* ---------- v30: auction overhaul (19 Oct feedback: too much on screen, can't see the house) ---------- */
+/* news + bell: a full-width row under the header on every tab, readable, tap for the history */
+.top{flex-wrap:wrap;row-gap:4px;padding-bottom:0}
+.newsbar{flex:1 0 100%;order:9;display:flex;align-items:center;gap:8px;min-width:0;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);margin:0 -14px;padding:5px 14px 6px;font:inherit;text-align:left;cursor:pointer}
+.newsbar .bell{position:relative;flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--sunk);color:var(--ink)}
+.newsbar .bell i{position:absolute;top:-4px;right:-6px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--red);color:var(--on-red);font-style:normal;font-size:10px;font-weight:800;line-height:16px;text-align:center}
+.newsbar .bell i[hidden]{display:none}
+.newsk{flex:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+.newst{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.newst.go{animation:newsfade .5s ease-out}
+@keyframes newsfade{from{opacity:0;transform:translateY(4px)}}
+.inbox{text-align:left}
+.inbox h3{text-align:center}
+.inhead{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+.inrow{display:flex;gap:10px;align-items:baseline;justify-content:space-between;font-size:13.5px;line-height:1.35;padding:7px 0;border-bottom:1px solid var(--line)}
+.inrow time{flex:none;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.inrow.up{box-shadow:inset 3px 0 0 var(--green);padding-left:8px}
+.inrow.down{box-shadow:inset 3px 0 0 var(--red);padding-left:8px}
+.inrow.news span{font-weight:600}
+.inrow.new span::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:1px}
+/* top row: goal + market button + one event + Hot lot; nothing scrolls sideways */
+#vAuction .toprow .chips{overflow:visible;margin:0;padding:0;flex:1 1 auto;min-width:0;gap:6px}
+#vAuction .goalchip{flex:0 1 auto;min-width:0;overflow:hidden}
+#vAuction .goalchip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.mkchip{flex:none;gap:4px}
+.mkchip svg{opacity:.7}
+.tright .sq{display:none!important}
+.mksheet .mkgrid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.mksheet .chip{padding:9px 13px;font-size:14px}
+.mksheet .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* live lots: slim pills */
+#vAuction .lv{height:40px}
+#vAuction .lvmain{grid-template-columns:30px 1fr;gap:6px;padding:4px 5px}
+#vAuction .lvart{width:30px;height:30px}
+#vAuction .lvt{line-height:1.15}
+#vAuction .lvt b{font-size:11.5px}
+#vAuction .lvp{font-size:11.5px}
+#vAuction .lvs{display:none}
+#vAuction .lvauto{width:52px;font-size:11px;padding:2px 3px}
+#vAuction .lvauto small{font-size:9.5px}
+/* the house gets the room: address and guide sit on the picture */
+#vAuction .artwrap{position:relative;flex:1 1 auto;min-height:110px;display:flex;flex-direction:column}
+#vAuction .artwrap .art{flex:1 1 auto;min-height:0}
+#vAuction .lotinfo{position:absolute;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:1fr auto auto;grid-template-rows:auto auto;gap:0 8px;align-items:end;padding:22px 12px 7px;border:0;margin:0;text-align:left;color:#fff;font:inherit;background:linear-gradient(180deg,transparent,rgba(8,12,22,.82) 55%);cursor:pointer}
+#vAuction .lotinfo .addr{grid-column:1;font-size:16px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+#vAuction .lotinfo .sub{grid-column:1;grid-row:2;font-size:12px;color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vAuction .lotinfo .guide{grid-column:2;grid-row:1/3;display:flex;flex-direction:column;align-items:flex-end;color:#fff}
+#vAuction .lotinfo .guide small{display:block;font-size:10px;color:rgba(255,255,255,.75)}
+#vAuction .lotinfo .guide span{font-size:13.5px}
+.flipi{grid-column:3;grid-row:1/3;align-self:center;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(255,255,255,.8);font-family:Georgia,serif;font-style:italic;font-weight:700;font-size:13px}
+#vAuction .art .daily,#vAuction .art .chat{bottom:52px}
+#vAuction .art .tourbtn{bottom:52px}
+#vAuction .art .daily.boss~.tourbtn{bottom:80px}
+#vAuction .live{padding:6px 12px 8px}
+#vAuction .live .big{font-size:30px}
+#vAuction .meter{margin-top:15px}
+#vAuction .pad{width:48px}
+#vAuction .pad b{width:26px;height:26px;font-size:10.5px}
+/* the back of the card: If you win + the home */
+#vAuction .lot{perspective:1200px}
+.lot.flipping{animation:lotflip .34s ease-in-out}
+@keyframes lotflip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+@media (prefers-reduced-motion:reduce){.lot.flipping{animation:none}}
+.lotback{position:absolute;inset:0;z-index:8;background:var(--surface);padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.lotback[hidden]{display:none}
+.lotback .iwtop{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lotback .iwtop b{font-family:var(--f-display);font-weight:400;font-size:17px;letter-spacing:.04em;text-transform:uppercase}
+.lotback .iwx{width:auto;height:auto;border-radius:999px;font-size:12.5px;font-weight:700;padding:6px 12px;margin-left:auto}
+.lotback h4{margin:4px 0 0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lotback .specs{padding:0;display:flex;flex-wrap:wrap;gap:6px;white-space:normal;-webkit-mask-image:none;mask-image:none;overflow:visible}
+.lotback .specs span{background:var(--sunk);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--ink)}
+.lotback .setchip{margin:0}
+.backnote{font-size:12.5px;color:var(--muted)}
+.newsbar{padding:3px 12px 4px;margin:0 -12px}
+.newsbar .bell{width:21px;height:21px}
+.newst{font-size:12.5px}
+#vAuction .cur small{display:none}
+#vAuction .live{padding:4px 12px 6px;gap:0 10px}
+#vAuction .meter{margin-top:9px}
+#vAuction .meter .mk span{display:none}
+#vAuction .lotback .specs{display:flex}
+.mksheet .chip{width:auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);font-family:var(--f-body);font-weight:700;letter-spacing:0;text-transform:none;border-radius:999px}
+.mksheet .chip small{font-family:var(--f-mono);font-weight:400;color:var(--muted)}
+.mksheet .chip[aria-pressed="true"] small{color:inherit;opacity:.8}
+.mksheet .chip:disabled{opacity:.45}
+.mksheet .wchip{border-color:var(--gold)}
+#vAuction .pad{width:46px}
+#vAuction .pad b{width:24px;height:24px;font-size:10px}
+#vAuction .pads{padding-top:2px}
+#vAuction .pad small,#vAuction .pad em{font-size:10px;line-height:1.1}
+.dock{padding:6px 14px;gap:5px}
+.dock .bid{padding:8px 12px}
+.dock .bigbid{padding:3px 6px}
+.dock .bid small{display:block;font-family:var(--f-body);font-size:11px;letter-spacing:.06em;opacity:.85;margin-top:1px}
+
+/* v30b: no verdict row (the card's back has it), smaller bid buttons, no Hot lot / Showdown in the top row, swipe tour */
+.dock .verdict{display:none}
+#vAuction .tright .hotbtn,#vAuction .tright #sdBtn{display:none}
+.dock .bid{font-size:20px;padding:7px 10px;box-shadow:0 3px 0 #8c1426}
+.dock .bid small{font-size:10.5px}
+.dock .bid.need{background:var(--sunk);color:var(--ink);box-shadow:none;font-size:17px}
+.dock .bigbid{box-shadow:0 3px 0 #a8780f}
+.dock .bigbid b{font-size:16px}
+.dock .row{min-height:0}
+#vAuction .art .gal{position:absolute;inset:0;z-index:1;animation:galin .25s ease-out}
+#vAuction .art .gal svg,#vAuction .art .gal img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@keyframes galin{from{opacity:.2;transform:translateX(18px)}}
+.galname{position:absolute;left:10px;top:40px;z-index:2;background:rgba(10,14,24,.72);color:#fff;font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px}
+#vAuction .art .gal .hspot{z-index:3}
+.galdots{position:absolute;left:0;right:0;bottom:50px;z-index:4;display:flex;justify-content:center;gap:5px;pointer-events:none}
+.galdots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);box-shadow:0 0 2px rgba(0,0,0,.5)}
+.galdots i.on{background:#fff;width:16px;border-radius:3px}
+.galnav{position:absolute;top:50%;z-index:4;transform:translateY(-70%);width:28px;height:44px;border:0;border-radius:8px;background:rgba(10,14,24,.35);color:#fff;font-size:24px;line-height:1;padding:0}
+.galnav.prev{left:6px}.galnav.next{right:6px}
+.galnav:disabled{opacity:0;pointer-events:none}
+#vAuction .artwrap{touch-action:pan-y}
 </style>
 </head>
 <body>
@@ -1032,22 +1149,23 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
       <div><small>Cash</small><strong id="hCash">$0</strong></div>
     </div>
     <button class="help" id="help" aria-label="Menu: how to play, sound, session, badges"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <button class="newsbar" id="news" aria-label="Notifications and news"><span class="bell" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><i id="bellN" hidden></i></span><span class="newsk">News</span><span class="newst" id="newsTxt"></span></button>
   </header>
 
   <main id="vAuction">
-    <div class="toprow"><div class="chips" id="chips" role="group" aria-label="Goal and market tier"></div><div class="tright"><span id="lvCount" hidden></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><button class="nightbtn" id="nightBtn" hidden>Auction Night</button><button class="nightbtn live" id="siegeBtn" hidden>Defend</button><span class="featin" id="featIn" hidden></span><button class="hotbtn" data-quick="1">Hot lot</button></div></div>
+    <div class="toprow"><div class="chips" id="chips" role="group" aria-label="Goal and market tier"></div><div class="tright"><span id="lvCount" hidden></span><button class="nightbtn live" id="siegeBtn" hidden>Defend</button><button class="nightbtn" id="nightBtn" hidden>Auction Night</button><span class="featin" id="featIn" hidden></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><button class="hotbtn" data-quick="1">Hot lot</button></div></div>
     <section class="lvstrip" id="lvStrip" hidden aria-label="Other live auctions"><div class="lvrow" id="lvRow"></div></section>
 
     <section class="lot" id="lotCard" aria-live="polite">
-      <div class="art" id="art"></div>
-      <div class="news" id="news" aria-live="off"><span id="newsTxt"></span></div>
-      <div class="lotinfo">
-        <div class="addr" id="addr"></div>
-        <div class="sub" id="sub"></div>
-        <div class="setchip" id="setChip" hidden></div>
-        <div class="guide"><small>Guide</small><span id="guide"></span></div>
+      <div class="artwrap" id="artWrap">
+        <div class="art" id="art"></div>
+        <button class="lotinfo" id="lotInfo" aria-label="Flip for the numbers and the home's details">
+          <span class="addr" id="addr"></span>
+          <span class="sub" id="sub"></span>
+          <span class="guide"><small>Guide</small><span id="guide"></span></span>
+          <span class="flipi" aria-hidden="true">i</span>
+        </button>
       </div>
-      <div class="specs" id="specs"></div>
       <div class="live">
         <div class="cur"><small id="curLbl">Opening bid</small><span class="big" id="bidNow">$0</span><div class="leader" id="leader"></div></div>
         <div class="call"><b id="callTxt">Bidding open</b><span class="num" id="clockTxt">12.0s</span></div>
@@ -1062,17 +1180,21 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
         <div class="clock"><i id="clockBar"></i></div>
         <div class="result" id="result" hidden></div>
       </div>
+      <div class="lotback" id="ifwin" hidden role="region" aria-label="If you win and the home's details">
+        <div class="iwtop"><b id="iwHead">If you win</b><span class="iwsum" id="iwSum"></span><button class="iwx" id="iwX" aria-label="Back to bidding">Back to bidding</button></div>
+        <div class="iw">
+          <div><small>Cash today</small><strong id="iwCash"></strong><em id="iwCashN"></em></div>
+          <div><small>Cash flow</small><strong id="iwFlow"></strong><em id="iwFlowN"></em></div>
+          <div><small>Net worth</small><strong id="iwWorth"></strong><em id="iwWorthN"></em></div>
+        </div>
+        <div class="incline" id="iwInc"></div>
+        <h4>The home</h4>
+        <div class="specs" id="specs"></div>
+        <div class="setchip" id="setChip" hidden></div>
+        <div class="backnote" id="backNote"></div>
+      </div>
     </section>
 
-    <div class="iwpop" id="ifwin" hidden role="dialog" aria-label="If you win">
-      <div class="iwtop"><b id="iwHead">If you win</b><span class="iwsum" id="iwSum"></span><button class="iwx" id="iwX" aria-label="Close">&times;</button></div>
-      <div class="iw">
-        <div><small>Cash today</small><strong id="iwCash"></strong><em id="iwCashN"></em></div>
-        <div><small>Cash flow</small><strong id="iwFlow"></strong><em id="iwFlowN"></em></div>
-        <div><small>Net worth</small><strong id="iwWorth"></strong><em id="iwWorthN"></em></div>
-      </div>
-      <div class="incline" id="iwInc"></div>
-    </div>
   </main>
 
   <main id="vMarket" hidden>
@@ -1261,7 +1383,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1294,7 +1416,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v29b-web';
+const VERSION='v30-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1532,7 +1654,7 @@ function flushDigest(){digestIn=12;const d=digest;if(!d.vac&&!d.ten&&!d.rep)retu
  toast('Last year: '+parts.join(', ')+'.',d.vac>d.ten?'down':'up');digest={vac:0,ten:0,rep:0,repCost:0};}
 /* notifications: one on screen at a time, short, swipe sideways or tap to clear */
 const TQ=[];let tCur=null;
-function toast(msg,kind,onTap){if(tCur&&tCur.msg===msg)return;if(TQ.some(q=>q.msg===msg))return;TQ.push({msg,kind,onTap,at:Date.now()});if(TQ.length>3)TQ.splice(TQ.findIndex(q=>q.kind!=='up')>=0?TQ.findIndex(q=>q.kind!=='up'):0,1);if(!tCur&&$('#coach').hidden)nextToast();}
+function toast(msg,kind,onTap){if(tCur&&tCur.msg===msg)return;if(TQ.some(q=>q.msg===msg))return;inboxAdd(msg,kind);TQ.push({msg,kind,onTap,at:Date.now()});if(TQ.length>3)TQ.splice(TQ.findIndex(q=>q.kind!=='up')>=0?TQ.findIndex(q=>q.kind!=='up'):0,1);if(!tCur&&$('#coach').hidden)nextToast();}
 function nextToast(){if(!$('#coach').hidden){tCur=null;return;}while(TQ.length&&Date.now()-TQ[0].at>8000)TQ.shift();const q=TQ.shift();if(!q){tCur=null;return;}
  const d=document.createElement('div');d.className='toast '+(q.kind||'')+(q.onTap?' tap':'');d.setAttribute('role','status');d.textContent=q.msg;tCur={msg:q.msg,el:d};
  const done=()=>{if(!d.isConnected)return;clearTimeout(d._t);d.classList.add('gone');setTimeout(()=>{d.remove();if(tCur&&tCur.el===d){tCur=null;nextToast();}},180);};
@@ -1694,7 +1816,7 @@ function sdSheet(board,score){const rows=board&&board.top||[];
 async function openBoard(){try{const b=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
 function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
 function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
- if(ui&&L.mystery){const t=$('#tarp');if(t){t.classList.add('off');setTimeout(()=>t.remove(),700);}$('#addr').textContent=L.addr;const tb=$('#tourBtn');if(tb)tb.hidden=false;T.c.mystery=(T.c.mystery||0)+1;}
+ if(ui&&L.mystery){const t=$('#tarp');if(t){t.classList.add('off');setTimeout(()=>t.remove(),700);}$('#addr').textContent=L.addr;T.c.mystery=(T.c.mystery||0)+1;}
  if(A.leader==='you'&&L.fmt==='board'&&!A.run&&!A.showdown&&Math.random()<0.1){const r2=A.rivals.filter(r=>r.bids>0).sort((a,b)=>b.max-a.max)[0];A.leader=r2||null;T.c.boardNo=(T.c.boardNo||0)+1;tlog('board_no',{tier:L.ti});if(ui)toast(`The co-op board said no. Your deposit's back${r2?' and '+rm(r2).short+' takes it':''}. New York, baby.`,'down');}
  if(A.leader==='you')recordAuction('you');else if(A.leader){recordAuction('rival',A.leader.name);if(A.st.hand+A.st.auto+A.st.big>0){T.c.losses++;T.c.outbid++;}}else{recordAuction('none');T.c.passedIn++;}
  const part=A.rivals.filter(r=>r.bids>0),youBidAny=A.st.hand+A.st.auto+A.st.big>0;S.h2h=S.h2h||{};let beatNem=null;
@@ -1817,6 +1939,21 @@ function tourPlan(p,auc){const strata=p.style==='unit'||p.style==='tower',rooms=
   const f=auc.find0,fk=f?f.kind:'dud';spots.push(Object.assign({room:Math.floor(r()*rooms.length),kind:fk,label:CLUE[fk][Math.floor(r()*CLUE[fk].length)],real:!!f},pos()));}
  const duds=CLUE.dud.slice().sort(()=>r()-0.5);for(let j=0;j<2;j++)spots.push(Object.assign({room:Math.floor(r()*rooms.length),kind:'dud',label:duds[j],real:false},pos()));
  return{rooms,spots};}
+/* v30 inline tour: GAL 0 = the outside, 1..n = rooms from tourPlan(); swipe or the side arrows move through them */
+let GAL=0;
+function galOK(){return A&&!A.bg&&!A.sell&&!A.first&&!(A.lot.mystery&&!A.ended);}
+function galTo(i){if(!galOK())return;const L=A.lot,plan=A.tour=A.tour||tourPlan(L,A),n=plan.rooms.length;i=Math.max(0,Math.min(n,i));if(i===GAL)return;if(i>0&&!A.toured){A.toured=1;sxp(5,'tour');T.c.tours=(T.c.tours||0)+1;tlog('tour',{from:'swipe',tier:L.ti});hideCoach('swipe');}GAL=i;sfx('tick');drawGal();}
+function updDots(){const d=$('#galDots');if(!d)return;[...d.children].forEach((x,k)=>x.classList.toggle('on',k===GAL));const p=$('#art .galnav.prev'),n=$('#art .galnav.next');if(p)p.disabled=GAL===0;if(n)n.disabled=!!d.children.length&&GAL>=d.children.length-1;}
+function drawGal(){const art=$('#art');let g=$('#gal');if(!GAL){if(g)g.remove();updDots();return;}const L=A.lot,plan=A.tour,[k,name]=plan.rooms[GAL-1],seen=A.tourSeen=A.tourSeen||{},here=plan.spots.map((sp,j)=>[sp,j]).filter(([sp])=>sp.room===GAL-1);
+ if(!g){g=document.createElement('div');g.className='gal';g.id='gal';art.insertBefore(g,art.querySelector('.tag'));}
+ g.innerHTML=roomSVG(Object.assign({},L,{sky:L.sky!=null?L.sky:skyAt(L.st)}),k,GAL-1)+`<span class="galname">${esc(name)} · ${GAL}/${plan.rooms.length}</span>`+(A.ended?'':here.map(([sp,j])=>`<button class="hspot${seen[j]?' seen':''}" data-hs="${j}" style="left:${sp.x}%;top:${sp.y}%" aria-label="Look closer"></button>`).join(''));updDots();}
+function galHit(j){const plan=A.tour,sp=plan&&plan.spots[j],seen=A.tourSeen=A.tourSeen||{};if(!sp||seen[j])return;seen[j]=1;buzz(10);sfx(sp.real?'cash':'tick');T.c.tourClues=(T.c.tourClues||0)+(sp.real?1:0);
+ if(!A.ended&&(sp.kind==='over'||sp.kind==='under')){const L=A.lot;A.est.wa=roundTo((A.est.wa+L.value)/2,L.inc);A.autoMax=Math.max(L.open,Math.min(maxBid(L),A.est.wa));drawMeter();dealSig='';updDeal();}
+ const real=plan.spots.filter(x=>x.real).length;A.tourStat={got:plan.spots.filter((x,k)=>x.real&&seen[k]).length,of:real};
+ toast(sp.label+(sp.kind==='over'?': your walk-away drops.':sp.kind==='under'?': your walk-away rises.':sp.kind==='flaw'?': inspection could find a problem.':sp.kind==='good'||sp.kind==='jackpot'?': there may be a find here.':'. Nothing in it.'),sp.real?(sp.kind==='over'||sp.kind==='flaw'?'down':'up'):'');drawGal();}
+{let sx=0,sy=0,st=0;const w=$('#artWrap');w.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();},{passive:true});
+ w.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.3&&Date.now()-st<800){w.dataset.swiped=Date.now();galTo(GAL+(dx<0?1:-1));}},{passive:true});
+ w.addEventListener('click',e=>{if(Date.now()-(+w.dataset.swiped||0)<400){e.stopPropagation();e.preventDefault();return;}const n=e.target.closest('[data-gn]');if(n){galTo(GAL+ +n.dataset.gn);return;}const h=e.target.closest('[data-hs]');if(h&&A&&!A.bg)galHit(+h.dataset.hs);},true);}
 function houseTour(p,from){sxp(5,'tour');const auc=from==='lot'?A:null;if(auc&&auc.ended)return;const plan=auc?(auc.tour=auc.tour||tourPlan(p,auc)):tourPlan(p,null);let i=0;TOURING=!!auc;T.c.tours=(T.c.tours||0)+1;tlog('tour',{from:from||'lot',tier:p.ti});
  const seen=auc?(auc.tourSeen=auc.tourSeen||{}):{};
  const draw=()=>{const [k,name]=plan.rooms[i],here=plan.spots.map((sp,j)=>[sp,j]).filter(([sp])=>sp.room===i);
@@ -1839,16 +1976,22 @@ function noteWin(){const now=Date.now();combo=now-lastWinAt<4000?combo+1:1;lastW
 function affiliateHTML(L){if(!CONFIG.affiliate.enabled||!AU_STATES.includes(L.st))return '';const slug=L.sub.toLowerCase().replace(/\s+/g,'+');const url=CONFIG.affiliate.au.replace('{slug}',encodeURIComponent(slug).replace(/%2B/g,'+')).replace('{st}',L.st.toLowerCase());return `<br><a class="aff" href="${esc(url)}" target="_blank" rel="sponsored noopener" data-aff="${esc(L.sub)}">See real homes for sale in ${esc(L.sub)} &rsaquo;</a>`;}
 document.addEventListener('click',e=>{const a=e.target.closest('[data-aff]');if(a){T.c.affClicks=(T.c.affClicks||0)+1;tlog('aff_click',{sub:a.dataset.aff});track('Affiliate click',{suburb:a.dataset.aff});}});
 
-function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&!AUC_CITY;$('#chips').hidden=false;$('#chips').innerHTML=`<button class="chip goalchip" id="goalChip" data-goal="1" aria-label="Your goal"></button>`+(S.maxTier>=1?`<button class="chip wchip" data-world="1" aria-label="World markets">${(curWM()||WORLD[0]).flag} ${curWM()?esc(curWM().name):'World'}</button>`:'')+(one?'':`<button class="chip" data-auto="1" aria-pressed="${auto}">Auto <small>what you can afford</small></button>`+TIERS.map((t,i)=>{const locked=i>S.maxTier;if(i===S.maxTier+1)return '';return `<button class="chip" data-t="${i}" aria-pressed="${!auto&&i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join(''))+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');updGoal();}
-$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.world){worldSheet();return;}if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
+function chipList(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&!AUC_CITY;return (S.maxTier>=1?`<button class="chip wchip" data-world="1" aria-label="World markets">${(curWM()||WORLD[0]).flag} ${curWM()?esc(curWM().name):'World markets'}</button>`:'')+(one?'':`<button class="chip" data-auto="1" aria-pressed="${auto}">Auto <small>what you can afford</small></button>`+TIERS.map((t,i)=>{const locked=i>S.maxTier;if(i===S.maxTier+1)return '';return `<button class="chip" data-t="${i}" aria-pressed="${!auto&&i===S.tier}" ${locked?'disabled':''}>${locked?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':''}${t.name} <small>${locked?'at '+money(t.unlock):money(t.min)+'+'}</small></button>`;}).join(''))+(AUC_CITY?`<button class="chip" data-cx="1" aria-pressed="true" aria-label="Stop auctions in ${esc(AUC_CITY.place[0])} only">${esc(AUC_CITY.place[0])} only &times;</button>`:'');}
+/* v30: the top row never scrolls. Goal chip + one Market button; tiers, Auto and world markets sit in its sheet. */
+function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,w=curWM(),lbl=AUC_CITY?esc(AUC_CITY.place[0]):auto?'Auto':TIERS[S.tier].name,show=S.maxTier>=1||AUC_CITY;$('#chips').hidden=false;$('#chips').innerHTML=`<button class="chip goalchip" id="goalChip" data-goal="1" aria-label="Your goal"></button>`+(show?`<button class="chip mkchip" data-mk="1" aria-label="Choose market and tier">${w?w.flag+' ':''}${lbl}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`:'');updGoal();}
+function mkSheet(){T.c.mkSheet=(T.c.mkSheet||0)+1;$('#sheet').innerHTML=`<div class="upg mksheet"><h3>Markets</h3><p>Pick what comes up next. Auto shows lots you can pay for.</p><div class="mkgrid">${chipList()}</div><button class="sec" id="mkX">Close</button></div>`;$('#modal').hidden=false;$('#mkX').onclick=()=>{$('#modal').hidden=true;};
+ $('#sheet .mkgrid').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(!b.dataset.world)$('#modal').hidden=true;chipAct(b);};}
+$('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.mk){mkSheet();return;}chipAct(b);};
+function chipAct(b){if(b.dataset.world){worldSheet();return;}if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();}
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+T.name}</span>`+(A.run?`<span class="daily feat runtag">${A.run.kind==='night'?'Auction Night':A.run.kind==='takeover'?'Takeover: '+esc(A.run.sub):A.run.kind==='defend'?'Defend '+esc(A.run.sub):'Duel vs '+esc(A.run.vs)} · ${A.run.i}/${A.run.n}${A.run.kind==='night'&&A.run.i===A.run.n?' · Headliner':''}</span>`:'')+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':'<button class="tourbtn" id="tourBtn" aria-label="Tour this home">Tour</button>')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+T.name}</span>`+(A.run?`<span class="daily feat runtag">${A.run.kind==='night'?'Auction Night':A.run.kind==='takeover'?'Takeover: '+esc(A.run.sub):A.run.kind==='defend'?'Defend '+esc(A.run.sub):'Duel vs '+esc(A.run.vs)} · ${A.run.i}/${A.run.n}${A.run.kind==='night'&&A.run.i===A.run.n?' · Headliner':''}</span>`:'')+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':`<div class="galdots" id="galDots">${'<i></i>'.repeat(1+(L.style==='unit'||L.style==='tower'?ROOMS_U:ROOMS_H).length)}</div><button class="galnav prev" data-gn="-1" aria-label="Previous room">‹</button><button class="galnav next" data-gn="1" aria-label="Next room">›</button>`)+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';GAL=0;updDots();$('#pads').dataset.sig='';renderPads();renderChat();if(!A.sell&&!A.first&&!A.bg&&S.wins>=1)setTimeout(()=>coach('swipe','Swipe the photo to walk through the rooms. Glowing spots are clues that move your walk-away.'),1500);
  $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
  if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
- $('#addr').textContent=L.mystery&&!A.ended?'Mystery lot':L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;if(L.mystery&&!A.ended){const t=document.createElement('div');t.className='tarp';t.id='tarp';t.innerHTML=`<b>?</b><small>Mystery lot · ${esc(L.sub)} · ${L.land?L.land+' m²':'apartment'}</small>`;$('#art').appendChild(t);const tb=$('#tourBtn');if(tb)tb.hidden=true;}{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
+ $('#addr').textContent=L.mystery&&!A.ended?'Mystery lot':L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;if(L.mystery&&!A.ended){const t=document.createElement('div');t.className='tarp';t.id='tarp';t.innerHTML=`<b>?</b><small>Mystery lot · ${esc(L.sub)} · ${L.land?L.land+' m²':'apartment'}</small>`;$('#art').appendChild(t);}{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
+ {const bn=$('#backNote');if(bn)bn.textContent=`Valuer: ${money(A.est.lo)} to ${money(A.est.hi)}. Walk away at ${money(waOf(A.est))}. Risk here: ${hazOf(L).join(', ')}.${L.rare?' Rare listing.':''}${A.sell||A.first?'':' Tap Tour on the photo for clues.'}`;}
  drawMeter();
  $('#result').hidden=true;$('#skipBtn').textContent='Next lot';renderFeed();updAuction();}
 const mScale=()=>{const L=A.lot,lo=L.open,hi=A.est.hi*1.18;return x=>Math.max(0,Math.min(100,(x-lo)/(hi-lo)*100));};
@@ -1882,9 +2025,11 @@ function cashSheet(q,ti){T.c.cashSheets=(T.c.cashSheets||0)+1;tlog('cash_sheet',
  const eb=$('#sheet').querySelector('[data-cs="eq"]');if(eb)eb.onclick=()=>{$('#modal').hidden=true;borrowEquity(amt,'dock');};
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
  $('#csSell').onclick=()=>{$('#modal').hidden=true;show('e');eGo('pf');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
-function closeIw(){const p=$('#ifwin');if(p.hidden)return;p.hidden=true;$('#verdict').setAttribute('aria-expanded','false');}
-$('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.ended||A.sell){closeIw();return;}{const q=A.leader==='you'?A.bid:nextBid();if(!canPay(q,A.lot.ti)){closeIw();cashSheet(q,A.lot.ti);return;}}if(p.hidden){p.hidden=false;$('#verdict').setAttribute('aria-expanded','true');T.c.ifwinOpens=(T.c.ifwinOpens||0)+1;dealSig='';updDeal();}else closeIw();};
-$('#iwX').onclick=closeIw;
+function flipLot(on){const p=$('#ifwin'),c=$('#lotCard');if(on===!p.hidden)return;c.classList.remove('flipping');void c.offsetWidth;c.classList.add('flipping');setTimeout(()=>{p.hidden=!on;$('#verdict').setAttribute('aria-expanded',on?'true':'false');},170);setTimeout(()=>c.classList.remove('flipping'),360);if(on){T.c.ifwinOpens=(T.c.ifwinOpens||0)+1;dealSig='';updDeal();}}
+function closeIw(){const p=$('#ifwin');if(p.hidden)return;p.hidden=true;$('#lotCard').classList.remove('flipping');$('#verdict').setAttribute('aria-expanded','false');}
+$('#verdict').onclick=()=>{const p=$('#ifwin');if(!A||A.sell){closeIw();return;}if(!A.ended){const q=A.leader==='you'?A.bid:nextBid();if(!canPay(q,A.lot.ti)){closeIw();cashSheet(q,A.lot.ti);return;}}flipLot(p.hidden);};
+$('#lotInfo').onclick=()=>{if(!A||A.sell)return;flipLot($('#ifwin').hidden);};
+$('#iwX').onclick=()=>flipLot(false);
 function renderFeed(){if(A&&A.bg)return;if(!$('#feed'))return;$('#feed').innerHTML=A.feed.length?A.feed.map(f=>`<li class="${f.you?'you':''}"><span>${esc(f.who)}</span><span class="num">${full(f.amt)}</span></li>`).join(''):`<li><span>Room is quiet. Opening at</span><span class="num">${full(A.lot.open)}</span></li>`;}
 function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  $('#curLbl').textContent=A.leader?(A.ended?'Hammer price':'Current bid'):'Opening bid';
@@ -1893,20 +2038,20 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  const ct=$('#callTxt');ct.textContent=A.ended?'Sold':A.clock<=1?'Last chance':A.clock<=2?'Going twice':A.clock<=4?'Going once':'Bidding open';ct.className=!A.ended&&A.clock<=4?'hot':'';
  $('#clockTxt').textContent=A.ended?'Hammer down':A.clock.toFixed(1)+'s';
  const cb=$('#clockBar');cb.style.width=(A.clock/A.total*100)+'%';cb.className=!A.ended&&A.clock<=3?'hot pulse':A.clock<=4?'hot':'';renderPads();
- const bb=$('#bidBtn');bb.classList.toggle('lead',A.leader==='you'&&!A.ended);
+ const bb=$('#bidBtn');bb.classList.toggle('lead',A.leader==='you'&&!A.ended);bb.classList.remove('need');
  if(A.sell){bb.disabled=true;bb.textContent=A.ended?(A.leader&&A.bid>=A.sell.reserve?'Sold':'Passed in'):'Selling…';}
  else if(A.ended){bb.disabled=true;bb.textContent=A.leader==='you'?'Yours':'Hammer down';}
  else if(A.leader==='you'){bb.disabled=true;bb.textContent='You lead';}
  else if(regOut(A)){bb.disabled=true;bb.textContent='No regos left';}
- else if(!canPay(nb,L.ti)){bb.disabled=true;bb.textContent='Need '+money(depositFor(nb,L.ti))+' deposit';}
- else{bb.disabled=false;bb.textContent=needsLoan(nb,L.ti)?'Bid '+money(nb)+' · loan':'Bid '+full(nb);}
+ else if(!canPay(nb,L.ti)){bb.disabled=false;bb.classList.add('need');bb.innerHTML='Need '+money(depositFor(nb,L.ti))+'<small>tap for ways to pay</small>';}
+ else{bb.disabled=false;if(needsLoan(nb,L.ti))bb.innerHTML='Bid '+money(nb)+'<small>with a loan</small>';else bb.textContent='Bid '+full(nb);}
  const ga=nb+L.inc*4;$('#bigBtn').disabled=!!A.sell||A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A);$('.auto').hidden=!!A.sell;$('#bigBtn').hidden=!!A.sell;
- {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell;ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
+ {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell&&(S.reg.n<=2||A.joined&&S.reg.n<=1);ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').textContent=A.auto?'Auto-bid on':'Auto-bid';
  $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.textContent='Your auction';}else if(!A.ended)sb.textContent=sl>0?'Skip in '+Math.ceil(sl)+'s':'Next lot';}
-$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
+$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti)){cashSheet(nb,A.lot.ti);return;}if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
 $('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(!canPay(amt,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}let folded=null;
  for(const r of A.rivals){if(r.out)continue;if(r.style==='aggro'&&r.max>=amt+A.lot.inc*3&&Math.random()<0.45){r.counterNext=true;r.think=0;r.cool=rnd(0.6,1.1);continue;}if(r.max>=amt+A.lot.inc&&Math.random()<0.3){r.max=amt;folded=r;}r.cool=Math.max(r.cool,0)+rnd(0.8,1.6);}
@@ -2086,15 +2231,24 @@ function monthTick(quiet){S.mo=(S.mo||0)+1;for(const k of ['disCalm','shockCalm'
 const NEWS_F=['Auction clearance rates hold at 71%','Buyers queue around the block in Brunswick','Agent describes cupboard as "cosy studio"','First-home buyers turn to the bank of mum and dad','Investor snaps up three units before breakfast','Renovation shows blamed for subway tile shortage','Seachange buyers push up coastal prices','Developer promises "luxury" in a car park'];
 const NEWS_R18=['Landlord caught renting out a wardrobe for $400 a week','Real estate agent sells own grandmother\'s house "for the commission"','Crypto bro buys mansion, pays in a jpeg','Politician discovers he owns a 48th property','Tenant asks for a working toilet, labelled "entitled"'];
 let NEWS=[],newsI=0;
+/* v30 notifications: every toast lands in S.inbox (newest first, 60 kept) so a missed one can be read later from the bell */
+function inboxAdd(msg,kind){try{const t=String(msg).replace(/<[^>]+>/g,'').trim();if(!t||!S)return;S.inbox=S.inbox||[];if(S.inbox[0]&&S.inbox[0].m===t)return;S.inbox.unshift({m:t,k:kind||'',at:Date.now()});if(S.inbox.length>60)S.inbox.length=60;drawBell();}catch(e){}}
+function drawBell(){const n=(S.inbox||[]).filter(x=>x.at>(S.inboxSeen||0)).length,el=$('#bellN');if(!el)return;el.hidden=!n;el.textContent=n>9?'9+':n;}
+const ago=t=>{const s=Math.round((Date.now()-t)/1000);return s<60?'now':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';};
+function inboxSheet(){T.c.bellOpens=(T.c.bellOpens||0)+1;const seen=S.inboxSeen||0,L=S.inbox||[],fresh=NEWS.filter(n=>Date.now()-n.at<600e3);S.inboxSeen=Date.now();drawBell();save();
+ $('#sheet').innerHTML=`<div class="upg inbox"><h3>Notifications</h3>${fresh.length?`<div class="inhead">Headlines</div>${fresh.map(n=>`<div class="inrow news"><span>${esc(n.t)}</span><time>${ago(n.at)}</time></div>`).join('')}`:''}<div class="inhead">Recent</div>${L.length?L.map(x=>`<div class="inrow ${x.k==='up'?'up':x.k==='down'?'down':''}${x.at>seen?' new':''}"><span>${esc(x.m)}</span><time>${ago(x.at)}</time></div>`).join(''):'<p>Nothing yet. Wins, offers, events and tenant news land here.</p>'}<button class="sec" id="inX">Close</button></div>`;$('#modal').hidden=false;$('#inX').onclick=()=>{$('#modal').hidden=true;};}
+$('#news').onclick=inboxSheet;
+function eventPill(){const ids=['siegeBtn','nightBtn','featIn'];let shown=false;for(const id of ids){const el=document.getElementById(id);if(!el)continue;const want=!el.hidden;el.classList.toggle('sq',want&&shown);if(want)shown=true;}}
+setInterval(eventPill,500);
 function pushNews(t){NEWS.unshift({t,at:Date.now()});NEWS=NEWS.slice(0,6);newsI=0;drawNews(true);}
-function drawNews(now){const el=$('#newsTxt');if(!el)return;const fresh=NEWS.filter(n=>Date.now()-n.at<240e3);const pool=fresh.length&&(now||Math.random()<0.6)?fresh:(S.r18?NEWS_F.concat(NEWS_R18):NEWS_F).map(t=>({t}));const n=pool[newsI++%pool.length];if(!n)return;el.textContent=n.t.toUpperCase();el.classList.remove('go');void el.offsetWidth;el.classList.add('go');}
+function drawNews(now){const el=$('#newsTxt');if(!el)return;const fresh=NEWS.filter(n=>Date.now()-n.at<240e3);const pool=fresh.length&&(now||Math.random()<0.6)?fresh:(S.r18?NEWS_F.concat(NEWS_R18):NEWS_F).map(t=>({t}));const n=pool[newsI++%pool.length];if(!n)return;el.textContent=n.t;el.classList.remove('go');void el.offsetWidth;el.classList.add('go');}
 setInterval(()=>drawNews(false),14e3);setTimeout(()=>drawNews(false),1500);
 /* prizes: milestones pay out once, across dynasties */
 const MILES=[['w1m','$1M net worth',()=>worth()>=1e6],['w10m','$10M net worth',()=>worth()>=1e7],['w100m','$100M net worth',()=>worth()>=1e8],['w1b','$1B net worth',()=>worth()>=1e9],['h10','10 homes at once',()=>S.props.length>=10],['h25','25 homes at once',()=>S.props.length>=25],['life50','50 homes won, all time',()=>((S.life||{}).wins||0)>=50],['epic3','3 Epic finds, all time',()=>((S.life||{}).epic||0)>=3],['storm','Ride out a disaster and rebuild',()=>!!(S.badges||{}).weathered],['lucky5','5 lucky breaks',()=>(T.c.goodEvents||0)+((S.life||{}).lucky||0)>=5],['turf','Take over a suburb',()=>Object.keys(S.turf||{}).length>0],['world3','Homes in 3 countries',()=>new Set(S.props.map(p=>(WM_OF(p)||{}).k||'au')).size>=3]];
 const PRIZE_COS=['frame:neon','paddle:gold','frame:marble','paddle:neon','frame:holo','paddle:black'];
 function checkMiles(){S.miles=S.miles||{};for(const [k,n,ok] of MILES){if(S.miles[k]||!ok())continue;S.miles[k]=Date.now();const i=Object.keys(S.miles).length,cash=roundTo(cashPack(0)*0.4,1000),cos=i%2===0?PRIZE_COS[(i/2-1)%PRIZE_COS.length]:null;S.cash+=cash;const regs=regAdd(3,'prize:'+k);
   if(cos){const [t,v]=cos.split(':');if(t==='frame'){S.frames=(S.frames||[]).concat(v);}else{S.paddles=(S.paddles||[]).concat(v);}}
-  T.c.prizes=(T.c.prizes||0)+1;tlog('prize',{k,cos});eventFX('prize');award('prize');setTimeout(()=>modal(`<h3>Prize unlocked</h3><p>${esc(n)}</p><span class="big">+${money(cash)}</span><p>${regs?'Plus 3 bidder registrations. ':''}${cos?`And a new ${cos.split(':')[0]==='frame'?'card frame':'paddle'}: <b>${cos.split(':')[1]}</b>. Equip it in the Trophy room.`:''}</p>`,'Collect',()=>{sfx('rare');confetti(true);}),400);break;}}
+  T.c.prizes=(T.c.prizes||0)+1;tlog('prize',{k,cos});inboxAdd('Prize unlocked: '+n+'. +'+money(cash)+(cos?' and a new '+cos.split(':')[1]+' '+cos.split(':')[0]:''),'up');eventFX('prize');award('prize');setTimeout(()=>modal(`<h3>Prize unlocked</h3><p>${esc(n)}</p><span class="big">+${money(cash)}</span><p>${regs?'Plus 3 bidder registrations. ':''}${cos?`And a new ${cos.split(':')[0]==='frame'?'card frame':'paddle'}: <b>${cos.split(':')[1]}</b>. Equip it in the Trophy room.`:''}</p>`,'Collect',()=>{sfx('rare');confetti(true);}),400);break;}}
 function marketEvent(){const x=Math.random();if(S.r18&&x<0.14&&!(S.shockCalm>0)){shockEvent();return;}if(x<0.42){marketEvent0();return;}if(x<0.66&&disaster())return;goodEvent();}
 function marketEvent0(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm||0)>0){T.c.calmSaves++;tlog('market',{kind:'quiet'});return;}if(down)S.calm=60;if(roll>=0.9){tlog('market',{kind:'quiet'});return;}
  const before=holdings();T.c.marketEvents++;T.lastMarket={at:Date.now(),down};const kind=roll<0.08?'correction':roll<0.42?'rate_hike':roll<0.66?'rate_cut':'suburb_boom';setTimeout(()=>tlog('market',{kind,before:Math.round(before),after:Math.round(holdings())}),0);
@@ -2717,8 +2871,8 @@ function shopSheet(){if(!STORE)return;T.c.shopViews++;tlog('shop_view',{});const
  $('#shClose').onclick=()=>{$('#modal').hidden=true;};$('#shRestore').onclick=restoreItems;
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});}
 document.addEventListener('click',e=>{if(e.target.closest('[data-shop]')){e.preventDefault();shopSheet();}});
-function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button><button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
- $('#mnTour').onclick=()=>tour(0);$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
+function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button>${sdOpen()?'<button class="sec" id="mnSd">Daily showdown: one shot today</button>':''}<button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
+ $('#mnTour').onclick=()=>tour(0);if($('#mnSd'))$('#mnSd').onclick=()=>{$('#modal').hidden=true;startShowdown();};$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
  $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');eGo('bad');};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnR18').onclick=()=>{if(S.r18){S.r18=false;save();$('#mnR18').textContent='R18+ mode: off';tlog('r18',{on:false});return;}$('#sheet').innerHTML=`<div class="upg"><h3>R18+ mode</h3><p>Darker satire: pandemics, recessions, wars and crypto crashes hit the market, tenants meet grim ends, and the headlines get rude. Every shock has an upside. For adults only.</p><button id="r18Yes">I'm 18 or over. Turn it on</button><button class="sec" id="r18No">Not now</button></div>`;$('#r18Yes').onclick=()=>{S.r18=true;save();T.c.r18On=(T.c.r18On||0)+1;tlog('r18',{on:true});$('#modal').hidden=true;toast('R18+ mode on. Brace yourself.','');pushNews('Adults only: markets get messy');};$('#r18No').onclick=()=>{$('#modal').hidden=true;};};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
 
 /* ---------- walkthrough ---------- */
@@ -2753,7 +2907,7 @@ else awayCredit(since);
 setInterval(()=>{auctionTick(0.1);liveTick(0.1);},100);
 setInterval(econTick,1000);
 setInterval(save,3000);
-setTimeout(dailyCheck,900);
+setTimeout(dailyCheck,900);setTimeout(drawBell,300);
 })();
 </script>
 </body>
