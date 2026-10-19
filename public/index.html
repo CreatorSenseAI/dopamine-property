@@ -895,6 +895,42 @@ html,body{overflow-x:clip}
 .hero{position:relative;overflow:hidden}.hero>*:not(.skyline){position:relative}
 .skyline{position:absolute;right:0;bottom:0;width:62%;height:100%;pointer-events:none;color:var(--bg)}
 .skyline svg{position:absolute;right:8px;bottom:0;height:88%;width:100%}
+
+/* ---------- v27 friends, nights, clips ---------- */
+.nightbtn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;font-weight:700;font-size:12px;padding:4px 10px;white-space:nowrap}
+.nightbtn.live{background:#111;color:#ffd34d;border-color:#ffd34d;animation:nightpulse 1.2s ease-in-out infinite alternate}
+@keyframes nightpulse{to{box-shadow:0 0 12px 2px rgba(255,211,77,.6)}}
+.art .runtag{left:auto;right:10px;top:40px;bottom:auto}
+.frhero,.frcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.frhero h2,.frcard h2{margin:0}.frhero p{margin:0;font-size:14px}
+.frform{display:flex;gap:6px}.frform input{flex:1;min-width:0;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+.frform button{border:0;border-radius:10px;background:var(--red);color:var(--on-red);font-weight:700;padding:9px 12px;white-space:nowrap}.frform button.sec{background:var(--sunk);color:var(--ink)}
+.frnick{font-size:13px;color:var(--muted);margin:0}.frerr{color:var(--red);font-size:13px;margin:0}
+.linkbtn{border:0;background:none;color:var(--ink);text-decoration:underline;font-size:12.5px;padding:2px 0}
+.frtabs{margin:0}
+.frhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.frhead small{color:var(--muted);font-size:12px}
+.frcode{border:1px dashed var(--gold);background:var(--gold-fill);color:var(--on-gold);border-radius:10px;font-family:var(--f-mono);font-weight:700;font-size:14px;padding:5px 10px;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.frcode em{font-style:normal;font-family:var(--f-body);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+.frlist{list-style:none;margin:0;padding:0}.frlist li{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.frlist li.me{font-weight:700}.frlist .rk{font-family:var(--f-mono);color:var(--muted)}
+.frwho{display:flex;flex-direction:column;min-width:0}.frwho small{color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.frnum{display:flex;flex-direction:column;text-align:right;font-family:var(--f-mono);font-size:13px}.frnum small{font-size:11px}.frnum .pos{color:var(--green)}.frnum .neg{color:var(--red)}
+.frduel{border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:8px;font-size:12px;font-weight:700;padding:6px 8px}
+.frduels{display:flex;flex-direction:column;gap:6px}.frd{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.frd span{flex:1;display:flex;flex-direction:column;min-width:0}.frd small{color:var(--muted);font-size:12px}.frd button{border:0;border-radius:8px;background:var(--red);color:var(--on-red);font-weight:700;padding:7px 12px}
+.frfeed{display:flex;flex-direction:column;gap:6px}.fe{display:flex;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.fecard{flex:none;width:52px;height:68px;border-radius:8px;overflow:hidden;border:3px solid var(--rc)}.fecard svg,.fecard img{width:100%;height:100%;object-fit:cover;display:block}
+.febody{flex:1;min-width:0}.febody p{margin:0;font-size:13.5px}.febody small{color:var(--muted);font-size:11px}
+.fer{display:flex;gap:4px;margin-top:4px}.fer button{border:1px solid var(--line);background:var(--bg);border-radius:999px;font-size:12px;padding:2px 8px;color:var(--ink)}.fer button[aria-pressed="true"]{border-color:var(--gold);background:var(--gold-fill);color:var(--on-gold)}
+.fe.k-legendary{border-color:#e0a020}.fe.k-cashout,.fe.k-boss{border-color:var(--gold)}
+.frfoot{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.frfoot .sec{border:0;border-radius:10px;background:var(--sunk);color:var(--ink);font-weight:700;padding:9px 12px;width:100%}
+.shareprev video{width:100%;max-height:52vh;border-radius:12px;background:#000;margin-bottom:8px}
+.rarlist{display:flex;flex-direction:column;gap:6px;margin:6px 0 10px;text-align:left}
+.rarlist div{display:grid;grid-template-columns:14px auto;column-gap:8px;align-items:center;padding:6px 8px;border-radius:10px;opacity:.65}
+.rarlist div.on{opacity:1;background:var(--sunk);box-shadow:inset 0 0 0 2px var(--ink)}
+.rarlist i{width:12px;height:12px;border-radius:50%;grid-row:span 2}
+.rarlist b{font-size:14px}.rarlist small{grid-column:2;font-size:12px;color:var(--muted)}
+.cardhint .linkbtn{font-size:12.5px}
 </style>
 </head>
 <body>
@@ -909,7 +945,7 @@ html,body{overflow-x:clip}
   </header>
 
   <main id="vAuction">
-    <div class="toprow"><div class="chips" id="chips" role="group" aria-label="Goal and market tier"></div><div class="tright"><span id="lvCount" hidden></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><span class="featin" id="featIn" hidden></span><button class="hotbtn" data-quick="1">Hot lot</button></div></div>
+    <div class="toprow"><div class="chips" id="chips" role="group" aria-label="Goal and market tier"></div><div class="tright"><span id="lvCount" hidden></span><button class="sdbtn" id="sdBtn" hidden>Showdown</button><button class="nightbtn" id="nightBtn" hidden>Auction Night</button><span class="featin" id="featIn" hidden></span><button class="hotbtn" data-quick="1">Hot lot</button></div></div>
     <section class="lvstrip" id="lvStrip" hidden aria-label="Other live auctions"><div class="lvrow" id="lvRow"></div></section>
 
     <section class="lot" id="lotCard" aria-live="polite">
@@ -1003,6 +1039,7 @@ html,body{overflow-x:clip}
     <section class="sets" id="setsBox"><h2>Suburb sets</h2><p class="bnote">Own 3 homes in one suburb for +10% rent on all of them. Two on the same street adds another +5%.</p><div class="setlist" id="setList"></div></section>
     <p class="empty" id="setsEmpty">No sets yet. Win 3 homes in one suburb for +10% rent on all of them.</p>
     </div>
+    <div class="esec" data-s="fr" hidden><div id="frBox"></div></div>
     <div class="esec" data-s="rich" hidden>
     <h2>Rich list</h2>
     <ol class="rich" id="rich"></ol>
@@ -1129,7 +1166,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1162,7 +1199,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v27-web';
+const VERSION='v28-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1356,7 +1393,7 @@ function houseSVG(p){
 
 let IMGS=null;
 function artOf(p){const list=IMGS&&IMGS[p.style];if(list&&list.length){const src=imgURL(list[Math.abs(p.seed|0)%list.length]);return `<img src="${esc(src)}" alt="Photo of ${esc(p.addr)}" loading="lazy" decoding="async">`;}return houseSVG(p);}
-try{if(location.protocol!=='file:')fetch(API?API+'/img/manifest.json':'img/manifest.json').then(x=>x.ok?x.json():null).then(j=>{if(j&&typeof j==='object'){IMGS=j;if(A&&!A.bg)renderLot();buildEmpire();}}).catch(()=>{});}catch(e){}
+try{if(location.protocol!=='file:')fetch(API?API+'/img/manifest.json':WEB_STATS?'/img/manifest.json':'img/manifest.json').then(x=>x.ok?x.json():null).then(j=>{if(j&&typeof j==='object'){IMGS=j;if(A&&!A.bg)renderLot();buildEmpire();}}).catch(()=>{});}catch(e){}
 
 /* ---------- sound ---------- */
 let AC=null;
@@ -1434,7 +1471,8 @@ const RMETA={
  'Pemberton & Co':{ini:'PC',short:'Pemberton',col:'#4a5568',bid:['Now.','Pemberton.'],think:['Pemberton is watching…'],out:['…'],win:['Patience pays.'],counter:['Predictable.']},
  'Marchetti Family Office':{ini:'MF',short:'Marchetti',col:'#b7791f',bid:['For the family.','Sì.'],think:['Marchetti is making a call…'],out:['Another time.'],win:['Grazie.'],counter:['Marchetti doesn’t lose.']},
  'Aurelian Sovereign Fund':{ini:'AF',short:'Aurelian',col:'#2c7a7b',bid:['Mandate approved.','Deep pockets.'],think:['Aurelian is checking the mandate…'],out:['Outside our mandate.'],win:['Acquired.'],counter:['The Fund responds.']}};
-const rm=r=>RMETA[r.name]||{ini:r.name.slice(0,2).toUpperCase(),short:r.name,col:'#56647c',bid:['Bid.'],think:['Thinking…'],out:['Out.'],win:['Mine.'],counter:['Again.']};
+const FMETA={};function friendMeta(n){if(FMETA[n])return FMETA[n];let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))|0;const parts=n.split(/\s+/);return FMETA[n]={ini:(parts.length>1?parts[0][0]+parts[1][0]:n.slice(0,2)).toUpperCase(),short:n,col:`hsl(${Math.abs(h)%360} 55% 42%)`,bid:['Mine, mate.','Back off!','Not today, friend.','Ha. Again.'],think:[n+' is thinking…'],out:['Fine. Take it.','Too rich for me.'],win:['Too slow!','Thanks for the bump.'],counter:['Nice try.']};}
+const rm=r=>RMETA[r.name]||friendMeta(r.name);
 const GRUDGE=['You again.','Not this time.','I remember you.','This one’s personal.'],BOSS=['Let’s finish this.','You’ve had your run.','Everything I’ve got.'];
 function rivalSay(r,kind){A.say={r,kind,text:pick(kind==='grudge'?GRUDGE:kind==='boss'?BOSS:rm(r)[kind]),t:kind==='think'?6:2.8};renderChat();}
 function renderChat(){if(A&&A.bg)return;const c=$('#chat');if(!c)return;if(!A||!A.say||A.ended){c.classList.remove('on');return;}const sy=A.say;
@@ -1462,6 +1500,7 @@ function pickTier(bg){if(S.tierAuto===false)return bg&&Math.random()<0.3?Math.fl
 function startAuction(){
  while(SELLQ.length){const q=SELLQ.shift(),sp=S.props.find(x=>x.id===q.pid);if(sp){A=newSellAuction(sp,q.reserve);renderLot();return;}}
  if(SDQ){SDQ=false;if(S.sdDay!==sdDay()){A=newShowdown();renderLot();drawSd();sfx('rare');return;}}
+ if(RUN&&RUN.i<RUN.n){A=runLot(RUN);renderLot();return;}
  if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();
  const feat=S.props.length>0&&S.featAt&&Date.now()>=S.featAt,daily=!feat&&S.props.length>0&&S.days.length>=2&&S.dailyDay!==today();
  if(feat){S.featAt=Date.now()+FEAT_EVERY;S.featWarned=false;T.c.featured++;}
@@ -1473,7 +1512,8 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
  if(!first&&!daily&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
- for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
+ if(!SD_BUILD){for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
+  if(!first&&!daily&&FRIENDS.length&&rivals.length>1&&Math.random()<0.2){const fr=pick(FRIENDS),st=fr.style||'sniper';if(!rivals.some(r=>r.name===fr.nick))rivals[rivals.length-1]={name:fr.nick,style:st,friend:true,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:L.value*(st==='aggro'?rnd(0.92,1.12):st==='cautious'?rnd(0.8,1.0):rnd(0.88,1.06))};}}
  let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
  L.sky=skyAt(L.st);const find0=bg||SD_BUILD?undefined:inspect(feat);
  const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
@@ -1568,10 +1608,10 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
  if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
   const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
-  const fnd=A.showdown?seeded(A.sdSeed+7,()=>inspect(true)):A.find0!==undefined?A.find0:inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(fAmt);T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
+  const fnd=A.forceFind?{kind:'jackpot',label:pick(FINDS.jackpot),pct:0.3}:A.showdown||A.run?seeded(A.sdSeed+7,()=>inspect(true)):A.find0!==undefined?A.find0:inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(fAmt);T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
   if(A.featured){T.c.featuredWon++;award('headliner');}
   /* the rivals you beat lose the deal they were chasing and slide on the rich list */
-  {const before=A.rankBefore||richRank(),w0=A.worthBefore||0,w1=worth(),passed=[];for(const r of part){const was=(S.board[r.name]||0)>w0;S.board[r.name]=Math.max(0,(S.board[r.name]||0)-L.value*0.12);if(was&&S.board[r.name]<=w1)passed.push(r.name);}
+  {const before=A.rankBefore||richRank(),w0=A.worthBefore||0,w1=worth(),passed=[];for(const r of part){if(r.friend)continue;const was=(S.board[r.name]||0)>w0;S.board[r.name]=Math.max(0,(S.board[r.name]||0)-L.value*0.12);if(was&&S.board[r.name]<=w1)passed.push(r.name);}
    const after=richRank();T.c.rivalsHit+=part.length;if(after<before){T.c.rankUps++;tlog('rank_up',{from:before,to:after,passed});setTimeout(()=>toast(`Rich list: up to #${after}`+(passed.length?`, past ${rm({name:passed[0]}).short}`:'')+'.','up'),2600);}}
   const eq=L.value-A.bid,z=zoneOf(A.bid,L,A.est),k={steal:1.8,good:1.3,fair:1,over:0.6}[z]||1;SESS.best=Math.max(SESS.best==null?-Infinity:SESS.best,eq);
   if(z==='steal'){S.steals=(S.steals||0)+1;award('steal');if(S.steals>=5)award('steal5');}
@@ -1579,8 +1619,10 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   const combo=noteWin(),pn=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate();checkSets(p);track('Auction won',{tier:TIERS[L.ti].name,zone:z});
   p.feat=!!A.featured;p.nem=!!beatNem||!!A.boss;if(A.tourStat)p.tourIQ=A.tourStat;p.rivals=part.length;p.rarity=rarityOf(p,{find:A.find,featured:A.featured||!!A.boss,nem:!!beatNem||!!A.boss,combo,showdown:!!A.showdown});T.c['rar_'+p.rarity]++;tlog('rarity',{r:p.rarity,eqPct:+((p.value/A.bid-1)*100).toFixed(1),find:A.find,featured:!!A.featured});A.rarity=p.rarity;
   if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');lifeWin(p);addAlbum(p);
-  if(A.boss){S.bossDone=S.bossDone||{};S.bossDone[A.boss]=1;award('boss');T.c.bossWins=(T.c.bossWins||0)+1;tlog('boss',{rival:A.boss,won:true});const h=S.h2h[A.boss];if(h)h.l=h.w;setTimeout(()=>toast(`You beat ${A.boss} in the final showdown. They’re rebuilding.`,'up'),2400);}
-  if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(p,d),3600);}
+  if(A.boss){S.bossDone=S.bossDone||{};S.bossDone[A.boss]=1;award('boss');T.c.bossWins=(T.c.bossWins||0)+1;groupEvent('boss',`beat ${A.boss} in a final showdown`);tlog('boss',{rival:A.boss,won:true});const h=S.h2h[A.boss];if(h)h.l=h.w;setTimeout(()=>toast(`You beat ${A.boss} in the final showdown. They’re rebuilding.`,'up'),2400);}
+  if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(p,d),3600);}if(A.run)runNote(A,p);
+  if(p.rarity>=3)groupEvent(p.rarity===4?'legendary':'epic',`${RAR[p.rarity][0]} find: ${p.addr}, ${p.sub}, worth ${money(p.value)}`,p);
+  if(SOC()&&part.some(r=>r.friend))groupEvent('duel',`beat ${part.filter(r=>r.friend).map(r=>r.name).join(' and ')} for ${p.addr}, ${p.sub}`);
   if(ui){stp.className='stamp '+(L.rare?'rarewin':'win');stp.innerHTML=`<div class="stamp-in"><b>${beatNem?'Nemesis beaten':L.rare?'Rare. Yours':'Sold to you'}</b><small>${full(A.bid)}</small><em data-roll="${Math.round(eq)}">+$0</em></div>`;
    res.className='result '+(L.value>=A.bid?'good':'bad');res.innerHTML=esc((L.value>=A.bid?`Bank values it at ${money(L.value)}: instant equity +${money(L.value-A.bid)}. ${gradeOf(prem)}, growing ${growPct(heat)}% a year.`:`Bank values it at ${money(L.value)}, ${money(A.bid-L.value)} under what you paid. ${gradeOf(prem)}: it grows ${growPct(heat)}% a year, so hold it.`)+` Stamp duty ${money(duty)}.`+(pay.loan?` Borrowed ${money(pay.loan)} at 6%.`:'')+` Cash flow ${sg(pn)}/mo.`)+affiliateHTML(L);
    sfx(L.rare||beatNem||z==='steal'?'rare':'win');confetti(L.rare||!!beatNem,k);buzz([70,40,20]);gavel();
@@ -1591,8 +1633,8 @@ function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.
   else if(p.rarity>=3){toast(`${RAR[p.rarity][0]} find in ${L.sub}: ${L.addr}, worth ${money(p.value)}. Tap to share.`,'up',()=>shareCard(p));sfx('rare');buzz([30,30,60]);}
   else{toast(`Won ${L.sub}: ${L.addr} for ${money(A.bid)}.`+(fnd&&fnd.kind!=='flaw'?` Inspection: ${fnd.label.toLowerCase()}, +${money(fAmt)}.`:fnd?` Inspection: ${fnd.label.toLowerCase()}, ${money(fAmt)}.`:` ${sg(pn)}/mo.`),'up');sfx(fnd&&fnd.kind==='jackpot'?'rare':'ding',combo);buzz(30);}
   buildEmpire();
- }else if(A.leader){if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(null,d),3200);}if(youBidAny)S.losses++;S.board[A.leader.name]=(S.board[A.leader.name]||0)+L.value*0.12;
-  const near=youBidAny&&A.st.maxYou>0&&A.bid<=A.st.maxYou+2*L.inc&&A.bid<=waOf(A.est),one=A.bid-A.st.maxYou<=L.inc;
+ }else if(A.leader||A.run){if(A.run)runNote(A,null);if(A.showdown){const d=A.showdown;setTimeout(()=>showdownDone(null,d),3200);}if(!A.leader){}else{if(youBidAny)S.losses++;if(!A.leader.friend)S.board[A.leader.name]=(S.board[A.leader.name]||0)+L.value*0.12;}
+  const near=A.leader&&youBidAny&&A.st.maxYou>0&&A.bid<=A.st.maxYou+2*L.inc&&A.bid<=waOf(A.est),one=A.bid-A.st.maxYou<=L.inc;
   if(near){T.c.nearMiss=(T.c.nearMiss||0)+1;tlog('near_miss',{gap:Math.round(A.bid-A.st.maxYou),tier:L.ti});}
   if(ui){stp.className='stamp '+(near?'near':'gone');stp.innerHTML=near?`<div class="stamp-in"><b>Pipped!</b><small>${one?'By one bid':'By two bids'} · ${full(A.bid)}</small></div>`:`<div class="stamp-in"><b>Sold</b><small>${esc(A.leader.name)} · ${full(A.bid)}</small></div>`;
    res.className='result bad';res.textContent=near?`So close. ${A.leader.name} paid ${money(A.bid)}, still under your walk-away of ${money(waOf(A.est))}. One more bid would have taken it.`:youBidAny?`Outbid. ${A.leader.name} took it for ${money(A.bid)}. ${rm(A.leader).short} is your nemesis now.`:`${A.leader.name} took it for ${money(A.bid)}. Valued at ${money(L.value)}.`;sfx(near?'near':'lose');if(near)buzz([60,40,60]);}
@@ -1622,10 +1664,16 @@ function cardFace(c,live){const r=c.rarity||0,[rn,rc]=RAR[r],eq=(c.value/c.paid-
 function tiltOn(el){const set=(x,y)=>{el.style.setProperty('--rx',(y*-10).toFixed(1)+'deg');el.style.setProperty('--ry',(x*12).toFixed(1)+'deg');el.style.setProperty('--mx',(50+x*45).toFixed(0)+'%');el.style.setProperty('--my',(50+y*45).toFixed(0)+'%');};
  el.addEventListener('pointermove',e=>{const b=el.getBoundingClientRect();set((e.clientX-b.left)/b.width-0.5,(e.clientY-b.top)/b.height-0.5);});el.addEventListener('pointerleave',()=>set(0,0));
  const ori=e=>{if(!el.isConnected){window.removeEventListener('deviceorientation',ori);return;}if(e.gamma==null)return;set(Math.max(-0.5,Math.min(0.5,e.gamma/40)),Math.max(-0.5,Math.min(0.5,(e.beta-40)/40)));};window.addEventListener('deviceorientation',ori);}
+/* what each rarity means, and why this home got it */
+const RAR_INFO=['An ordinary win. About 4 in 10 wins.','Won with some equity (8%+) or a good inspection find. About 1 in 4 wins.','Strong equity (15%+), or a mix of bonuses like a featured lot, a rare listing or a combo. About 1 in 4 wins.','Big equity plus extras: a jackpot, beating your nemesis, a featured lot. About 1 in 16 wins. You can share it.','Everything lined up at once. About 1 in 170 wins. Frame it.'];
+function rarityInfo(c){T.c.rarityInfo=(T.c.rarityInfo||0)+1;const r=c.rarity||0,eq=c.paid?Math.round((c.value/c.paid-1)*100):0;
+ const why=[c.paid?`${eq>=0?'+':''}${eq}% equity on the price you paid`:null,c.findLabel?(c.find==='jackpot'?'Jackpot at inspection: ':c.find==='flaw'?'Inspection flaw: ':'Inspection find: ')+c.findLabel:null,c.feat?'Won at a featured auction':null,c.rare?'Rare listing':null,c.nem?'You beat your nemesis for it':null,c.ti>=3?'Trophy-class home':null,c.rivals?`${c.rivals} rival${c.rivals>1?'s':''} outbid`:null].filter(Boolean);
+ $('#sheet').innerHTML=`<div class="upg"><h3>${RAR[r][0]}</h3><div class="rarlist">${RAR.map(([n,col],i)=>`<div class="${i===r?'on':''}"><i style="background:${col}"></i><b>${n}</b><small>${RAR_INFO[i]}</small></div>`).join('')}</div>${why.length?`<p class="upnote"><b>This home:</b> ${why.map(esc).join(' · ')}.</p>`:''}<p class="upnote">Rarity is earned when you win: equity after inspection, the find, featured or rare lots, beating your nemesis, Trophy homes and combos all push it up. It can't be bought.</p><button class="sec" id="riX">Close</button></div>`;$('#modal').hidden=false;$('#riX').onclick=()=>{$('#modal').hidden=true;};}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-rinfo]');if(!b)return;e.preventDefault();e.stopPropagation();const p=S.props.find(q=>q.id===+b.dataset.rinfo);if(p)rarityInfo(p);},true);
 function cardSheet(c,fromAlbum){const live=!fromAlbum&&S.props.includes(c);T.c.cardViews=(T.c.cardViews||0)+1;tlog('card_view',{r:c.rarity||0,album:!!fromAlbum});
- $('#sheet').innerHTML=`<div class="cardwrap">${cardFace(c,live)}<p class="cardhint">Tap the card to flip it${(c.rarity||0)>=2?'. Tilt for the foil':''}.</p><div class="cardbtns">${live?`<button class="sec" data-csell="1">Sell</button>${upgOpen(c)?'<button class="sec" data-cup="1">Upgrade</button>':''}<button class="sec" data-ctour="1">Tour</button>`:''}${(c.rarity||0)>=3?'<button class="sec" data-cshare="1">Share</button>':''}<button class="sec" id="cardX">Close</button></div></div>`;$('#modal').hidden=false;
+ $('#sheet').innerHTML=`<div class="cardwrap">${cardFace(c,live)}<p class="cardhint">Tap the card to flip it${(c.rarity||0)>=2?'. Tilt for the foil':''}. <button class="linkbtn" data-rwhat="1">What does ${RAR[c.rarity||0][0]} mean?</button></p><div class="cardbtns">${live?`<button class="sec" data-csell="1">Sell</button>${upgOpen(c)?'<button class="sec" data-cup="1">Upgrade</button>':''}<button class="sec" data-ctour="1">Tour</button>`:''}${(c.rarity||0)>=3?'<button class="sec" data-cshare="1">Share</button>':''}<button class="sec" id="cardX">Close</button></div></div>`;$('#modal').hidden=false;
  const cd=$('#sheet .card3d');tiltOn(cd);cd.onclick=()=>{cd.classList.toggle('flip');sfx('tick');buzz(8);};
- $('#cardX').onclick=()=>{$('#modal').hidden=true;};const q=s2=>$('#sheet').querySelector(s2);
+ {const rw=$('#sheet').querySelector('[data-rwhat]');if(rw)rw.onclick=ev=>{ev.stopPropagation();rarityInfo(c);};}$('#cardX').onclick=()=>{$('#modal').hidden=true;};const q=s2=>$('#sheet').querySelector(s2);
  if(q('[data-csell]'))q('[data-csell]').onclick=()=>sellSheet(c);if(q('[data-cup]'))q('[data-cup]').onclick=()=>upgradeSheet(c);if(q('[data-ctour]'))q('[data-ctour]').onclick=()=>houseTour(c,'card');
  if(q('[data-cshare]'))q('[data-cshare]').onclick=()=>{const p=S.props.find(x=>x.id===c.id);if(p)shareCard(p);else toast('Share works for homes you still own.','');};}
 /* the pull: a Prime or better win is dealt face down and you turn it over */
@@ -1693,7 +1741,7 @@ function buildChips(){const auto=S.tierAuto!==false&&!AUC_CITY,one=S.maxTier<1&&
 $('#chips').onclick=e=>{const b=e.target.closest('.chip');if(!b||b.disabled)return;if(b.dataset.goal){T.c.goalTaps=(T.c.goalTaps||0)+1;if(goalInfo().dyn)dynastySheet('goal');else{show('e');eGo('ov');}return;}if(b.dataset.auto){S.tierAuto=true;AUC_CITY=null;tlog('tier_pick',{tier:'auto'});buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();return;}S.tierAuto=false;if(b.dataset.cx){AUC_CITY=null;buildChips();toast('Auctions are back to the whole market.','up');return;}if(AUC_CITY&&AUC_CITY.ti!==+b.dataset.t)AUC_CITY=null;if(S.tier!==+b.dataset.t){T.c.tierChanges++;tlog('tier_pick',{tier:+b.dataset.t});if(A&&!A.ended&&A.leader!=='you')recordAuction('switched');}S.tier=+b.dataset.t;buildChips();if(A&&!(A.sell&&!A.ended)&&(A.ended||A.leader!=='you'))startAuction();save();};
 
 function renderLot(){const L=A.lot,T=TIERS[L.ti];
- $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">Lot ${L.no} · ${T.name}</span>`+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':'<button class="tourbtn" id="tourBtn" aria-label="Tour this home">Tour</button>')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
+ $('#art').innerHTML=artOf(L)+`<span class="tag" id="lotTag">Lot ${L.no} · ${T.name}</span>`+(A.run?`<span class="daily feat runtag">${A.run.kind==='night'?'Auction Night':'Duel vs '+esc(A.run.vs)} · ${A.run.i}/${A.run.n}${A.run.kind==='night'&&A.run.i===A.run.n?' · Headliner':''}</span>`:'')+(A.boss?`<span class="daily boss">Final showdown: ${esc(rm({name:A.boss}).short)}</span>`:'')+(A.sell||A.first?'':'<button class="tourbtn" id="tourBtn" aria-label="Tour this home">Tour</button>')+(L.rare?'<span class="rare">Rare</span>':'')+(A.daily?'<span class="daily">Today’s lot</span>':'')+(A.showdown?'<span class="daily feat sdtag" id="featTag">Daily showdown</span>':A.featured?'<span class="daily feat" id="featTag">Featured</span>':'')+(A.sell?'<span class="daily mine">Your home</span>':'')+'<div class="callbig" id="callBig" aria-live="assertive"></div><div class="chat" id="chat" aria-live="polite"></div>';$('#pads').dataset.sig='';renderPads();renderChat();
  $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
  if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
@@ -1822,7 +1870,7 @@ function buildEmpire(){const nRare=S.props.filter(p=>p.rare).length;if(!nRare)pf
  $('#psort').hidden=S.props.length<4;$('#psort').querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===psort));
  $('#pager').hidden=all.length<=PAGE;$('#pgTxt').textContent=`${pg*PAGE+1}–${Math.min(all.length,pg*PAGE+PAGE)} of ${all.length}`;$('#pgPrev').disabled=pg<=0;$('#pgNext').disabled=pg>=pages-1;
  $('#pfilter').hidden=!nRare;$('#pfAllN').textContent=S.props.length;$('#pfRareN').textContent=nRare;$('#pfAll').setAttribute('aria-pressed',pf==='all');$('#pfRare').setAttribute('aria-pressed',pf==='rare');
- $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.rarity>=1?`<button class="pill rar r${p.rarity}"${p.rarity>=3?` data-share="${p.id}" aria-label="Share this ${RAR[p.rarity][0]} find"`:' tabindex="-1"'}>${RAR[p.rarity][0]}${p.rarity>=3?' ↗':''}</button>`:''}${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
+ $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.rarity>=1?`<button class="pill rar r${p.rarity}"${p.rarity>=3?` data-share="${p.id}" aria-label="Share this ${RAR[p.rarity][0]} find"`:` data-rinfo="${p.id}" aria-label="What ${RAR[p.rarity][0]} means"`}>${RAR[p.rarity][0]}${p.rarity>=3?' ↗':''}</button>`:''}${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
  const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;{const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const co=$('#coll');co.hidden=!(n[1]+n[2]+n[3]+n[4]);co.innerHTML='<b>Collection</b>'+[4,3,2,1].filter(i=>n[i]).map(i=>`<span class="rar r${i}">${n[i]} ${RAR[i][0]}</span>`).join('');}renderSets();renderBadges();updEmpire();
  if(view==='e'&&S.props.length>=3&&S.props.some(upgOpen))setTimeout(()=>{if(view==='e')coach('upgrade','Tap Upgrade on a home to renovate, extend or add a pool. It costs cash now and lifts the value and the rent.');},600);}
 /* goal lives in the chips row: next market, then the Dynasty cash-out */
@@ -1862,7 +1910,97 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  $('#pDays').textContent=S.days.length;$('#pSess').textContent=S.sessions;const pm=Math.round(S.playSec/60);$('#pTime').textContent=pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m';
  const joined=S.wins+S.losses;$('#pRate').textContent=$('#pRate2').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
  $('#rich').innerHTML=rows.map((r,i)=>(i>=5&&!r.me)?'':`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
-const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['alb','Card album'],['bad','Badges'],['dyn','Dynasty and play']];
+/* ---------- friends: invite codes, group boards, feed, duels (server: social.js) ---------- */
+const SOC=()=>WEB_STATS&&!!installId;
+let FRIENDS=[],GV=null,frBusy=false;
+const myNick=()=>{if(!S.nick){S.nick='Bidder '+(1000+Math.floor(Math.random()*9000));save();}return S.nick;};
+async function net(path,body){const r=await fetch(API+path,body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.assign({installId,nick:myNick()},body))}:{});let j={};try{j=await r.json();}catch(e){}if(!r.ok)throw new Error(j.error||'The server is busy. Try again in a moment.');return j;}
+function myStats(){const best=S.props.slice().sort((a,b)=>(b.rarity||0)-(a.rarity||0)||b.value-a.value)[0];const st=T.c.bigBids>T.c.bidsHand*0.3?'aggro':T.c.snipes>3?'sniper':'cautious';
+ return{worth:Math.round(worth()),stars:S.legacy||0,title:rankOf(S.legacy||0).t,income:Math.round(incomeNow()),homes:S.props.length,style:st,best:best?{addr:best.addr,sub:best.sub,rarity:best.rarity||0,value:Math.round(best.value)}:null};}
+async function groupSync(){if(!SOC()||!(S.groups||[]).length)return;try{const j=await net('/api/group/sync',myStats());S.groups=j.groups||S.groups;const r=await net('/api/group/rivals?me='+installId);FRIENDS=r.rivals||[];}catch(e){}}
+setInterval(groupSync,60e3);setTimeout(groupSync,4000);
+function groupEvent(kind,text,p){if(!SOC()||!(S.groups||[]).length)return;const card=p?{addr:p.addr,sub:p.sub,rarity:p.rarity||0,value:Math.round(p.value),paid:Math.round(p.paid),style:p.style,seed:p.seed,ti:p.ti}:null;net('/api/group/event',{kind,text:myNick()+' '+text,card}).catch(()=>{});}
+const shareJoin=c=>(WEB_STATS&&!API?location.origin:CONFIG.shareUrl)+'/join/'+c;
+async function renderFriends(msg){const box=$('#frBox');if(!box)return;
+ if(!SOC()){box.innerHTML=`<section class="frhero"><h2>Friends</h2><p>Groups, invite codes and duels need the online game. Open Empire Auction Tycoon at <b>${esc(CONFIG.shareUrl.replace(/^https?:\/\//,''))}</b> or in the app.</p></section>`;return;}
+ const gs=S.groups||[];if(gs.length&&!S.gcur)S.gcur=gs[0].code;
+ const nickRow=`<p class="frnick">Playing as <b>${esc(myNick())}</b> <button class="linkbtn" id="frNick">Change</button></p>`;
+ const start=`<section class="frhero"><h2>Play with friends</h2><p>Make a private group, share the code, and race each other up a weekly league. Duel on the same three lots, react to each other's best finds, and meet your friends as rivals in the auction room.</p>
+  <div class="frform"><input id="frName" maxlength="24" placeholder="Group name, e.g. Cronulla Crew" aria-label="Group name"><button id="frCreate">Create a group</button></div>
+  <div class="frform"><input id="frCode" maxlength="9" placeholder="EAT-7KQ2" aria-label="Invite code" autocapitalize="characters"><button class="sec" id="frJoin">Join</button></div>${nickRow}${msg?`<p class="frerr">${esc(msg)}</p>`:''}</section>`;
+ if(!gs.length){box.innerHTML=start;wireStart();return;}
+ box.innerHTML=`<div class="chips frtabs">${gs.map(g=>`<button class="chip" data-gc="${g.code}" aria-pressed="${g.code===S.gcur}">${esc(g.name)} <small>${g.n}</small></button>`).join('')}<button class="chip" data-gc="+">+ Group</button></div><div id="frView"><p class="bnote">Loading…</p></div>`;
+ box.querySelectorAll('[data-gc]').forEach(b=>b.onclick=()=>{if(b.dataset.gc==='+'){$('#frView').innerHTML=start;wireStart();return;}S.gcur=b.dataset.gc;save();renderFriends();});
+ try{const j=await net('/api/group?code='+encodeURIComponent(S.gcur)+'&me='+installId);GV=j.group;drawGroup(msg);}catch(e){$('#frView').innerHTML=`<p class="frerr">${esc(e.message)}</p>`;S.groups=gs.filter(g=>g.code!==S.gcur);S.gcur=null;save();}
+ function wireStart(){const go=async(path,body)=>{if(frBusy)return;frBusy=true;try{const j=await net(path,Object.assign(myStats(),body));S.groups=(S.groups||[]).filter(g=>g.code!==j.code).concat({code:j.code,name:j.group.name,n:j.group.members.length});S.gcur=j.code;save();T.c[path.includes('create')?'groupCreates':'groupJoins']=(T.c[path.includes('create')?'groupCreates':'groupJoins']||0)+1;tlog('group',{how:path.includes('create')?'create':'join'});frBusy=false;renderFriends();groupSync();sfx('win');}catch(e){frBusy=false;renderFriends(e.message);}};
+  const c=$('#frCreate');if(c)c.onclick=()=>go('/api/group/create',{name:$('#frName').value});const jn=$('#frJoin');if(jn)jn.onclick=()=>go('/api/group/join',{code:$('#frCode').value});
+  const n=$('#frNick');if(n)n.onclick=nickSheet;if(PENDING_JOIN){const ci=$('#frCode');if(ci){ci.value=PENDING_JOIN;PENDING_JOIN=null;ci.focus();}}}}
+function nickSheet(){$('#sheet').innerHTML=`<div class="upg"><h3>Your name</h3><p>Friends and leaderboards see this. 3 to 16 letters or numbers.</p><div class="frform"><input id="nkIn" maxlength="16" value="${esc(myNick())}"><button id="nkGo">Save</button></div><button class="sec" id="nkX">Close</button></div>`;$('#modal').hidden=false;
+ $('#nkX').onclick=()=>{$('#modal').hidden=true;};$('#nkGo').onclick=()=>{const v=($('#nkIn').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();$('#modal').hidden=true;groupSync().then(()=>renderFriends());};}
+function drawGroup(msg){const g=GV,v=$('#frView');if(!g||!v)return;const R=['fire','gavel','lol'],RI={fire:'🔥',gavel:'🔨',lol:'😂'};
+ v.innerHTML=`<section class="frcard"><div class="frhead"><div><h2>${esc(g.name)}</h2><small>${g.members.length} member${g.members.length>1?'s':''} · league resets Monday</small></div><button class="frcode" id="frInvite">${g.code}<em>Invite</em></button></div>
+ <ol class="frlist">${g.members.map((m,i)=>`<li class="${m.me?'me':''}"><span class="rk">${i+1}</span><span class="frwho"><b>${esc(m.nick)}</b><small>★${m.stars} ${esc(m.title||'')} · ${m.homes} homes${m.best?` · <i class="rt r${m.best.rarity}">${esc(m.best.sub)}</i>`:''}</small></span><span class="frnum"><b>${money(m.worth)}</b><small class="${m.weekGain>=0?'pos':'neg'}">${m.weekGain>=0?'+':''}${money(m.weekGain)} wk</small></span>${m.me?'':`<button class="frduel" data-duel="${m.key}" aria-label="Challenge ${esc(m.nick)} to a duel">Duel</button>`}</li>`).join('')}</ol>
+ ${msg?`<p class="frerr">${esc(msg)}</p>`:''}</section>
+ ${g.duels.length?`<h3>Duels</h3><div class="frduels">${g.duels.map(d=>{const mine=d.mine,my=mine==='from'?d.scores.from:d.scores.to,their=mine==='from'?d.scores.to:d.scores.from,vs=mine==='from'?d.to:d.from;
+   return `<div class="frd"><span><b>${mine?'You vs '+esc(vs):esc(d.from)+' vs '+esc(d.to)}</b><small>${d.done?(mine?(my>their?'You won ':my<their?'You lost ':'Draw ')+`${my}% to ${their}%`:`${d.scores.from}% to ${d.scores.to}%`):mine&&my==null?'Your turn: 3 lots, best total equity wins':mine?`You scored ${my}%. Waiting for ${esc(vs)}`:'In progress'}</small></span>${mine&&my==null&&!d.done?`<button data-play="${d.id}">Play</button>`:''}</div>`;}).join('')}</div>`:''}
+ <h3>Feed</h3><div class="frfeed">${g.feed.map(e=>`<div class="fe k-${e.kind}">${e.card?`<span class="fecard r${e.card.rarity}" style="--rc:${RAR[e.card.rarity][1]}">${artOf(Object.assign({addr:e.card.addr,sub:e.card.sub,style:e.card.style||'cottage',seed:e.card.seed||1,ti:e.card.ti||0},{}))}</span>`:''}<div class="febody"><p>${esc(e.text)}</p><small>${new Date(e.t).toLocaleString('en-AU',{weekday:'short',hour:'numeric',minute:'2-digit'})}</small><div class="fer">${R.map(r=>`<button data-react="${r}" data-eid="${e.eid}" aria-pressed="${e.mine.includes(r)}">${RI[r]} ${e.reacts[r]||''}</button>`).join('')}</div></div></div>`).join('')||'<p class="bnote">Nothing yet. Epic finds, cash-outs, duels and final showdowns show up here.</p>'}</div>
+ <div class="frfoot"><button class="sec" id="frNight">This week's Auction Night board</button>${(S.groups||[]).length<5?'<button class="sec" id="frMore">Join or start another group</button>':''}<button class="linkbtn" id="frNick2">Name: ${esc(myNick())}</button>${g.owner?'<button class="linkbtn" id="frRotate">New invite code</button>':''}<button class="linkbtn" id="frLeave">Leave group</button></div>`;
+ $('#frInvite').onclick=async()=>{const link=shareJoin(g.code),text=`Join my Empire Auction Tycoon group "${g.name}": code ${g.code}`;T.c.invites=(T.c.invites||0)+1;tlog('invite',{});try{if(navigator.share){await navigator.share({text,url:link});return;}}catch(e){return;}try{await navigator.clipboard.writeText(text+' '+link);toast('Invite copied. Paste it to your friends.','up');}catch(e){toast(text+' '+link,'');}};
+ v.querySelectorAll('[data-react]').forEach(b=>b.onclick=async()=>{try{const j=await net('/api/group/react',{code:g.code,eid:b.dataset.eid,r:b.dataset.react});GV=j.group;drawGroup();buzz(8);}catch(e){}});
+ v.querySelectorAll('[data-duel]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{const j=await net('/api/duel/create',{code:g.code,key:b.dataset.duel,tier:affordTier()});T.c.duels2=(T.c.duels2||0)+1;tlog('duel_create',{});startRun({kind:'duel',id:j.duel.id,seed:j.duel.seed,tier:j.duel.tier,n:3,vs:j.duel.to});}catch(e){drawGroup(e.message);}});
+ v.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>{const d=g.duels.find(x=>x.id===b.dataset.play);if(d)startRun({kind:'duel',id:d.id,seed:d.seed,tier:d.tier,n:3,vs:d.mine==='from'?d.to:d.from});});
+ $('#frNight').onclick=()=>nightBoard(g.code);$('#frNick2').onclick=nickSheet;const more=$('#frMore');if(more)more.onclick=()=>{$('#frView').innerHTML='';S.gcur=null;GV=null;const gs=S.groups;S.groups=[];renderFriends();S.groups=gs;};
+ const rot=$('#frRotate');if(rot)rot.onclick=async()=>{try{const j=await net('/api/group/rotate',{code:g.code});S.groups=S.groups.map(x=>x.code===g.code?Object.assign(x,{code:j.code}):x);S.gcur=j.code;save();renderFriends('New code: '+j.code+'. The old one stops working.');}catch(e){drawGroup(e.message);}};
+ $('#frLeave').onclick=async e=>{const b=e.currentTarget;if(!b.dataset.arm){b.dataset.arm=1;b.textContent='Tap again to leave';return;}try{await net('/api/group/leave',{code:g.code});}catch(x){}S.groups=S.groups.filter(x=>x.code!==g.code);S.gcur=null;save();renderFriends();};}
+/* deep link: /join/CODE on the web, eat://join/CODE in the app */
+let PENDING_JOIN=null;{const m=/\/join\/([A-Z0-9-]{4,12})/i.exec(location.pathname)||/[?&]join=([A-Z0-9-]{4,12})/i.exec(location.search);if(m)PENDING_JOIN=m[1].toUpperCase();if(window.EAT_PENDING_JOIN)PENDING_JOIN=window.EAT_PENDING_JOIN;}
+window.EAT_JOIN=c=>{PENDING_JOIN=String(c).toUpperCase();openJoin();};
+function openJoin(){if(!PENDING_JOIN)return;try{history.replaceState(null,'','/');}catch(e){}show('e');eGo('fr');const gs=S.groups;S.groups=(gs||[]).filter(g=>g.code!==PENDING_JOIN);setTimeout(()=>{S.groups=gs;},50);toast('Tap Join to enter the group '+PENDING_JOIN+'.','up');}
+/* ---------- seeded runs: duels (3 lots) and Auction Night (10 lots), same lots for everyone ---------- */
+let RUN=null;
+function startRun(r){RUN=Object.assign({i:0,score:0,wins:0},r);$('#modal').hidden=true;show('a');T.c['run_'+r.kind]=(T.c['run_'+r.kind]||0)+1;tlog('run_start',{kind:r.kind,tier:r.tier});
+ if(A&&!A.ended&&(A.leader==='you'||A.joined)){toast((r.kind==='night'?'Auction Night':'Your duel')+' starts after this lot.','up');return;}if(A&&!A.ended)recordAuction('switched');startAuction();}
+function runLot(r){r.i++;const head=r.kind==='night'&&r.i===r.n;SD_BUILD=true;let X;try{X=seeded((r.seed+r.i*7919)>>>0,()=>newAuction(Math.min(r.tier,S.maxTier),null,false,false,head||r.kind==='night'&&r.i%4===0));}finally{SD_BUILD=false;}
+ X.run=r;X.sdSeed=(r.seed+r.i*31)>>>0;X.joined=true;if(head){X.forceFind=true;X.clock=X.total=20;X.crowd=Math.round(rnd(2400,3800));}else if(r.kind==='night'){X.crowd=Math.round(rnd(900,1600));}tlog('run_lot',{kind:r.kind,i:r.i});return X;}
+function runNote(X,p){const r=X.run;if(!r||X.runNoted)return;X.runNoted=true;if(p){r.wins++;r.score+=Math.round((p.value/p.paid-1)*1000)/10;}if(r.i>=r.n){const done=r;RUN=null;setTimeout(()=>runDone(done),p?3800:2600);}}
+async function runDone(r){const sc=Math.round(r.score*10)/10;tlog('run_done',{kind:r.kind,score:sc,wins:r.wins});
+ if(r.kind==='duel'){let d=null;try{d=(await net('/api/duel/score',{id:r.id,score:sc})).duel;}catch(e){}
+  modal(`<h3>Duel done</h3><p>${r.wins} win${r.wins===1?'':'s'} from 3 lots against ${esc(r.vs)}.</p><span class="big">${sc>=0?'+':''}${sc}%</span><p>${d&&d.done?(d.scores[d.mine]>d.scores[d.mine==='from'?'to':'from']?'You won the duel!':d.scores[d.mine]===d.scores[d.mine==='from'?'to':'from']?'A draw: dead level.':'They won this one.'):'Waiting for '+esc(r.vs)+' to play the same three lots.'}</p>`,'Nice',()=>{if(d&&d.done)groupSync();});}
+ else{S.nightDone=r.week;save();try{await net('/api/night',{week:r.week,score:sc,wins:r.wins,stars:S.legacy||0});}catch(e){}if(r.wins)groupEvent('night',`scored ${sc>=0?'+':''}${sc}% at Auction Night`);T.c.nightScore=sc;nightBoard(null,sc,r.wins);drawNight();}}
+/* ---------- Auction Night: Thursdays 8pm local, 40 minutes, ten lots, the last is a headliner with a guaranteed find ---------- */
+function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y=t.getUTCFullYear(),w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7);return y+'-W'+String(w).padStart(2,'0');}
+function nightInfo(){const now=new Date(),force=/[?&]night=1/.test(location.search);const start=new Date(now);start.setHours(20,0,0,0);start.setDate(start.getDate()+((4-start.getDay()+7)%7));if(start-now<-40*60e3)start.setDate(start.getDate()+7);
+ const live=force||(now>=start&&now-start<40*60e3),week=isoWeek(start);return{live,week,inMs:start-now,done:S.nightDone===week};}
+function drawNight(){const b=$('#nightBtn');if(!b)return;const n=nightInfo();if(!SOC()||!S.props.length||n.done&&!n.live){b.hidden=true;return;}
+ if(n.live&&!n.done){b.hidden=false;b.className='nightbtn live';b.textContent='Auction Night';}else if(n.inMs>0&&n.inMs<24*3600e3){b.hidden=false;b.className='nightbtn';const h=Math.floor(n.inMs/3600e3),m=Math.floor(n.inMs%3600e3/60e3);b.textContent='Night '+(h?h+'h':m+'m');}else b.hidden=true;}
+setInterval(drawNight,30e3);
+function nightGo(){const n=nightInfo();if(!n.live){toast('Auction Night opens Thursday at 8pm your time. Ten lots, one big headliner.','');return;}if(n.done){nightBoard();return;}
+ let h=2166136261;for(const ch of 'eat-night-'+n.week)h=Math.imul(h^ch.charCodeAt(0),16777619);startRun({kind:'night',week:n.week,seed:h>>>0,tier:affordTier(),n:10});toast('Auction Night: ten lots back to back. Every win scores its equity. The tenth is the headliner.','up');}
+async function nightBoard(code,score,wins){const n=nightInfo();let b=null;try{b=await net('/api/night?week='+n.week+'&me='+installId+(code?'&code='+encodeURIComponent(code):''));}catch(e){}
+ const rows=b&&b.top||[];$('#sheet').innerHTML=`<div class="upg sd"><h3>Auction Night ${n.week.slice(5)}</h3><p>${score!=null?`You scored <b>${score>=0?'+':''}${score}%</b> from ${wins} win${wins===1?'':'s'}.${b&&b.rank?` #${b.rank} of ${b.count}${code?' in your group':''}.`:''}`:code?'Your group this week.':'Everyone this week.'}</p>
+ <ol class="sdlist">${rows.map((r,i)=>`<li class="${r.me?'me':''}"><span>${i+1}</span><span>${esc(r.nick)}${r.stars?` <i class="bst">★${r.stars}</i>`:''}</span><span class="num">${r.score>=0?'+':''}${(+r.score).toFixed(1)}%</span></li>`).join('')||'<li><span></span><span>No scores yet.</span><span></span></li>'}</ol><button class="sec" id="nbX">Close</button></div>`;$('#modal').hidden=false;$('#nbX').onclick=()=>{$('#modal').hidden=true;};}
+/* ---------- win clip: a 3-second vertical video of the card pull, for TikTok/Reels ---------- */
+async function makeClip(p,btn){if(btn){btn.disabled=true;btn.textContent='Recording…';}T.c.clips=(T.c.clips||0)+1;tlog('clip',{r:p.rarity});
+ const [name,col]=RAR[p.rarity||0],W=720,H=1280,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),img=await artImage(p);
+ const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'],mime=types.find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))||'';
+ const stream=c.captureStream(30),rec=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:4e6}:{}),chunks=[];rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+ const eq=(p.value-p.paid)/p.paid*100,T0=performance.now(),D=3600,bits=Array.from({length:70},()=>({x:Math.random()*W,y:-Math.random()*H*0.5,v:4+Math.random()*7,s:6+Math.random()*10,h:Math.random()*360}));
+ const frame=()=>{const t=(performance.now()-T0)/D;g.fillStyle='#0d1424';g.fillRect(0,0,W,H);const gr=g.createRadialGradient(W/2,H*0.45,40,W/2,H*0.45,700);gr.addColorStop(0,col+'88');gr.addColorStop(1,'#0d142400');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  const cw=520,ch=728,cx=W/2,cy=H*0.46,flip=Math.max(0,Math.min(1,(t-0.22)/0.12)),sx=Math.abs(Math.cos(flip*Math.PI)),face=flip>0.5,shake=t<0.22?Math.sin(t*90)*6*(p.rarity>=3?1:0.4):0;
+  g.save();g.translate(cx+shake,cy);g.scale(Math.max(0.02,sx),1);g.fillStyle=col;g.beginPath();g.roundRect?g.roundRect(-cw/2-10,-ch/2-10,cw+20,ch+20,28):g.rect(-cw/2-10,-ch/2-10,cw+20,ch+20);g.fill();
+  if(!face){g.fillStyle='#1a2442';g.fillRect(-cw/2,-ch/2,cw,ch);g.fillStyle=col;g.font='120px Anton, Impact, sans-serif';g.textAlign='center';g.fillText('EAT',0,40);}
+  else{g.fillStyle='#10172a';g.fillRect(-cw/2,-ch/2,cw,ch);if(img)g.drawImage(img,-cw/2,-ch/2,cw,ch*0.62);g.fillStyle='#fff';g.textAlign='left';g.font='600 34px "Familjen Grotesk", Arial, sans-serif';g.fillText(p.addr,-cw/2+24,ch*0.17);g.fillStyle='#9fb0cc';g.font='26px Arial, sans-serif';g.fillText(p.sub,-cw/2+24,ch*0.17+38);
+   const k=Math.max(0,Math.min(1,(t-0.4)/0.35)),shown=p.paid+(p.value-p.paid)*k;g.fillStyle='#fff';g.font='600 30px "IBM Plex Mono", monospace';g.fillText('Worth '+money(shown),-cw/2+24,ch*0.17+100);g.fillStyle=eq>=0?'#3ddc84':'#ff6b6b';g.font='64px Anton, Impact, sans-serif';g.textAlign='right';g.fillText((eq>=0?'+':'')+(eq*k).toFixed(0)+'%',cw/2-24,ch*0.17+110);
+   g.fillStyle=col;g.textAlign='center';g.font='44px Anton, Impact, sans-serif';g.fillText(name.toUpperCase(),0,-ch/2+64);}
+  g.restore();if(t>0.62&&t<0.95){const k=Math.min(1,(t-0.62)/0.06);g.save();g.translate(W/2,H*0.3);g.rotate(-0.16);g.scale(2.2-1.2*k,2.2-1.2*k);g.globalAlpha=k;g.strokeStyle='#3ddc84';g.lineWidth=10;g.strokeRect(-190,-60,380,120);g.fillStyle='#3ddc84';g.font='80px Anton, Impact, sans-serif';g.textAlign='center';g.fillText('SOLD',0,28);g.restore();}
+  if(face&&p.rarity>=2)for(const b of bits){b.y+=b.v;g.fillStyle=`hsl(${b.h} 90% 60%)`;g.fillRect(b.x,b.y,b.s,b.s*0.6);}
+  g.fillStyle='#d7263d';g.fillRect(60,H-150,110,64);g.fillStyle='#fff';g.font='40px Anton, Impact, sans-serif';g.textAlign='center';g.fillText('EAT',115,H-104);g.textAlign='left';g.font='600 34px Arial, sans-serif';g.fillText('Empire Auction Tycoon',190,H-112);g.fillStyle='#9fb0cc';g.font='26px Arial, sans-serif';g.fillText(shareURL().replace(/^https?:\/\//,''),190,H-76);
+  if(t<1)requestAnimationFrame(frame);else rec.stop();};
+ const done=new Promise(res=>rec.onstop=res);rec.start(100);frame();await done;const blob=new Blob(chunks,{type:mime||'video/webm'}),ext=/mp4/.test(mime)?'mp4':'webm',file=new File([blob],'eat-'+name.toLowerCase()+'.'+ext,{type:blob.type}),u=URL.createObjectURL(blob);
+ const canFile=!!(navigator.canShare&&navigator.canShare({files:[file]}));
+ $('#sheet').innerHTML=`<div class="shareprev"><h3>${name} clip</h3><video src="${u}" autoplay loop muted playsinline></video>${canFile?'<button id="clGo">Share video</button>':''}${WEB_STATS?`<a class="sec dl" href="${u}" download="${file.name}">Save video</a>`:''}<button class="sec" id="clX">Close</button></div>`;$('#modal').hidden=false;
+ $('#clX').onclick=()=>{$('#modal').hidden=true;};const go=$('#clGo');if(go)go.onclick=async()=>{try{await navigator.share({files:[file],text:`${name} find in Empire Auction Tycoon`});T.c.clipShares=(T.c.clipShares||0)+1;tlog('clip_share',{});}catch(e){}};}
+const ESECS=[['ov','Overview'],['pf','Portfolio'],['mo','Money and bank'],['sets','Suburb sets'],['rich','Rich list'],['fr','Friends'],['alb','Card album'],['bad','Badges'],['dyn','Dynasty and play']];
 function drawSkyline(){const el=$('#skyline');if(!el)return;const ps=S.props.slice().sort((a,b)=>a.id-b.id).slice(-28),sig=ps.map(p=>p.id+':'+(p.rarity||0)+':'+Math.round(Math.log10(p.value)*4)+(p.up&&p.up.pool?'p':'')).join(',');if(el.dataset.sig===sig)return;el.dataset.sig=sig;
  if(!ps.length){el.innerHTML='';return;}const W=360,n=ps.length,bw=Math.max(8,Math.min(26,W/n-3)),lv=ps.map(p=>Math.log10(Math.max(1e5,p.value))),lo=Math.min(...lv),hi=Math.max(...lv);let x=W-n*(bw+3),out='';
  for(const p of ps){const h=30+56*(Math.log10(Math.max(1e5,p.value))-lo)/(hi-lo+0.4),col=RAR[p.rarity||0][1],tw=p.style==='tower'||p.style==='unit';
@@ -1872,7 +2010,7 @@ function drawSkyline(){const el=$('#skyline');if(!el)return;const ps=S.props.sli
  el.innerHTML=`<svg viewBox="0 0 360 100" preserveAspectRatio="xMaxYMax meet">${out}</svg>`;}
 function eSel(){const sel=$('#eSec'),labels={pf:`Portfolio (${S.props.length})`,bad:`Badges (${Object.keys(S.badges||{}).length}/${BADGES.length})`,dyn:`Dynasty ★${S.legacy||0}`,alb:`Card album (${(S.album||[]).length})`},sig=ESECS.map(([k,n])=>labels[k]||n).join('|')+eSec;if(sel.dataset.sig===sig)return;sel.dataset.sig=sig;
  sel.innerHTML=ESECS.map(([k,n])=>`<option value="${k}"${k===eSec?' selected':''}>${esc(labels[k]||n)}</option>`).join('');}
-function eGo(k,quiet){if(k==='alb')setTimeout(renderAlbum,0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+function eGo(k,quiet){if(k==='alb')setTimeout(renderAlbum,0);if(k==='fr')setTimeout(()=>renderFriends(),0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
 $('#eSec').onchange=e=>eGo(e.target.value);
 $('#oTiles').onclick=e=>{const b=e.target.closest('[data-go]');if(b)eGo(b.dataset.go);};
 $('#pfilter').onclick=e=>{const b=e.target.closest('[data-pf]');if(!b||b.dataset.pf===pf)return;pf=b.dataset.pf;pg=0;buildEmpire();};
@@ -1955,7 +2093,7 @@ async function shareCard(p){if(!p||(p.rarity||0)<3)return;T.c.shareOpens++;tlog(
  c.toBlob(b=>{if(!b)return;const fname='empire-auction-'+name.toLowerCase()+'.png',file=new File([b],fname,{type:'image/png'}),u=URL.createObjectURL(b);
   const text=`${name} find in Empire Auction Tycoon: ${p.addr}, ${p.sub}. Won for ${money(p.paid)}, now worth ${money(p.value)} (${eq>=0?'+':''}${eq.toFixed(0)}%).`;
   const canFile=!!(navigator.canShare&&navigator.canShare({files:[file]}));
-  $('#sheet').innerHTML=`<div class="shareprev"><h3>${name} find</h3><img src="${u}" alt="Share card for ${esc(p.addr)}">${canFile||navigator.share?'<button id="shGo">Share</button>':''}${WEB_STATS?`<a class="sec dl" href="${u}" download="${fname}">Save image</a>`:''}<button class="sec" id="shCopy">Copy text and link</button><button class="sec" id="shX">Close</button></div>`;$('#modal').hidden=false;
+  $('#sheet').innerHTML=`<div class="shareprev"><h3>${name} find</h3><img src="${u}" alt="Share card for ${esc(p.addr)}">${canFile||navigator.share?'<button id="shGo">Share</button>':''}${WEB_STATS?`<a class="sec dl" href="${u}" download="${fname}">Save image</a>`:''}${window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream?'<button class="sec" id="shClip">Make a video clip</button>':''}<button class="sec" id="shCopy">Copy text and link</button><button class="sec" id="shX">Close</button></div>`;$('#modal').hidden=false;{const cb=$('#shClip');if(cb)cb.onclick=()=>makeClip(p,cb);}
   $('#shX').onclick=()=>{$('#modal').hidden=true;};
   $('#shCopy').onclick=async()=>{try{await navigator.clipboard.writeText(text+' '+shareURL());$('#shCopy').textContent='Copied';T.c.shareCopies++;tlog('share_done',{r:p.rarity,how:'copy'});}catch(e){$('#shCopy').textContent='Copy failed';}};
   const go=$('#shGo');if(go)go.onclick=async()=>{try{await navigator.share(canFile?{files:[file],text,url:shareURL()}:{text,url:shareURL()});T.c.shareDone++;tlog('share_done',{r:p.rarity,how:canFile?'file':'link'});}catch(e){}};
@@ -2008,7 +2146,7 @@ function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open'
 function cashOut(w,pts){T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const r0=rankOf(S.legacy||0).i;
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:Math.max(S.bestWorth,w),muted:S.muted,tour:S.tour,rules:S.rules,legacy:(S.legacy||0)+pts,dynasties:(S.dynasties||0)+1,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
  S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');drawStars();rankBadges();save();
- const r=rankOf(S.legacy),up=r.i>r0;
+ const r=rankOf(S.legacy),up=r.i>r0;groupEvent('cashout',`cashed out at ${money(w)} for +${pts}★ (${r.t})`);
  modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}<p>${S.legacy} stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});}
 $('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
  else{resetArmed=true;b.classList.add('armed');b.textContent='Tap again to wipe everything';setTimeout(()=>{resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';},3500);}};
@@ -2196,7 +2334,7 @@ function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el
  if(ms<=0&&!S.featWarned&&A&&!A.ended&&!A.featured){S.featWarned=true;toast('Featured auction up next: a rare home and a packed room.','up');}}
 setInterval(()=>{drawFeatIn();drawSd();},1000);
 setTimeout(()=>{drawSd();if(sdOpen())toast('Today’s showdown is open: the same house for every player, one shot. Tap Showdown.','up',()=>startShowdown());},5000);
-$('#sdBtn').onclick=()=>startShowdown();$('#sdBoardBtn').onclick=()=>openBoard();
+$('#sdBtn').onclick=()=>startShowdown();$('#nightBtn').onclick=()=>nightGo();$('#sdBoardBtn').onclick=()=>openBoard();
 function headLoop(){const tc=S.cash,tw=worth();dCash+=(tc-dCash)*0.18;dWorth+=(tw-dWorth)*0.18;if(Math.abs(tc-dCash)<1)dCash=tc;if(Math.abs(tw-dWorth)<1)dWorth=tw;$('#hCash').textContent=money(dCash);$('#hWorth').textContent=money(dWorth);requestAnimationFrame(headLoop);}
 
 /* ---------- live strip: other auctions running at once ---------- */
@@ -2215,7 +2353,7 @@ function renderLive(){const box=$('#lvStrip');box.hidden=!LIVE.length;if(box.hid
   el.className='lv'+(x.ended&&x.leader==='you'?' won':x.leader==='you'?' lead':c==='neg'?' outbid':'');
   el.querySelector('[data-k="p"]').textContent=money(q);const se=el.querySelector('[data-k="s"]');se.textContent=s+(x.ended?'':' · '+ZONES[z]);se.className='lvs '+c;
   const ci=el.querySelector('[data-k="c"]');ci.style.width=(x.ended?0:x.clock/x.total*100)+'%';ci.className=x.clock<=4?'hot':'';
-  const ab=el.querySelector('.lvauto'),past=!x.ended&&!x.auto&&x.leader!=='you'&&x.autoMax<nextBidOf(x);ab.disabled=x.ended||past;ab.setAttribute('aria-pressed',!!x.auto);ab.innerHTML=x.ended?esc(s):past?'<small>Past your</small>walk-away':`<small>${x.auto?'Auto on':'Auto to'}</small>${money(x.autoMax)}${x.auto?'':'?'}`;}}
+  const ab=el.querySelector('.lvauto'),past=!x.ended&&!x.auto&&x.leader!=='you'&&x.autoMax<nextBidOf(x);ab.disabled=x.ended||past;ab.setAttribute('aria-pressed',!!x.auto);ab.innerHTML=x.ended?esc(s):past?'<small>Past your</small>limit':`<small>${x.auto?'Auto on':'Auto to'}</small>${money(x.autoMax)}${x.auto?'':'?'}`;}}
 const nextBidOf=x=>x.leader?x.bid+x.lot.inc:x.lot.open;
 $('#lvRow').onclick=e=>{const a=e.target.closest('[data-auto]');if(a){const x=LIVE.find(y=>y.lot.no===+a.dataset.auto);if(x&&!x.ended){x.auto=!x.auto;x.autoWarned=false;T.c.liveAutos=(T.c.liveAutos||0)+1;hideCoach('live');renderLive();}return;}
  const f=e.target.closest('[data-focus]');if(f)focusLive(+f.dataset.focus);};
@@ -2337,7 +2475,7 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 if(/[?&]debug=1/.test(location.search))window.__eat={get S(){return S;},get A(){return A;},pullCard,cardSheet,houseTour:(p,f)=>houseTour(p,f),eGo,show,startAuction,award};
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
