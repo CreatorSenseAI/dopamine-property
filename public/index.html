@@ -1034,7 +1034,8 @@ body[data-paddle="crew"] .pad.you b{background:linear-gradient(135deg,#d7263d,#1
 .newst{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .newst.go{animation:newsfade .5s ease-out}
 @keyframes newsfade{from{opacity:0;transform:translateY(4px)}}
-.inbox{text-align:left}
+.inbox{text-align:left;position:relative}
+.inbox .inx{position:absolute;right:-6px;top:-8px;width:36px;height:36px;border-radius:50%;background:var(--sunk);color:var(--ink);font-size:22px;line-height:1;padding:0;margin:0}
 .inbox h3{text-align:center}
 .inhead{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
 .inrow{display:flex;gap:10px;align-items:baseline;justify-content:space-between;font-size:13.5px;line-height:1.35;padding:7px 0;border-bottom:1px solid var(--line)}
@@ -1453,7 +1454,7 @@ function regJoin(X){if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v30f-web';
+const VERSION='v30g-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2278,7 +2279,7 @@ function inboxAdd(msg,kind){try{const t=String(msg).replace(/<[^>]+>/g,'').trim(
 function drawBell(){const n=(S.inbox||[]).filter(x=>x.at>(S.inboxSeen||0)).length,el=$('#bellN');if(!el)return;el.hidden=!n;el.textContent=n>9?'9+':n;}
 const ago=t=>{const s=Math.round((Date.now()-t)/1000);return s<60?'now':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';};
 function inboxSheet(){T.c.bellOpens=(T.c.bellOpens||0)+1;const seen=S.inboxSeen||0,L=S.inbox||[],fresh=NEWS.filter(n=>Date.now()-n.at<600e3);S.inboxSeen=Date.now();drawBell();save();
- $('#sheet').innerHTML=`<div class="upg inbox"><h3>Notifications</h3>${fresh.length?`<div class="inhead">Headlines</div>${fresh.map(n=>`<div class="inrow news"><span>${esc(n.t)}</span><time>${ago(n.at)}</time></div>`).join('')}`:''}<div class="inhead">Recent</div>${L.length?L.map(x=>`<div class="inrow ${x.k==='up'?'up':x.k==='down'?'down':''}${x.at>seen?' new':''}"><span>${esc(x.m)}</span><time>${ago(x.at)}</time></div>`).join(''):'<p>Nothing yet. Wins, offers, events and tenant news land here.</p>'}<button class="sec" id="inX">Close</button></div>`;$('#modal').hidden=false;$('#inX').onclick=()=>{$('#modal').hidden=true;};}
+ $('#sheet').innerHTML=`<div class="upg inbox"><button class="inx" id="inX2" aria-label="Close">&times;</button><h3>Notifications</h3>${fresh.length?`<div class="inhead">Headlines</div>${fresh.map(n=>`<div class="inrow news"><span>${esc(n.t)}</span><time>${ago(n.at)}</time></div>`).join('')}`:''}<div class="inhead">Recent</div>${L.length?L.map(x=>`<div class="inrow ${x.k==='up'?'up':x.k==='down'?'down':''}${x.at>seen?' new':''}"><span>${esc(x.m)}</span><time>${ago(x.at)}</time></div>`).join(''):'<p>Nothing yet. Wins, offers, events and tenant news land here.</p>'}<button class="sec" id="inX">Close</button></div>`;$('#modal').hidden=false;$('#inX').onclick=$('#inX2').onclick=()=>{$('#modal').hidden=true;};}
 $('#news').onclick=inboxSheet;
 function eventPill(){const ids=['siegeBtn','nightBtn','featIn'];let shown=false;for(const id of ids){const el=document.getElementById(id);if(!el)continue;const want=!el.hidden;el.classList.toggle('sq',want&&shown);if(want)shown=true;}}
 setInterval(eventPill,500);
