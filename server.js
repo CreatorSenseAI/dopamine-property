@@ -128,67 +128,120 @@ function boardGet(req, res, url) {
 
 // ---------- photoreal house images, generated on the server (the OpenAI key never leaves Railway) ----------
 // GET /admin/gen-images?key=ADMIN_KEY            → progress
-// GET /admin/gen-images?key=ADMIN_KEY&go=1&per=6 → start a batch (per style; 5 styles), saved to DATA_DIR/img and served at /img/*
+// GET /admin/gen-images?key=ADMIN_KEY&go=1&per=24&rooms=10 → fill every bucket to that many (default IMG_PER / IMG_ROOM_PER); &stop=1 halts. Saved to DATA_DIR/img, served at /img/*
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
 const IMG_DIR = path.join(DATA, "img");
 fs.mkdirSync(IMG_DIR, { recursive: true });
 const IMG_BASE = "Photorealistic real-estate listing photo, exterior, shot from the street at eye level, wide angle, soft natural light, invented house that does not exist, no people, no cars in focus, no text, no signage, no logos, no watermarks.";
-const IMG_STYLES = {
-  cottage: ["weatherboard Queenslander cottage on stumps with a wide verandah and tin roof, leafy suburban yard", "1950s red-brick Australian bungalow with a tiled roof, low front fence and lawn", "renovated fibro beach shack painted white with a timber deck and frangipani tree"],
-  unit: ["three-storey 1970s red-brick walk-up apartment block with balconies, Australian suburb", "modern low-rise apartment building with timber screens and planter boxes", "art deco apartment block in cream render with curved balconies"],
-  villa: ["Mediterranean-style rendered villa with arched windows, terracotta roof and a manicured garden", "Hamptons-style family home with white weatherboards, grey roof and hedges", "Spanish mission home with stucco walls, palms and a courtyard gate"],
-  modern: ["architect-designed contemporary home with timber cladding, floor-to-ceiling glass and a pool", "minimalist concrete and glass house cantilevered on a hillside with ocean views at golden hour", "luxury two-storey modern home with a stone facade and landscaped garden at dusk"],
-  tower: ["luxury residential tower with glass balconies overlooking a harbour at dusk, penthouse lights on", "sleek high-rise apartment tower on a waterfront promenade at blue hour", "boutique luxury residential tower with sculpted balconies and a rooftop garden at sunset"],
+/* v32: photo buckets are style-tier-region (e.g. villa-2-au). Targets per bucket come from IMG_PER (exteriors) and IMG_ROOM_PER (rooms);
+   prompts are randomised so a bucket of 40 looks like 40 different homes. The old style-only keys stay for older clients. */
+const IMG_TIERS = ["Starter","Family","Prestige","Trophy","Icon"];
+const IMG_TIER_STYLES = [["cottage","unit"],["cottage","villa","modern"],["modern","villa"],["tower","modern","villa"],["tower","villa","modern"]];
+const IMG_REGIONS = { au: "Australia", nz: "Auckland, New Zealand", uk: "London, England", us: "the United States", eu: "the French Riviera", ae: "Dubai", jp: "Tokyo, Japan" };
+const IMG_TIER_REGIONS = [["au","nz"],["au","nz","uk","us"],["au","nz","uk","us","ae","eu"],["au","uk","us","ae","eu","jp"],["au","uk","us","ae","eu","jp"]];
+const IMG_SUBJECT = {
+  cottage: ["a small weatherboard cottage with a front verandah", "a 1950s brick bungalow with a tiled roof", "a fibro beach shack with a timber deck", "a timber Queenslander on stumps with a tin roof", "a modest post-war cottage with a low front fence", "a renovated worker's cottage with a picket fence", "a brick veneer family home with a double carport", "a sandstone cottage with a slate roof", "a mid-century weatherboard home with a sunroom", "a two-storey family home with a pitched roof and a double garage", "a Federation house with a return verandah and leadlight", "a Victorian terrace with iron lace", "a Georgian townhouse with sash windows", "a Craftsman bungalow with a deep porch", "a brownstone row house with a stoop"],
+  unit: ["a three-storey 1970s brick walk-up apartment block with balconies", "a modern low-rise apartment building with timber screens", "an art deco apartment block in cream render", "a six-storey apartment building with glass balconies and planters", "a converted warehouse apartment building in red brick", "a boutique apartment block with a landscaped entry", "a mid-rise apartment building with curved balconies"],
+  villa: ["a Mediterranean-style rendered villa with arched windows and a terracotta roof", "a Hamptons-style home with white weatherboards and hedges", "a Spanish mission home with stucco walls and palms", "a French provincial home with a slate mansard roof and shutters", "a Tuscan villa with a cypress-lined drive", "a Georgian manor with symmetrical windows and a gravel forecourt", "a grand white stucco mansion with columns", "a colonial plantation home with a wrap-around verandah", "a Palladian mansion with a portico", "a château-style estate with a fountain"],
+  modern: ["an architect-designed contemporary home with timber cladding and floor-to-ceiling glass", "a minimalist concrete and glass house cantilevered over a slope", "a two-storey modern home with a stone facade", "a flat-roofed modern home with black steel windows and a pool", "a glass pavilion house on a cliff edge", "a modern beach house with raw timber and a wide deck", "a mid-century modern home with a butterfly roof", "a modern home with a green roof and rammed-earth walls", "a sleek white modern home with a cantilevered upper floor"],
+  tower: ["a luxury residential tower with glass balconies", "a sleek high-rise apartment tower on a waterfront promenade", "a boutique residential tower with sculpted balconies and a rooftop garden", "a twisting glass residential skyscraper", "a supertall slender residential tower", "a pair of curved residential towers joined by a sky bridge", "a terraced residential tower with planted balconies"],
 };
-/* v31 room photos for the swipe tour: one set per room, shared across house styles */
+const IMG_TIER_TONE = ["modest, dated, lived-in, affordable suburb", "well-kept family home, leafy established street", "prestige home, manicured garden, expensive suburb", "trophy estate, gated, sweeping grounds or waterfront", "iconic landmark residence, breathtaking setting, the best address in the world"];
+const IMG_SUBJECT_RG = {
+  cottage: { uk: ["a Victorian terrace with a bay window", "a Georgian townhouse with sash windows", "a red-brick semi-detached house with a tiled roof", "a stone cottage with a slate roof"], us: ["a Craftsman bungalow with a deep porch", "a brownstone row house with a stoop", "a colonial two-storey home with shutters", "a ranch-style home with a wide lawn"], nz: ["a weatherboard villa with a bullnose verandah", "a 1960s brick-and-tile home on a quarter-acre", "a timber bach with a deck"] },
+  villa: { uk: ["a Georgian manor with symmetrical windows and a gravel forecourt", "a white stucco Regency villa with columns", "a red-brick Edwardian mansion with chimneys"], us: ["a Spanish mission home with stucco walls and palms", "a colonial plantation home with a wrap-around verandah", "a Hamptons-style home with white weatherboards and hedges", "a Beverly Hills mansion with a circular drive"], eu: ["a French provincial home with a slate mansard roof and shutters", "a Belle Époque villa with wrought-iron balconies", "a pink stucco Riviera villa with cypress trees", "a château-style estate with a fountain"], ae: ["a white modern villa with a flat roof, palms and a gated drive", "an Arabic-style villa with arches, mashrabiya screens and a courtyard", "a waterfront villa with a private jetty"] },
+  tower: { jp: ["a sleek Tokyo residential tower with a sky lobby", "a glass residential tower above a landscaped plaza in Tokyo"], uk: ["a slender glass residential tower on the Thames", "a modern residential tower with a brick podium in London"], us: ["a supertall glass residential tower over Central Park", "a slender Manhattan residential skyscraper"] },
+  modern: { jp: ["a minimalist concrete Japanese modern house with a courtyard", "a timber-and-glass modern home in a quiet Tokyo lane"], ae: ["a white modern villa with a flat roof and an infinity pool on the water", "a sculptural glass home on a private island"], eu: ["a glass and stone modern villa on a hillside over the sea", "a minimalist white modern home with a pool and sea views"] },
+};
+const IMG_VARY = {
+  era: ["original condition", "freshly renovated", "newly built", "heritage listed", "tastefully updated", "a little tired", "immaculate"],
+  colour: ["white", "cream", "pale grey", "sage green", "charcoal", "sandstone", "red brick", "navy and white", "honey timber", "terracotta", "blonde brick", "black and timber"],
+  roof: ["a corrugated iron roof", "a terracotta tiled roof", "a slate roof", "a flat roof", "a dark tiled roof", "a standing-seam metal roof"],
+  garden: [["a neat lawn and a gum tree", "frangipani and hedges", "roses and a picket fence", "native grasses", "a jacaranda in bloom", "overgrown with a wonky letterbox", "a concrete drive and a lemon tree", "a small front yard with a hills hoist glimpsed"], ["a manicured box hedge", "palms and a tropical garden", "a gravel drive and olive trees", "clipped topiary and a water feature", "a sandstone wall and agaves", "a sweeping lawn down to the water"], ["sweeping landscaped grounds", "a palm-lined drive and a fountain", "a waterfront lawn and a jetty", "terraced gardens to the sea", "a gated forecourt and a reflection pool"]],
+  towerset: ["a landscaped forecourt", "a waterfront promenade", "a palm-lined entry drive", "a marina at its feet", "a park across the street"],
+  light: ["in warm late-afternoon light", "on a bright clear morning", "at blue hour with the lights on", "under a soft overcast sky", "at golden hour", "on a crisp sunny day with long shadows"],
+  angle: ["from directly across the street", "from a three-quarter angle", "from the footpath looking up the drive", "slightly elevated from across the road", "from the front gate"],
+  extra: [["", "", "a car in the driveway", "bins out the front", "a for-sale board blurred in the corner", "kids' bikes on the porch", "a dog asleep on the verandah", "washing on the line", "a letterbox with the number", "a basketball hoop on the garage"], ["", "", "a car in the driveway", "a pool glimpsed at the side", "a for-sale board blurred in the corner", "a dog on the lawn"], ["", "", "a luxury car in the drive", "a pool glimpsed at the side", "a helipad glimpsed", "a superyacht moored beyond"]],
+};
 const IMG_ROOM_BASE = "Photorealistic real-estate listing photo, interior, wide angle, bright natural light, styled for sale, invented home, no people, no text, no signage, no logos, no watermarks.";
 const IMG_ROOMS = {
-  living: ["open-plan living room with a linen sofa, timber floors and large windows onto a garden", "contemporary living room with a stone feature wall, low sofa and a view through sliding doors", "sunlit living room in a renovated cottage with a fireplace and white walls"],
-  kitchen: ["modern white kitchen with a stone island bench, pendant lights and timber stools", "country-style kitchen with shaker cabinets, a farmhouse sink and a window over the garden", "sleek dark kitchen with a long island, integrated appliances and a splashback window"],
-  bed: ["main bedroom with a king bed, soft linen, timber floors and a window seat", "coastal bedroom with white walls, a rattan bedhead and sheer curtains blowing", "luxury bedroom with a walk-in robe glimpse and city skyline through glass"],
-  yard: ["Australian backyard with a timber deck, lawn, a gum tree and an outdoor dining setting", "backyard with a swimming pool, sun loungers and tropical planting", "courtyard garden with raised veggie beds, a fire pit and string lights"],
-  lobby: ["apartment building lobby with marble floors, a concierge desk and warm lighting", "boutique apartment entry with timber panelling, planters and a glass door"],
-  view: ["apartment balcony with outdoor furniture overlooking a harbour at dusk", "penthouse terrace with a glass balustrade and a city skyline at golden hour"],
+  living: ["an open-plan living room", "a living room with a fireplace", "a sunken lounge", "a formal sitting room", "a family room opening onto a deck"],
+  kitchen: ["a kitchen with an island bench", "a galley kitchen", "a country kitchen with a farmhouse sink", "a kitchen with a butler's pantry", "a kitchen and dining space"],
+  bed: ["a main bedroom", "a bedroom with a window seat", "a bedroom with a walk-in robe glimpse", "a bedroom with a balcony", "a guest bedroom"],
+  yard: ["a backyard with a lawn", "a backyard with a swimming pool", "a courtyard garden", "a timber deck with outdoor dining", "a garden with a fire pit"],
+  lobby: ["an apartment building lobby", "a boutique apartment entry", "a residential tower lobby with a concierge desk", "an apartment entrance hall"],
+  view: ["a balcony with outdoor furniture", "a penthouse terrace", "a rooftop terrace", "a balcony over the water"],
 };
-const GEN = { running: false, done: 0, failed: 0, total: 0, errors: [], startedAt: null, finishedAt: null };
+const IMG_ROOM_BANDS = { lo: "modest, dated, original fittings, budget furniture, rental-ready", mid: "renovated, stone benchtops, timber floors, family home", hi: "luxury, designer furniture, marble, floor-to-ceiling glass, views" };
+const IMG_ROOM_VARY = ["timber floors", "polished concrete", "carpet", "white walls", "a feature wall", "sheer curtains", "pendant lights", "plants", "a rug", "art on the wall", "morning light", "afternoon light", "a city view", "a garden view", "an ocean view", "exposed brick", "high ceilings", "a skylight"];
+const pickR = a => a[Math.floor(Math.random() * a.length)];
+const IMG_PER = Math.max(1, Math.min(200, +process.env.IMG_PER || 24));
+const IMG_ROOM_PER = Math.max(1, Math.min(200, +process.env.IMG_ROOM_PER || 10));
+const IMG_PARALLEL = Math.max(1, Math.min(6, +process.env.IMG_PARALLEL || 3));
+function imgTargets(perE, perR) {
+  const t = {};
+  IMG_TIER_STYLES.forEach((styles, ti) => { for (const st of styles) for (const rg of IMG_TIER_REGIONS[ti]) t[`${st}-${ti}-${rg}`] = perE; });
+  for (const room of Object.keys(IMG_ROOMS)) for (const band of Object.keys(IMG_ROOM_BANDS)) t[`room-${room}-${band}`] = perR;
+  return t;
+}
+function imgPrompt(key) {
+  const m = key.match(/^room-([a-z]+)-(lo|mid|hi)$/);
+  if (m) { const v = [...IMG_ROOM_VARY].sort(() => Math.random() - .5).slice(0, 3).join(", "); return `${IMG_ROOM_BASE} Subject: ${pickR(IMG_ROOMS[m[1]])}, ${IMG_ROOM_BANDS[m[2]]}, ${v}.`; }
+  const [st, ti, rg] = key.split("-"), T = +ti, V = IMG_VARY, band = T <= 1 ? 0 : T === 2 ? 1 : 2;
+  const subj = (IMG_SUBJECT_RG[st] && IMG_SUBJECT_RG[st][rg] && Math.random() < 0.7) ? pickR(IMG_SUBJECT_RG[st][rg]) : pickR(IMG_SUBJECT[st]);
+  const tower = st === "tower", roof = tower || st === "unit" ? "" : ` with ${pickR(V.roof)}`, setting = tower ? pickR(V.towerset) : pickR(V.garden[band]), extra = tower ? "" : pickR(V.extra[band]);
+  const era = T >= 3 ? pickR(["immaculate", "newly built", "heritage listed", "tastefully updated"]) : pickR(V.era);
+  return `${IMG_BASE} Subject: ${subj}, ${era}, ${pickR(V.colour)}${roof}, ${setting}${extra ? ", " + extra : ""}, in ${IMG_REGIONS[rg] || "Australia"}. Tone: ${IMG_TIER_TONE[T] || IMG_TIER_TONE[1]} (${IMG_TIERS[T] || "Family"} tier). Photographed ${pickR(V.angle)} ${pickR(V.light)}.`;
+}
+const GEN = { running: false, done: 0, failed: 0, total: 0, errors: [], startedAt: null, finishedAt: null, stop: false };
 const imgManifestFile = path.join(IMG_DIR, "manifest.json");
 const readImgManifest = () => { try { return JSON.parse(fs.readFileSync(imgManifestFile, "utf8")); } catch { return {}; } };
+const imgCount = m => Object.values(m).reduce((a, v) => a + v.length, 0);
 async function genOne(prompt) {
   const r = await fetch("https://api.openai.com/v1/images/generations", { method: "POST", headers: { authorization: "Bearer " + OPENAI_KEY, "content-type": "application/json" },
     body: JSON.stringify({ model: process.env.IMAGE_MODEL || "gpt-image-1", prompt, size: "1536x1024", quality: process.env.IMAGE_QUALITY || "medium", n: 1, output_format: "webp", output_compression: 80 }) });
-  if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 200));
+  if (!r.ok) { const e = new Error(r.status + " " + (await r.text()).slice(0, 200)); e.status = r.status; throw e; }
   const j = await r.json(), b64 = j.data && j.data[0] && j.data[0].b64_json;
   if (!b64) throw new Error("no image in response");
   return Buffer.from(b64, "base64");
 }
-async function genImages(per) {
+/* Fills every bucket up to its target, IMG_PARALLEL at a time, round-robin so early buckets get a few photos each before any is full.
+   429/5xx back off; 10 failures in a row with nothing done stops the run (bad key, no billing). */
+async function genImages(perE, perR) {
   if (GEN.running || !OPENAI_KEY) return;
-  Object.assign(GEN, { running: true, done: 0, failed: 0, total: per * Object.keys(IMG_STYLES).length, errors: [], startedAt: new Date().toISOString(), finishedAt: null });
-  const man = readImgManifest();
-  for (const [style, variants] of Object.entries(IMG_STYLES)) {
-    man[style] = man[style] || [];
-    for (let i = 0; i < per; i++) {
-      if (man[style].length >= per) break;
-      const file = `${style}-${Date.now().toString(36)}-${i}.webp`;
+  perE = perE || IMG_PER; perR = perR || IMG_ROOM_PER;
+  const targets = imgTargets(perE, perR), man = readImgManifest();
+  const todo = []; for (const [k, n] of Object.entries(targets)) { man[k] = man[k] || []; for (let i = man[k].length; i < n; i++) todo.push({ k, i }); }
+  todo.sort((a, b) => a.i - b.i || (a.k < b.k ? -1 : 1));
+  Object.assign(GEN, { running: true, done: 0, failed: 0, total: todo.length, errors: [], startedAt: new Date().toISOString(), finishedAt: null, stop: false });
+  console.log(`IMG filling ${todo.length} photos into ${Object.keys(targets).length} buckets (${perE}/exterior bucket, ${perR}/room bucket, ${IMG_PARALLEL} at a time)`);
+  let streak = 0, seq = 0;
+  const worker = async () => {
+    while (todo.length && !GEN.stop) {
+      const { k } = todo.shift();
+      const file = `${k}-${Date.now().toString(36)}-${seq++}.webp`;
       try {
-        fs.writeFileSync(path.join(IMG_DIR, file), await genOne(`${IMG_BASE} Subject: ${variants[(man[style].length + i) % variants.length]}.`));
-        man[style].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; console.log(`IMG ${style} ${man[style].length}/${per}`);
-      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); console.log("IMG fail " + style + " " + String(e.message || e).slice(0, 120)); if (GEN.failed >= 5 && GEN.done === 0) { GEN.running = false; GEN.finishedAt = new Date().toISOString(); return; } }
+        const buf = await genOne(imgPrompt(k));
+        fs.writeFileSync(path.join(IMG_DIR, file), buf);
+        man[k].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; streak = 0;
+        if (GEN.done % 10 === 1 || GEN.done === GEN.total) console.log(`IMG ${GEN.done}/${GEN.total} (${k} ${man[k].length}/${targets[k]}, ${imgCount(man)} on the volume)`);
+      } catch (e) {
+        GEN.failed++; streak++; const msg = String(e.message || e).slice(0, 160); GEN.errors.push(msg); if (GEN.errors.length > 20) GEN.errors.shift();
+        console.log("IMG fail " + k + " " + msg);
+        if (e.status === 429 || (e.status >= 500)) await new Promise(r => setTimeout(r, 20000 * Math.min(6, streak)));
+        if (streak >= 10 && GEN.done === 0) { GEN.stop = true; console.log("IMG stopped: 10 failures in a row (check the key, billing or model name)"); }
+        else if (streak >= 30) { GEN.stop = true; console.log("IMG stopped: 30 failures in a row"); }
+      }
     }
-  }
-  const roomPer = Math.max(2, Math.round(per / 2));
-  for (const [room, variants] of Object.entries(IMG_ROOMS)) {
-    const key = "room-" + room; man[key] = man[key] || [];
-    for (let i = 0; i < roomPer; i++) {
-      if (man[key].length >= roomPer) break;
-      const file = `${key}-${Date.now().toString(36)}-${i}.webp`;
-      try {
-        fs.writeFileSync(path.join(IMG_DIR, file), await genOne(`${IMG_ROOM_BASE} Subject: ${variants[(man[key].length + i) % variants.length]}.`));
-        man[key].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; console.log(`IMG ${key} ${man[key].length}/${roomPer}`);
-      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); console.log("IMG fail " + key + " " + String(e.message || e).slice(0, 120)); }
-    }
-  }
-  GEN.running = false; GEN.finishedAt = new Date().toISOString(); console.log(`IMG done ${GEN.done} ok, ${GEN.failed} failed`);
+  };
+  await Promise.all(Array.from({ length: IMG_PARALLEL }, worker));
+  GEN.running = false; GEN.finishedAt = new Date().toISOString(); console.log(`IMG done ${GEN.done} ok, ${GEN.failed} failed, ${imgCount(man)} photos on the volume`);
+}
+function imgStatus() {
+  const man = readImgManifest(), targets = imgTargets(IMG_PER, IMG_ROOM_PER), buckets = {};
+  for (const k of Object.keys(targets)) buckets[k] = `${(man[k] || []).length}/${targets[k]}`;
+  const want = Object.values(targets).reduce((a, b) => a + b, 0), have = Object.keys(targets).reduce((a, k) => a + Math.min(targets[k], (man[k] || []).length), 0);
+  return { ...GEN, have, want, onVolume: imgCount(man), perExterior: IMG_PER, perRoom: IMG_ROOM_PER, parallel: IMG_PARALLEL, quality: process.env.IMAGE_QUALITY || "medium", buckets };
 }
 function serveImg(req, res, url) {
   if (url.pathname === "/img/manifest.json") {
@@ -198,7 +251,7 @@ function serveImg(req, res, url) {
     return send(req, res, 200, "application/json", JSON.stringify(base), { "cache-control": "no-cache" }), true;
   }
   const name = path.basename(url.pathname);
-  if (!/^[a-z]+(-[a-z]+)?-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
+  if (!/^[a-z]+(-[a-z0-9]+){0,3}-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
   const f = path.join(IMG_DIR, name);
   if (!fs.existsSync(f)) return false;
   res.writeHead(200, { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff" });
@@ -355,9 +408,9 @@ http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
     if (url.pathname === "/admin/gen-images") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
-      if (url.searchParams.get("go") === "1" && OPENAI_KEY && !GEN.running) genImages(Math.max(1, Math.min(12, +url.searchParams.get("per") || 6)));
-      const man = readImgManifest();
-      return send(req, res, 200, "application/json", JSON.stringify({ keySet: !!OPENAI_KEY, ...GEN, images: Object.fromEntries(Object.entries(man).map(([k, v]) => [k, v.length])) }, null, 2), { "cache-control": "no-store" });
+      if (url.searchParams.get("stop") === "1") GEN.stop = true;
+      if (url.searchParams.get("go") === "1" && OPENAI_KEY && !GEN.running) genImages(Math.max(1, Math.min(200, +url.searchParams.get("per") || IMG_PER)), Math.max(1, Math.min(200, +url.searchParams.get("rooms") || IMG_ROOM_PER)));
+      return send(req, res, 200, "application/json", JSON.stringify({ keySet: !!OPENAI_KEY, ...imgStatus() }, null, 2), { "cache-control": "no-store" });
     }
     if (url.pathname === "/admin/digest.txt") {
       if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
@@ -401,4 +454,4 @@ function logDigest() {
 }
 setTimeout(logDigest, 8000);
 /* photos: with OPENAI_API_KEY set, fill the set on boot (6 exteriors per style, 3 per room); re-runs only for what is missing */
-if (OPENAI_KEY) setTimeout(() => { const m = readImgManifest(), want = Object.keys(IMG_STYLES).length * 6 + Object.keys(IMG_ROOMS).length * 3, have = Object.values(m).reduce((a, v) => a + v.length, 0); console.log(`IMG key set, ${have}/${want} photos on the volume`); if (have < want) genImages(6); }, 15000); setInterval(logDigest, 30 * 60e3);
+if (OPENAI_KEY) setTimeout(() => { const st = imgStatus(); console.log(`IMG key set, ${st.have}/${st.want} photos in place (${st.onVolume} on the volume, ${st.quality} quality)`); if (st.have < st.want && process.env.IMG_AUTO !== "0") genImages(); }, 15000); setInterval(logDigest, 30 * 60e3);
