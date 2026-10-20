@@ -179,7 +179,7 @@ const IMG_VARY = {
   towerset: ["a landscaped forecourt", "a waterfront promenade", "a palm-lined entry drive", "a marina at its feet", "a park across the street"],
   light: ["in warm late-afternoon light", "on a bright clear morning", "at blue hour with the lights on", "under a soft overcast sky", "at golden hour", "on a crisp sunny day with long shadows"],
   angle: ["from directly across the street", "from a three-quarter angle", "from the footpath looking up the drive", "slightly elevated from across the road", "from the front gate"],
-  extra: [["", "", "a car in the driveway", "bins out the front", "a for-sale board blurred in the corner", "kids' bikes on the porch", "a dog asleep on the verandah", "washing on the line", "a letterbox with the number", "a basketball hoop on the garage"], ["", "", "a car in the driveway", "a pool glimpsed at the side", "a for-sale board blurred in the corner", "a dog on the lawn"], ["", "", "a luxury car in the drive", "a pool glimpsed at the side", "a helipad glimpsed", "a superyacht moored beyond"]],
+  extra: [["", "", "a car in the driveway", "bins out the front", "kids' bikes on the porch", "a dog asleep on the verandah", "washing on the line", "a letterbox with the number", "a basketball hoop on the garage"], ["", "", "a car in the driveway", "a pool glimpsed at the side", "a dog on the lawn"], ["", "", "a luxury car in the drive", "a pool glimpsed at the side", "a helipad glimpsed", "a superyacht moored beyond"]],
 };
 const IMG_ROOM_BASE = "Photorealistic real-estate listing photo, interior, wide angle, bright natural light, styled for sale, invented home, no people, no text, no signage, no logos, no watermarks.";
 const IMG_ROOMS = {
@@ -347,29 +347,59 @@ function stats() {
   };
 }
 
-function adminPage(k) {
+function adminPage(url) {
+  const k = url.searchParams.get("key") || "", tab = url.searchParams.get("tab") || "overview";
   const s = stats(); s.soc = (social && social.stats()) || {}; const TIER = ["Starter", "Family", "Prestige", "Trophy", "Icon"];
   const tile = (label, value, note) => `<div class="t"><small>${esc(label)}</small><b>${esc(value ?? "–")}</b>${note ? `<em>${esc(note)}</em>` : ""}</div>`;
   const max = Math.max(1, ...s.dau.map(d => d[1]));
   const tabs = s.tabSec, tabTotal = Math.max(1, tabs[0] + tabs[1] + tabs[2]);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Auction Empires stats</title>
+  const img = imgStatus(), fbAll = feedbackList(500), fbAvg = fbAll.length ? (fbAll.reduce((a, x) => a + x.stars, 0) / fbAll.length).toFixed(2) : "–";
+  const { sessions: SS } = loadAll();
+  const recent = SS.slice().sort((a, b) => (b.lastSeen || b.start || "").localeCompare(a.lastSeen || a.start || "")).slice(0, 60);
+  const M = v => typeof v === "number" ? (Math.abs(v) >= 1e9 ? (v / 1e9).toFixed(2) + "B" : Math.abs(v) >= 1e6 ? (v / 1e6).toFixed(1) + "M" : Math.abs(v) >= 1e3 ? Math.round(v / 1e3) + "K" : String(Math.round(v))) : (v ?? "–");
+  const dev = x => { const d = x.device || {}; return `${d.w || "?"}×${d.h || "?"} ${/iPhone|iPad/.test(d.ua || "") ? "iOS" : /Android/.test(d.ua || "") ? "Android" : "web"}`; };
+  const players = `<table class="tb"><tr><th>When (UTC)</th><th>Player</th><th>Ver</th><th>Play</th><th>Phase</th><th>Lv</th><th>Worth</th><th>Homes</th><th>Tier</th><th>★</th><th>Device</th></tr>${recent.map(x => { const sn = x.snapshot || {}; return `<tr><td>${esc((x.lastSeen || x.start || "").slice(5, 16).replace("T", " "))}</td><td><code>${esc(x.installId || "?")}</code></td><td>${esc((x.version || "").replace("-web", ""))}</td><td>${Math.round((x.playSec || 0) / 60)}m</td><td>${esc(sn.phase || "–")}</td><td>${sn.level ?? "–"}</td><td>${M(sn.worth)}</td><td>${sn.props ?? "–"}${sn.slots ? "/" + sn.slots : ""}</td><td>${["Starter","Family","Prestige","Trophy","Icon"][sn.maxTier] || "–"}</td><td>${sn.legacy ?? 0}</td><td>${esc(dev(x))}</td></tr>`; }).join("")}</table>`;
+  const photos = `<div class="g">${tile("Photos in place", img.have + " / " + img.want, img.onVolume + " on the volume")}${tile("Generator", img.running ? "running" : img.stop ? "stopped" : "idle", img.reason ? "last stop: " + img.reason : img.finishedAt ? "finished " + img.finishedAt.slice(0, 16).replace("T", " ") : "")}${tile("This run", img.done + " ok · " + img.failed + " failed", img.total ? "of " + img.total : "")}${tile("Settings", img.quality + " · " + img.parallel + " parallel", img.perExterior + " per style bucket · " + img.perRoom + " per room")}</div>
+  <p><a class="btn" href="/admin/gen-images?go=1">Start / resume</a> <a class="btn" href="/admin/gen-images?stop=1">Stop</a> <a class="btn" href="/admin/gen-images">Raw status</a></p>
+  ${img.errors && img.errors.length ? `<p class="err">${esc(img.errors[img.errors.length - 1])}</p>` : ""}
+  <div class="bk">${Object.entries(img.buckets).map(([b, n]) => { const [h, t] = n.split("/"); return `<span class="${+h >= +t ? "full" : +h ? "part" : ""}">${esc(b)} <b>${esc(n)}</b></span>`; }).join("")}</div>`;
+  const dg = digest(new URL("http://x/admin/digest.txt?since=" + encodeURIComponent(new Date(Date.now() - 24 * 3600e3).toISOString()) + "&page=" + (+url.searchParams.get("page") || 1)));
+  const logs = `<p>Last 24 hours, newest sessions last. <a href="/admin?tab=logs&page=${(+url.searchParams.get("page") || 1) + 1}">Next page</a> · <a href="/admin/digest.txt">Raw text</a></p><pre class="dg">${esc(dg)}</pre>`;
+  const NAV = [["overview", "Overview"], ["players", "Players"], ["game", "Game"], ["feedback", "Feedback"], ["photos", "Photos"], ["logs", "Logs"]];
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Auction Empires admin</title>
 <style>:root{--bg:#0c1220;--s:#151e31;--ink:#eef2f8;--mu:#97a3b9;--line:#29354f;--g:#3fd08f;--r:#ff4b61;--y:#f2bb45}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;padding:16px;max-width:960px;margin:auto}
-h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:22px 0 8px}
-.fb{display:flex;flex-direction:column;gap:6px;margin:8px 0}.fbr{background:var(--s);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.fbr b{color:#e0a020;letter-spacing:.1em}.fbr span{display:block;font-size:11px;color:var(--mu)}.fbr p{margin:4px 0 0;font-size:13px}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.t{background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif}
+.wrap{max-width:1040px;margin:auto;padding:12px 16px 40px}
+h1{font-size:18px;margin:0;display:flex;align-items:center;gap:10px}h1 b{background:#d7263d;color:#fff;padding:2px 7px;border-radius:6px;font-size:13px}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+nav a{color:var(--mu);text-decoration:none;padding:6px 11px;border-radius:999px;font-weight:600;font-size:13px}nav a.on{background:var(--y);color:#1a1200}nav .sp{flex:1}
+h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:22px 0 8px}
+section{display:none}section.on{display:block}
+.fb{display:flex;flex-direction:column;gap:6px;margin:8px 0}.fbr{background:var(--s);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.fbr b{color:#e0a020;letter-spacing:.1em}.fbr span{display:block;font-size:11px;color:var(--mu)}.fbr p{margin:4px 0 0;font-size:13px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.t{background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .t small{display:block;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.t b{font:600 20px ui-monospace,monospace}.t em{display:block;font-style:normal;color:var(--mu);font-size:12px}
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
 .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}.bars i{display:block;width:100%;background:var(--y);border-radius:3px 3px 0 0}.bars span{font-size:10px;color:var(--mu)}
-a{color:var(--y)}p{color:var(--mu)}</style></head><body>
-<h1>Auction Empires: play stats</h1><p>${s.players} players · ${s.sessions} sessions · refreshed every 30s · <a href="/admin/export.json?key=${encodeURIComponent(k)}">export JSON</a></p>
+a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s);border:1px solid var(--line);border-radius:8px;padding:7px 12px;color:var(--ink);text-decoration:none;font-weight:600;margin:2px 4px 2px 0}
+.tb{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--s);border:1px solid var(--line);border-radius:10px;overflow:hidden}.tb th,.tb td{padding:6px 8px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}.tb th{color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-top:0}.tb code{color:var(--y)}
+.tbw{overflow:auto;border-radius:10px}
+.bk{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.bk span{font-size:11px;background:var(--s);border:1px solid var(--line);border-radius:6px;padding:3px 7px;color:var(--mu)}.bk span.part{color:var(--ink)}.bk span.full{color:var(--g);border-color:var(--g)}
+.dg{white-space:pre-wrap;word-break:break-word;font:11.5px/1.35 ui-monospace,monospace;background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px;max-height:70vh;overflow:auto}
+.err{color:var(--r)}</style></head><body>
+<nav><h1><b>AE</b> Admin</h1>${NAV.map(([id, n]) => `<a href="/admin?tab=${id}" class="${tab === id ? "on" : ""}">${n}</a>`).join("")}<span class="sp"></span><a href="/">Open game</a><a href="/admin/logout">Log out</a></nav>
+<div class="wrap">
+<section class="${tab === "overview" ? "on" : ""}">
+<p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a></p>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
+</section>
+<section class="${tab === "players" ? "on" : ""}"><h2>Last 60 sessions</h2><div class="tbw">${players}</div></section>
+<section class="${tab === "game" ? "on" : ""}">
 <h2>Auctions</h2><div class="g">${tile("Auctions seen", s.auctionsSeen)}${tile("Joined", s.joinRate, "of lots shown")}${tile("Win rate", s.winRate, "of lots joined")}${tile("Wins paid over value", s.overpaidWins)}${tile("Wins by zone", Object.entries(s.winZones).map(([z, n]) => z + " " + n).join(" · ") || "–")}${tile("Near-misses", s.nearMiss)}${tile("Win combos", s.combos)}${tile("Background auto-bids", s.liveAutos)}${tile("Hot lot taps", s.quickPlays)}</div>
 <h2>Auction tension (v20)</h2><div class="g">${tile("Your call cues", s.finalCues, "auto-bid handed back the paddle")}${tile("Inspections", "good " + s.findGood + " · flaw " + s.findFlaw + " · jackpot " + s.findJackpot)}${tile("Featured auctions", s.featured, s.featuredWon + " won")}${tile("Selling", s.sellAuctionSold + "/" + s.sellAuctions + " sold at auction", s.agentSales + " agent sales")}</div>
 <h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
 <h2>Dynasty and layout (v25)</h2><div class="g">${tile("Dynasty sheet opens", s.dynOpens, s.prestiges + " cash-outs")}${tile("Goal chip taps", s.goalTaps)}${tile("If-you-win opens", s.ifwinOpens)}${tile("Empire sections", s.esec)}</div>
-<h2>Feedback (v34)</h2>${(() => { const fb = feedbackList(200), n = fb.length, avg = n ? (fb.reduce((a, x) => a + x.stars, 0) / n).toFixed(2) : "–"; const dist = [5, 4, 3, 2, 1].map(k => k + "★ " + fb.filter(x => x.stars === k).length).join(" · "); return `<div class="g">${tile("Ratings", n, "average " + avg)}${tile("Spread", dist)}</div><div class="fb">${fb.slice(0, 60).map(x => `<div class="fbr"><b>${"★".repeat(x.stars)}${"☆".repeat(5 - x.stars)}</b><span>${esc(x.at.slice(0, 16).replace("T", " "))} · ${esc(x.installId || "?")} · lv${x.level} · ${esc(x.version)} · ${esc(x.source)}${x.contact ? " · " + esc(x.contact) : ""}</span><p>${esc(x.text) || "<i>no comment</i>"}</p></div>`).join("") || "<p>No feedback yet</p>"}</div>`; })()}
 <h2>Events, world, seasons (v29)</h2><div class="g">${tile("Disasters", s.disasters, s.recoveries + " rebuild booms")}${tile("Good news", s.goodEvents)}${tile("R18+ shocks", s.shocks, s.r18On + " turned R18+ on")}${tile("Insurance toggles", s.insToggles)}${tile("Prizes", s.prizes)}${tile("World sheet", s.worldViews, s.sealed + " sealed rounds · " + s.boardNo + " board rejections")}${tile("Takeovers", s.takeovers, s.turfWon + " won")}${tile("Season levels", s.seasonLevels)}${tile("Mystery lots", s.mystery)}${tile("Event animations", s.fx)}${tile("Rarity explainer", s.rarityInfo)}</div>
 <h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Push tokens", s.soc.pushTokens || 0, "sending needs APNs/FCM keys")}</div>
 <h2>Cash and balance (v26)</h2><div class="g">${tile("Equity loans", s.equityLoans, "$" + Math.round((s.equityBorrowed || 0) / 1e6 * 10) / 10 + "M borrowed")}${tile("Out of reach taps", s.cashSheets, "opened the cash sheet")}${tile("Spend warnings", s.spendWarns, "upgrade or build would block bidding")}${tile("Offer comebacks", s.offerComebacks)}</div>
@@ -380,6 +410,12 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>Market and interruptions</h2><div class="g">${tile("Market buys", s.mktBuys)}${tile("Offers accepted", s.offerAccept, s.offersMade + " made")}${tile("Off-market bought", s.offmkt)}${tile("Searches", s.searches)}${tile("Watches", s.watches)}${tile("Notices swiped away", s.toastSwipes)}${tile("Real-listing clicks", s.affClicks)}</div>
 <h2>Where time goes</h2><div class="g">${tile("Auction tab", pct(tabs[0], tabTotal))}${tile("Market tab", pct(tabs[1], tabTotal))}${tile("Empire tab", pct(tabs[2], tabTotal))}</div>
 <h2>Versions</h2><p>${Object.entries(s.versions).map(([v, n]) => esc(v) + ": " + n).join(" · ")}</p>
+</section>
+<section class="${tab === "feedback" ? "on" : ""}"><h2>Ratings and feedback</h2>${(() => { const fb = feedbackList(200), n = fb.length, avg = n ? (fb.reduce((a, x) => a + x.stars, 0) / n).toFixed(2) : "–"; const dist = [5, 4, 3, 2, 1].map(k => k + "★ " + fb.filter(x => x.stars === k).length).join(" · "); return `<div class="g">${tile("Ratings", n, "average " + avg)}${tile("Spread", dist)}</div><div class="fb">${fb.slice(0, 60).map(x => `<div class="fbr"><b>${"★".repeat(x.stars)}${"☆".repeat(5 - x.stars)}</b><span>${esc(x.at.slice(0, 16).replace("T", " "))} · ${esc(x.installId || "?")} · lv${x.level} · ${esc(x.version)} · ${esc(x.source)}${x.contact ? " · " + esc(x.contact) : ""}</span><p>${esc(x.text) || "<i>no comment</i>"}</p></div>`).join("") || "<p>No feedback yet</p>"}</div>`; })()}
+</section>
+<section class="${tab === "photos" ? "on" : ""}"><h2>Photo library</h2>${photos}</section>
+<section class="${tab === "logs" ? "on" : ""}"><h2>Play log digest</h2>${logs}</section>
+</div>
 </body></html>`;
 }
 // GET /admin/digest.txt?key=…&since=2026-10-18T11:00Z&page=1 → compact text log of recent sessions, ~12K chars a page (readable by a fetch tool)
@@ -403,11 +439,12 @@ function digest(url) {
   const text = out.join("\n\n"), size = 12000, pages = Math.max(1, Math.ceil(text.length / size));
   return `digest since ${new Date(since).toISOString()} · ${list.length} sessions · page ${page}/${pages}\n\n` + text.slice((page - 1) * size, page * size);
 }
-function authed(url) {
-  if (!ADMIN_KEY) return false;
-  const k = url.searchParams.get("key") || "";
-  const a = Buffer.from(k), b = Buffer.from(ADMIN_KEY);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+function keyOk(k) { if (!ADMIN_KEY || !k) return false; const a = Buffer.from(String(k)), b = Buffer.from(ADMIN_KEY); return a.length === b.length && crypto.timingSafeEqual(a, b); }
+/* v36 admin portal: the key comes from ?key= or, once used, from an HttpOnly cookie so every admin link is clean. */
+function authed(url, req) {
+  if (keyOk(url.searchParams.get("key"))) return true;
+  const m = /(?:^|;\s*)ak=([^;]+)/.exec((req && req.headers.cookie) || "");
+  return !!(m && keyOk(decodeURIComponent(m[1])));
 }
 
 // ---------- routes ----------
@@ -428,21 +465,22 @@ http.createServer(async (req, res) => {
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
+    if (url.pathname === "/admin/logout") return send(req, res, 200, "text/html", "<p>Logged out. <a href=\"/\">Game</a></p>", { "set-cookie": "ak=; Path=/admin; Max-Age=0" });
     if (url.pathname === "/admin/gen-images") {
-      if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
+      if (!authed(url, req)) return send(req, res, 404, "text/plain", "not found");
       if (url.searchParams.get("stop") === "1") GEN.stop = true;
       if (url.searchParams.get("go") === "1" && OPENAI_KEY && !GEN.running) genImages(Math.max(1, Math.min(200, +url.searchParams.get("per") || IMG_PER)), Math.max(1, Math.min(200, +url.searchParams.get("rooms") || IMG_ROOM_PER)));
       return send(req, res, 200, "application/json", JSON.stringify({ keySet: !!OPENAI_KEY, ...imgStatus() }, null, 2), { "cache-control": "no-store" });
     }
     if (url.pathname === "/admin/digest.txt") {
-      if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
+      if (!authed(url, req)) return send(req, res, 404, "text/plain", "not found");
       const dg = digest(url);
       if (url.searchParams.get("log") === "1") dg.split("\n").forEach((l, i) => l && console.log("DG " + String(i).padStart(4, "0") + " " + l));
       return send(req, res, 200, "text/plain; charset=utf-8", dg, { "cache-control": "no-store", "x-robots-tag": "noindex" });
     }
     if (url.pathname === "/admin" || url.pathname === "/admin/export.json") {
-      if (!authed(url)) return send(req, res, 404, "text/plain", "not found");
-      if (url.pathname === "/admin") return send(req, res, 200, "text/html; charset=utf-8", adminPage(url.searchParams.get("key")), { "cache-control": "no-store", "x-robots-tag": "noindex" });
+      if (!authed(url, req)) return send(req, res, 404, "text/plain", "not found");
+      if (url.pathname === "/admin") { const hdr = { "cache-control": "no-store", "x-robots-tag": "noindex" }; if (keyOk(url.searchParams.get("key"))) hdr["set-cookie"] = "ak=" + encodeURIComponent(url.searchParams.get("key")) + "; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000"; return send(req, res, 200, "text/html; charset=utf-8", adminPage(url), hdr); }
       const all = loadAll();
       return send(req, res, 200, "application/json", JSON.stringify({ sessions: all.sessions, players: all.players }), { "cache-control": "no-store" });
     }

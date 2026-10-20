@@ -934,12 +934,7 @@ html,body{overflow-x:clip}
 .cardhint .linkbtn{font-size:12.5px}
 
 /* ---------- v29 events: news strip, hit homes ---------- */
-.news{height:18px;overflow:hidden;background:#0d1424;color:#ffd34d;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;line-height:18px;white-space:nowrap;position:relative;flex:none;margin-top:-18px;z-index:2;opacity:.94}
-.news span{display:inline-block;padding-left:100%}
-.news span.go{animation:newsgo 16s linear 1}
-@keyframes newsgo{to{transform:translateX(-100%)}}
-.news::before{content:"NEWS";position:absolute;left:0;top:0;bottom:0;z-index:1;background:var(--red);color:#fff;font-weight:700;padding:0 6px}
-@media (prefers-reduced-motion:reduce){.news span{padding-left:46px}.news span.go{animation:none}}
+/* (v36) the v29 .news ticker CSS was removed: it restyled .inrow.news in the inbox */
 
 /* ---------- v29 world ---------- */
 .wchip{font-weight:700}
@@ -1327,6 +1322,35 @@ body::before{content:"";position:fixed;inset:0;background:var(--noise);opacity:.
 .om{background:var(--panel);box-shadow:inset 0 1px 0 var(--hi),0 0 0 2px var(--green),0 12px 30px rgba(0,0,0,.4)}
 .msearch input{background:var(--panel);box-shadow:inset 0 2px 4px rgba(0,0,0,.18)}
 .gzoom button{box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo)}
+/* v36 shop + universal close */
+.sheet{position:relative;padding-top:22px}
+.sheet h3{padding:0 34px}
+.sheet .sx{position:absolute;right:8px;top:8px;width:34px;height:34px;padding:0;margin:0;border-radius:50%;font-size:22px;line-height:1;font-family:var(--f-body);letter-spacing:0;text-transform:none;--bc:var(--btn-n);color:var(--btn-n-ink);background:linear-gradient(180deg,color-mix(in srgb,var(--bc),#fff 18%),var(--bc));box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo);z-index:3;text-shadow:none}
+.shop{text-align:left}.shop h3{text-align:center}.shop .shnote{text-align:center;font-size:12.5px;margin:0 0 10px}
+.shhero{position:relative;display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;border-radius:16px;padding:12px 12px 12px 14px;margin-bottom:12px;background:linear-gradient(120deg,#2b1a5e,#6a2fd6 60%,#ff6ad5);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 8px 20px rgba(106,47,214,.35);overflow:hidden}
+.shhero::before{content:"";position:absolute;inset:-40% -20% auto auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 60%)}
+.shhtxt{position:relative;min-width:0}.shhtxt small{display:block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.85}.shhtxt b{display:block;font-family:var(--f-display);font-weight:400;font-size:24px;letter-spacing:.04em;text-transform:uppercase;line-height:1.05;margin:2px 0 4px}.shhtxt span{display:block;font-size:12px;opacity:.9;line-height:1.3;margin-bottom:8px}
+.sheet .shhtxt button{width:auto;padding:8px 16px;font-size:15px;--bc:#ffd34d;color:#1a1200;background:linear-gradient(180deg,#ffe9a3,#f2c14e 55%,#d9a52e);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 3px 0 #a8780f;text-shadow:none}
+.shhart{position:relative;width:92px;height:92px;filter:drop-shadow(0 8px 12px rgba(0,0,0,.35))}.shhart svg{width:100%;height:100%}
+.shcat{margin:4px 0 12px}.shcat h4{margin:0 0 6px;font-family:var(--f-display);font-weight:400;font-size:15px;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:baseline;gap:8px}.sheet .shcat h4 .shall{margin-left:auto;width:auto;padding:2px 0;font-size:11.5px;color:var(--gold);text-decoration:underline;font-family:var(--f-body);letter-spacing:0;text-transform:none;font-weight:700;background:none;box-shadow:none;border:0;text-shadow:none;border-radius:0}
+.shcat h4 small{font-family:var(--f-body);font-size:11.5px;letter-spacing:0;text-transform:none;color:var(--muted)}
+.shgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.shc{position:relative;display:flex;flex-direction:column;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 10px 10px;min-width:0;box-shadow:inset 0 1px 0 var(--hi),0 6px 16px var(--lo)}
+.shc.off{opacity:.55}
+.shart{width:64px;height:64px;margin:0 auto 4px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))}.shart svg{width:100%;height:100%;display:block}
+.shc b{font-size:13px;line-height:1.2}.shc small{font-size:11px;color:var(--muted);line-height:1.3;flex:1}
+.sheet .shc button{margin-top:6px;padding:8px 6px;font-size:14px;letter-spacing:.02em;--bc:var(--green);color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var(--bc),#fff 18%),var(--bc) 48%,color-mix(in srgb,var(--bc),#000 10%));box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 3px 0 color-mix(in srgb,var(--bc),#000 36%)}
+.sheet .shc button:disabled{--bc:var(--btn-n);color:var(--btn-n-ink);opacity:.85;text-shadow:none}
+.shtag{position:absolute;left:-1px;top:10px;font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(90deg,#ff5a6e,#d7263d);color:#fff;padding:3px 8px 3px 7px;border-radius:0 999px 999px 0;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:1}
+.sheet .shop .sec{margin-top:4px}
+/* v36 CSS clean-up: neutral buttons get a neutral bevel (they used to keep the red one), Market wall button reads neutral, inbox X sits in the corner */
+.sheet .tour .tbtns .back,.sheet .inbox .inx,.sheet .gx,.sheet .cardbtns button,.sheet .frform button.sec,.sheet .dl,.sheet .pager button,.sheet .frfoot .sec,.sheet .cosrow button,.sheet .trocard button{--bc:var(--btn-n);color:var(--btn-n-ink);text-shadow:none;background:linear-gradient(180deg,color-mix(in srgb,var(--bc),#fff 18%) 0%,var(--bc) 48%,color-mix(in srgb,var(--bc),#000 10%) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.14),0 3px 0 color-mix(in srgb,var(--bc),#000 36%),0 5px 12px rgba(0,0,0,.22)}
+.sheet .sealbtns button.over{--bc:#8c1426}
+.sheet .inbox .inx{position:absolute;right:8px;top:8px;width:34px;height:34px;border-radius:50%;font-size:22px;line-height:1;padding:0;margin:0;font-family:var(--f-body);letter-spacing:0;z-index:3}
+.sheet .inbox{padding-top:4px}
+.buy.wall{--bc:var(--btn-n);color:var(--btn-n-ink);text-shadow:none;background:linear-gradient(180deg,color-mix(in srgb,var(--bc),#fff 18%) 0%,var(--bc) 48%,color-mix(in srgb,var(--bc),#000 10%) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -2px 0 rgba(0,0,0,.14),0 3px 0 color-mix(in srgb,var(--bc),#000 36%)}
+.frfoot{flex-direction:row;flex-wrap:wrap;gap:8px}.frfoot .linkbtn{border:1px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;font-weight:700;font-size:12.5px;background:var(--panel);box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo)}
+.inrow time{padding-left:8px}
 /* level sheet */
 .lvlist{display:flex;flex-direction:column;gap:4px;margin:10px 0 8px;max-height:38vh;overflow:auto}
 .lrow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;background:var(--sunk);border-radius:8px;padding:6px 10px;font-size:12.5px;line-height:1.25;text-align:left}
@@ -1641,7 +1665,7 @@ function regJoin(X){if(!X.joined)pxp(5,'join');if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v35-web';
+const VERSION='v36-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1893,6 +1917,8 @@ function nextToast(){if(!$('#coach').hidden){tCur=null;return;}while(TQ.length&&
  const up=()=>{if(sx==null)return;sx=null;if(Math.abs(dx)>60){d.style.transform=`translateX(${dx>0?120:-120}%)`;d.style.opacity='0';T.c.toastSwipes=(T.c.toastSwipes||0)+1;done();}else if(Math.abs(dx)<8){if(q.onTap)q.onTap();done();}else{d.style.transform='';d.style.opacity='';d._t=setTimeout(done,1600);}};
  d.addEventListener('pointerup',up);d.addEventListener('pointercancel',()=>{sx=null;d.style.transform='';d.style.opacity='';d._t=setTimeout(done,1600);});
  $('#toasts').replaceChildren(d);}
+/* v36: every sheet gets a close X in the top-right corner unless it already has one (.sx, .inx, .gx, #dynX, #clX) */
+const addSx=()=>{const m=$('#modal');if(m.hidden)return;const sh=$('#sheet');if(!sh||sh.querySelector('.sx,.inx,.gx'))return;const b=document.createElement('button');b.className='sx';b.setAttribute('aria-label','Close');b.textContent='×';b.onclick=e=>{e.stopPropagation();const own=sh.querySelector('#mOk,#dynX,#clX,#csX,#lvX,#fbX,#shX,#mnClose,#iwX');$('#modal').hidden=true;if(own&&own.id==='mOk')own.click();};sh.prepend(b);};new MutationObserver(addSx).observe($('#modal'),{attributes:true,attributeFilter:['hidden']});new MutationObserver(addSx).observe($('#sheet'),{childList:true});
 function modal(html,btn,cb){$('#sheet').innerHTML=html+`<button id="mOk">${btn}</button>`;$('#modal').hidden=false;$('#mOk').onclick=()=>{$('#modal').hidden=true;cb&&cb();};$('#mOk').focus();}
 
 /* ---------- auction ---------- */
@@ -2271,7 +2297,7 @@ function mktSheet(){T.c.mktCapSheets=(T.c.mktCapSheets||0)+1;tlog('mkt_cap',{cap
 /* rivals get richer as you do: +2% on their ceilings per dynasty mark, +0.1% per level, capped at +15%; stubborn rivals twice as common past $1B of holdings */
 const rivalScale=()=>1+Math.min(0.15,0.02*(S.dyRank||0)+0.001*(plvState().lv-1)+(holdings()>1e9?0.03:0));
 function cashSheet(q,ti){T.c.cashSheets=(T.c.cashSheets||0)+1;tlog('cash_sheet',{tier:ti,need:Math.round(depositFor(q,ti)),cash:Math.round(S.cash),borrowable:Math.round(borrowable())});
- const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=IAP.filter(x=>/^cash_/.test(x.id)&&x.show()&&(!inApp()||PRICES[x.id]));
+ const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=IAP.filter(x=>/^cash_/.test(x.id)&&x.amt>=need-S.cash&&(!inApp()||PRICES[x.id])).slice(0,2);
  $('#sheet').innerHTML=`<div class="upg"><h3>Get back in</h3><p>This lot needs about <b>${money(need)}</b> for the deposit and stamp duty. You have <b>${money(S.cash)}</b>.</p>
  ${amt>=1e4?`<div class="uprow"><div class="uptxt"><b>Borrow against your homes</b><small>${money(amt)} onto your loans at ${(S.lock||0)>0?'4.5':'6'}% a year, 0.5% fee. ${money(av)} available.</small></div><button data-cs="eq">${money(amt)}</button></div>`:`<p class="upnote">Nothing left to borrow: your loans are at 60% of your homes' value.</p>`}
  ${packs.map(iapRow).join('')}
@@ -2928,7 +2954,7 @@ function renderDeck(){const l=topListing(),dk=$('#deck'),bb=$('#buyBtn'),pb=$('#
  if(!l){if(deckId!=='empty'){deckId='empty';dk.innerHTML=`<div class="empty">Nothing listed that matches right now. New listings land every few seconds.<br><button class="linkbtn" id="mClear">Show everything</button></div>`;}bb.disabled=pb.disabled=true;bb.textContent='Buy';$('#mCount').textContent='';return;}
  if(deckId!==l.mid){deckId=l.mid;dk.innerHTML=cardHTML(l);}
  const c=$('#mcard');if(c){const tb=c.querySelector('[data-k="ttl"]');tb.textContent=l.ttl+'s';tb.classList.toggle('hot',l.ttl<=5);const bar=c.querySelector('.mclock i');bar.style.width=(l.ttl/l.ttl0*100)+'%';bar.classList.toggle('hot',l.ttl<=5);c.querySelector('[data-k="meta"]').textContent=metaText(l);}
- const ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0;bb.disabled=false;pb.disabled=false;bb.textContent=pfFull()?('Portfolio full · '+S.props.length+' of '+slotsOf()):mktLeft()<=0?'No buys left today':canPay(l.ask,l.ti)?('Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' · loan':'')):('Need '+money(depositFor(l.ask,l.ti)));
+ const ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0;bb.disabled=false;pb.disabled=false;bb.classList.toggle('wall',pfFull()||mktLeft()<=0);bb.textContent=pfFull()?('Portfolio full · '+S.props.length+' of '+slotsOf()):mktLeft()<=0?'No buys left today':canPay(l.ask,l.ti)?('Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' · loan':'')):('Need '+money(depositFor(l.ask,l.ti)));
  const n=LST.filter(matches).length,nd=LST.filter(x=>matches(x)&&x.deal).length;$('#mCount').textContent=`${n} for sale${nd?` · ${nd} deal${nd>1?'s':''}`:''} · ${mktLeft()} of ${mktCap()} buys left today. Swipe right to buy, left to pass.`;}
 $('#deck').addEventListener('click',e=>{const w=e.target.closest('[data-watch]');if(w){e.stopPropagation();toggleWatch(+w.dataset.watch);w.setAttribute('aria-pressed',WATCH.has(+w.dataset.watch));return;}if(e.target.closest('#mClear')){MK={tier:-1,type:'all',deals:false,city:null};$('#mQ').value='';mFilter();}});
 $('#deck').addEventListener('pointerdown',e=>{if(e.target.closest('[data-watch]'))e.stopPropagation();},true);
@@ -3155,6 +3181,7 @@ function track(name,props){try{if(window.plausible)window.plausible(name,{props}
    The app wrapper provides window.DPStore (e.g. Capacitor + RevenueCat); see README "In-app purchases (app only)".
    Every item is a guaranteed result: no paid chance, no paid auction wins, nothing converts back to money. ---------- */
 const cashPack=big=>[250e3,1e6,4e6,30e6,200e6][Math.min(4,S.maxTier)]*(big?8:1);
+const CASH_PACKS=[{amt:250e3,note:'A deposit at Starter.'},{amt:1e6,note:'Two Starter homes outright.'},{amt:5e6,note:'Walk into Family and Prestige rooms.'},{amt:25e6,note:'A Prestige home, cash.'},{amt:100e6,note:'Trophy money.'},{amt:300e6,note:'Three Trophy homes or one Icon deposit.'},{amt:600e6,note:'An Icon home, cash.'},{amt:1e9,note:'A billion. Own the room.'}];
 const IAP=[
  {id:'city_pack',kind:'consumable',name:'City pack: early access',get desc(){const w=WORLD.find(x=>!wmOpen(x)&&S.maxTier>=x.need-1);return w?`Open ${w.name} one market early. Same rules and rivals as everyone.`:'Every city you can reach early is already open.';},show:()=>WORLD.some(x=>!wmOpen(x)&&S.maxTier>=x.need-1),grant:()=>{const w=WORLD.find(x=>!wmOpen(x)&&S.maxTier>=x.need-1);if(w){S.cityPass=(S.cityPass||[]).concat(w.k);buildChips();}}},
  {id:'season_pass',kind:'consumable',name:'Season pass',desc:'The premium column of this season\'s track: card frames, paddles and extra registrations. Cosmetics only.',show:()=>S.sp!==season().id,grant:()=>{S.sp=season().id;const lv=S.sx&&S.sx.id===S.sp?S.sx.lv:0;for(let i=1;i<=lv;i++)grantReward(seaReward(i,true));}},
@@ -3163,8 +3190,8 @@ const IAP=[
  {id:'slots_5',kind:'consumable',name:'Property manager: +5 homes',desc:'Five more portfolio slots, for good. Stacks.',show:()=>S.props.length>=slotsOf()-2,grant:()=>{S.slotsBought=(S.slotsBought||0)+1;}},
  {id:'market_5',kind:'consumable',name:'Buyer\'s agent: +5 Market buys',desc:'Five more Market purchases, any day. Stacks.',show:()=>mktOn()&&mktLeft()<=1,grant:()=>{S.mktExtra=(S.mktExtra||0)+5;}},
  {id:'regos_10',kind:'consumable',name:'10 bidder registrations',desc:'Bid in 10 more auctions now instead of waiting for refills.',show:()=>regOn(),grant:()=>{regRefill();S.reg.n+=10;}},
- {id:'cash_small',kind:'consumable',name:'Cash top-up',get desc(){return '+'+money(cashPack(0))+' game cash, sized to your markets.';},show:()=>true,grant:()=>{S.cash+=cashPack(0);}},
- {id:'cash_large',kind:'consumable',name:'Big cash top-up',get desc(){return '+'+money(cashPack(1))+' game cash, sized to your markets.';},show:()=>S.maxTier>=1,grant:()=>{S.cash+=cashPack(1);}},
+ /* v36 cash ladder (Matt): fixed packs, $250K to $1B, 8 steps, top pack A$149.99. The shop shows the four around the player's tier. */
+ ...CASH_PACKS.map((c,i)=>({id:'cash_'+(i+1),kind:'consumable',name:money(c.amt)+' cash',desc:c.note,amt:c.amt,show:()=>true,grant:()=>{S.cash+=c.amt;}})),
  {id:'rescue',kind:'consumable',name:'Rescue cover',desc:'Stops one repossession: the shortfall goes on your loan instead.',show:()=>S.props.length>0&&!S.rescue,grant:()=>{S.rescue=true;}},
  {id:'rate_lock',kind:'consumable',name:'Rate lock',desc:'4.5% instead of 6% on every loan for 24 months.',show:()=>!(S.lock>0)&&(debt()>0||S.borrowed),grant:()=>{S.lock=24;}},
  {id:'finish_works',kind:'consumable',name:'Finish all works now',desc:'Every upgrade under way finishes today.',show:()=>S.props.some(p=>p.works),grant:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}}}
@@ -3181,10 +3208,35 @@ async function buyItem(id){const it=IAP.find(x=>x.id===id);if(!it||!STORE)return
  catch(e){toast('The store could not finish that purchase. You were not charged.','down');}}
 async function restoreItems(){if(!STORE)return;try{const owned=await STORE.restore();let n=0;for(const id of owned||[]){const it=IAP.find(x=>x.id===id&&x.kind==='non_consumable');if(it){it.grant();n++;}}T.c.iapRestores++;tlog('restore',{n});save();toast(n?'Purchases restored.':'Nothing to restore on this account.',n?'up':'');}catch(e){toast('The store could not restore purchases right now.','down');}}
 /* v35: the shop opens on the web too, as a preview: every item with its guide price and an "In the app" button, so testers see what the app sells. Only the app can buy. */
-const GUIDE_PRICE={remove_ads:'A$4.99',regos_10:'A$1.99',slots_5:'A$4.99',market_5:'A$2.99',cash_small:'A$2.99',cash_large:'A$9.99',rescue:'A$1.99',rate_lock:'A$1.99',finish_works:'A$0.99',season_pass:'A$7.99',cosmetic_pack:'A$4.99',city_pack:'A$2.99'};
-function shopSheet(){T.c.shopViews++;tlog('shop_view',{web:!STORE});const live=!!STORE,items=live?IAP.filter(x=>x.show()&&PRICES[x.id]):IAP.filter(x=>x.id!=='remove_ads'||CONFIG.ads.enabled);
- $('#sheet').innerHTML=`<div class="upg shop"><h3>Shop</h3><p>${live?'Optional extras. The auctions stay fair: nothing here wins a lot for you.':'Purchases live in the Auction Empires app, coming to the App Store and Google Play. This is what it will sell; the auctions stay fair and nothing here wins a lot for you.'}</p>${items.map(x=>`<div class="uprow${live||x.show()?'':' off'}"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}"${live?'':' disabled'}>${live?esc(PRICES[x.id]):esc(GUIDE_PRICE[x.id]||'App')}</button></div>`).join('')||'<p>Nothing to buy right now.</p>'}${live?'<button class="sec" id="shRestore">Restore purchases</button>':'<p class="upnote">Prices are a guide and may differ by store. Your web game moves into the app with a transfer code (menu).</p>'}<button class="sec" id="shClose">Close</button></div>`;$('#modal').hidden=false;
- $('#shClose').onclick=()=>{$('#modal').hidden=true;};if($('#shRestore'))$('#shRestore').onclick=restoreItems;
+const GUIDE_PRICE={remove_ads:'A$4.99',regos_10:'A$1.99',slots_5:'A$4.99',market_5:'A$2.99',cash_1:'A$1.49',cash_2:'A$2.99',cash_3:'A$7.99',cash_4:'A$14.99',cash_5:'A$29.99',cash_6:'A$59.99',cash_7:'A$99.99',cash_8:'A$149.99',rescue:'A$1.99',rate_lock:'A$1.99',finish_works:'A$0.99',season_pass:'A$7.99',cosmetic_pack:'A$4.99',city_pack:'A$2.99'};
+/* v36 shop: category rows, illustrated cards, a hero for the season pass, a close X top-right. Art is inline SVG so it ships in the one file. */
+const SHOP_ART={
+ cash_1:['#f7b733','#fc4a1a','<ellipse cx="32" cy="46" rx="16" ry="6" fill="#b8860b"/><ellipse cx="32" cy="41" rx="16" ry="6" fill="#ffd34d"/><ellipse cx="32" cy="36" rx="16" ry="6" fill="#b8860b"/><ellipse cx="32" cy="31" rx="16" ry="6" fill="#ffe9a3"/><text x="32" y="35" text-anchor="middle" font-size="9" font-weight="800" fill="#7a4f00">$</text>'],
+ cash_8:['#ffd34d','#ff7a00','<rect x="10" y="40" width="20" height="10" rx="2" fill="#e0a020" transform="skewX(-12)"/><rect x="34" y="40" width="20" height="10" rx="2" fill="#ffd34d" transform="skewX(-12)"/><rect x="22" y="29" width="20" height="10" rx="2" fill="#fff0b3" transform="skewX(-12)"/><circle cx="48" cy="20" r="8" fill="#ffe9a3" stroke="#b8860b" stroke-width="2"/><text x="48" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="#7a4f00">$</text>'],
+ slots_5:['#3fd08f','#0b6e4f','<path d="M14 30 32 16l18 14v20H14z" fill="#e8f7ee"/><path d="M12 31 32 14l20 17" fill="none" stroke="#0b6e4f" stroke-width="3" stroke-linejoin="round"/><rect x="27" y="36" width="10" height="14" fill="#0b6e4f"/><circle cx="48" cy="18" r="9" fill="#ffd34d"/><text x="48" y="22" text-anchor="middle" font-size="11" font-weight="800" fill="#1a1200">+5</text>'],
+ market_5:['#6ecbff','#2f6fd6','<rect x="12" y="24" width="40" height="26" rx="4" fill="#eaf4ff"/><rect x="12" y="20" width="40" height="8" rx="2" fill="#ff5a6e"/><rect x="24" y="34" width="16" height="16" fill="#2f6fd6"/><circle cx="50" cy="16" r="9" fill="#ffd34d"/><text x="50" y="20" text-anchor="middle" font-size="11" font-weight="800" fill="#1a1200">+5</text>'],
+ regos_10:['#c38bff','#6a2fd6','<rect x="16" y="14" width="32" height="38" rx="3" fill="#fff"/><rect x="16" y="14" width="32" height="10" rx="3" fill="#6a2fd6"/><text x="32" y="40" text-anchor="middle" font-size="16" font-weight="800" fill="#6a2fd6">10</text><circle cx="32" cy="19" r="3" fill="#fff"/>'],
+ rescue:['#ff8a98','#d7263d','<path d="M10 34a22 22 0 0 1 44 0z" fill="#fff"/><path d="M10 34a22 22 0 0 1 44 0z" fill="none" stroke="#d7263d" stroke-width="3"/><path d="M32 34v16a5 5 0 0 1-10 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M18 34a14 14 0 0 1 28 0" fill="#d7263d"/>'],
+ rate_lock:['#9fb0cc','#13203a','<rect x="18" y="28" width="28" height="22" rx="4" fill="#ffd34d"/><path d="M23 28v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#fff" stroke-width="4"/><circle cx="32" cy="39" r="3" fill="#13203a"/><text x="32" y="23" text-anchor="middle" font-size="8" font-weight="800" fill="#fff">4.5%</text>'],
+ finish_works:['#ffb703','#fb8500','<path d="M20 12h24v6l-9 12 9 12v6H20v-6l9-12-9-12z" fill="#fff"/><path d="M26 16h12l-6 8z" fill="#ffd34d"/><path d="M26 44h12l-6-8z" fill="#ffd34d"/>'],
+ season_pass:['#ff6ad5','#6a2fd6','<path d="M32 10l6 12 13 2-9 9 2 13-12-6-12 6 2-13-9-9 13-2z" fill="#ffd34d"/><circle cx="32" cy="32" r="6" fill="#fff" opacity=".8"/>'],
+ cosmetic_pack:['#39ffd2','#2f6fd6','<rect x="14" y="14" width="36" height="36" rx="6" fill="#fff" opacity=".9"/><rect x="20" y="20" width="24" height="24" rx="4" fill="url(#holo)"/><circle cx="46" cy="18" r="6" fill="#ffd34d"/>'],
+ city_pack:['#6ecbff','#0b6e4f','<circle cx="32" cy="32" r="20" fill="#2f6fd6"/><path d="M20 24c6-4 10 2 14-2s8 2 12 0M14 34c8-2 12 4 20 2s8-4 16-2M22 44c6-2 10 2 16 0" fill="none" stroke="#3fd08f" stroke-width="4" stroke-linecap="round"/><circle cx="32" cy="32" r="20" fill="none" stroke="#fff" stroke-width="2"/>'],
+ remove_ads:['#97a3b9','#56647c','<rect x="12" y="20" width="40" height="24" rx="4" fill="#fff"/><text x="32" y="37" text-anchor="middle" font-size="12" font-weight="800" fill="#56647c">AD</text><path d="M14 50 50 14" stroke="#d7263d" stroke-width="5" stroke-linecap="round"/>'],
+};
+const cashIds=()=>{const ti=S.maxTier||0,lo=Math.max(0,Math.min(4,ti*2-1));return [0,1,2,3].map(i=>'cash_'+(lo+i+1));};
+const SHOP_CATS=[['cash','Cash','Get into the big room now',null],['grow','Grow faster','Lift the walls',['slots_5','market_5','regos_10']],['safe','Stay safe','Cover for bad months',['rescue','rate_lock','finish_works']],['style','Season and style','Looks and early access',['season_pass','cosmetic_pack','city_pack']],['ads','Ads',' ',['remove_ads']]];
+const SHOP_TAG={cash_8:'Best value',cash_4:'Popular',slots_5:'Most popular',season_pass:'Limited'};
+SHOP_ART.cash_2=SHOP_ART.cash_3=SHOP_ART.cash_1;SHOP_ART.cash_7=SHOP_ART.cash_8;
+SHOP_ART.cash_4=SHOP_ART.cash_5=SHOP_ART.cash_6=['#ffd34d','#c2410c','<rect x="14" y="38" width="22" height="10" rx="2" fill="#e0a020" transform="skewX(-12)"/><rect x="36" y="38" width="22" height="10" rx="2" fill="#ffd34d" transform="skewX(-12)"/><rect x="26" y="27" width="22" height="10" rx="2" fill="#fff0b3" transform="skewX(-12)"/><rect x="30" y="16" width="14" height="8" rx="2" fill="#ffe9a3" transform="skewX(-12)"/>'];
+function shopArt(id){const a=SHOP_ART[id]||SHOP_ART.cash_1;return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a[0]}"/><stop offset="1" stop-color="${a[1]}"/></linearGradient><linearGradient id="holo" x1="0" x2="1"><stop offset="0" stop-color="#ff6ad5"/><stop offset=".5" stop-color="#ad8cff"/><stop offset="1" stop-color="#94d0ff"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g-${id})"/><circle cx="18" cy="14" r="10" fill="#fff" opacity=".18"/>${a[2]}</svg>`;}
+function shopSheet(){T.c.shopViews++;tlog('shop_view',{web:!STORE});const live=!!STORE;const can=x=>live?(x.show()&&PRICES[x.id]):(x.id!=='remove_ads'||CONFIG.ads.enabled);
+ const price=x=>live?esc(PRICES[x.id]):esc(GUIDE_PRICE[x.id]||'App');
+ const card=x=>`<div class="shc${live||x.show()?'':' off'}">${SHOP_TAG[x.id]?`<i class="shtag">${SHOP_TAG[x.id]}</i>`:''}<div class="shart">${shopArt(x.id)}</div><b>${esc(x.name)}</b><small>${esc(x.desc)}</small><button data-buy="${x.id}"${live?'':' disabled'}>${price(x)}</button></div>`;
+ const sp=IAP.find(x=>x.id==='season_pass'),hero=sp&&can(sp)?`<div class="shhero"><div class="shhtxt"><small>${esc(season().theme.n)} season</small><b>Season pass</b><span>${esc(sp.desc)}</span><button data-buy="season_pass"${live?'':' disabled'}>${price(sp)}</button></div><div class="shhart">${shopArt('season_pass')}</div></div>`:'';
+ const cats=SHOP_CATS.map(([k,name,sub,ids])=>{ids=ids||cashIds();const xs=ids.map(id=>IAP.find(x=>x.id===id)).filter(x=>x&&can(x)&&!(k==='style'&&x.id==='season_pass'));return xs.length?`<div class="shcat" data-cat="${k}"><h4>${name}<small>${sub}</small>${k==='cash'?'<button class="linkbtn shall" id="shAll">All 8 packs</button>':''}</h4><div class="shgrid">${xs.map(card).join('')}</div></div>`:'';}).join('');
+ $('#sheet').innerHTML=`<div class="shop"><button class="sx" id="shX" aria-label="Close">×</button><h3>Shop</h3><p class="shnote">${live?'The auctions stay fair: nothing here wins a lot for you.':'Purchases live in the Auction Empires app (App Store and Google Play soon). Prices are a guide.'}</p>${hero}${cats}${live?'<button class="sec" id="shRestore">Restore purchases</button>':'<p class="upnote">Your web game moves into the app with a transfer code (menu).</p>'}</div>`;$('#modal').hidden=false;
+ $('#shX').onclick=()=>{$('#modal').hidden=true;};if($('#shRestore'))$('#shRestore').onclick=restoreItems;const sa=$('#shAll');if(sa)sa.onclick=()=>{const g=$('#sheet .shcat[data-cat="cash"] .shgrid');g.innerHTML=IAP.filter(x=>/^cash_/.test(x.id)&&can(x)).map(card).join('');sa.remove();g.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});};
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});}
 document.addEventListener('click',e=>{if(e.target.closest('[data-shop]')){e.preventDefault();shopSheet();}});
 /* v31 transfer codes: the save travels to the app (or another phone) by a 9-character code the server holds for 30 days */

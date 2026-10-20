@@ -76,8 +76,7 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | `regos_10` | consumable | 10 bidder registrations |
 | `slots_5` | consumable | Property manager: +5 portfolio slots, permanent, stacks |
 | `market_5` | consumable | Buyer's agent: +5 Market buys, stacks |
-| `cash_small` | consumable | game cash sized to your markets ($250K at Starter up to $200M at Icon) |
-| `cash_large` | consumable | 8× the small pack (Family and up) |
+| `cash_1` … `cash_8` | consumable | fixed cash ladder: $250K (A$1.49), $1M (2.99), $5M (7.99), $25M (14.99), $100M (29.99), $300M (59.99), $600M (99.99), $1B (149.99) |
 | `season_pass` | consumable | this season's premium reward column (cosmetics + registrations) |
 | `cosmetic_pack` | non-consumable | neon, marble and holo card frames; gold, neon and black paddles |
 | `city_pack` | consumable | opens the next country one market early |
