@@ -1327,6 +1327,11 @@ body::before{content:"";position:fixed;inset:0;background:var(--noise);opacity:.
 .om{background:var(--panel);box-shadow:inset 0 1px 0 var(--hi),0 0 0 2px var(--green),0 12px 30px rgba(0,0,0,.4)}
 .msearch input{background:var(--panel);box-shadow:inset 0 2px 4px rgba(0,0,0,.18)}
 .gzoom button{box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo)}
+/* level sheet */
+.lvlist{display:flex;flex-direction:column;gap:4px;margin:10px 0 8px;max-height:38vh;overflow:auto}
+.lrow{display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;background:var(--sunk);border-radius:8px;padding:6px 10px;font-size:12.5px;line-height:1.25;text-align:left}
+.lrow b{font-family:var(--f-mono);color:var(--gold)}.lrow em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.lrow.got{opacity:.55}.lrow.got em{color:var(--green)}
 /* feedback form */
 .fbstars{display:flex;justify-content:center;gap:6px;margin:4px 0 12px}
 .sheet .fbstars .fbs{width:46px;height:46px;padding:0;border-radius:50%;font-size:28px;line-height:1;background:var(--sunk);color:var(--line);box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo);--bc:var(--sunk);text-shadow:none;transition:transform .1s,color .1s}
@@ -1550,6 +1555,12 @@ const baseTi=p=>p.ti0!=null?p.ti0:p.ti;/* a house keeps its original rent yield 
 const starBonus=n=>{n=n||0;return Math.min(n,10)*0.10+Math.min(Math.max(n-10,0),20)*0.04+Math.max(n-30,0)*0.01;};
 const startCash=n=>{n=n||0;return 450000+100000*Math.min(n,20)+25000*Math.max(n-20,0);};
 /* portfolio slots: 8 to start, +1 per 5 levels, +3 per dynasty mark, +5 per Property manager (app). Market buys: 3 a day, +1 per 10 levels, +5 per Buyer's agent (app). */
+/* v35 hook curve. Honeymoon (first 8 wins of a first dynasty): 10s clocks, 2.5s between lots, most Starter rooms quiet, beginner's luck on inspections,
+   no disasters, a level every win for the first four levels, first featured lot at 90s. Stretch (Prestige unlocked or $5M worth): quiet rooms gone,
+   rivals scale, slots and Market caps bite, land tax climbs; cash packs and agents are the way to get ahead, never the way to win a lot. */
+const honeymoon=()=>!(S.legacy||0)&&(S.wins||0)<8;
+const stretch=()=>(S.maxTier||0)>=2||worth()>=5e6;
+const phase=()=>honeymoon()?'honeymoon':stretch()?'stretch':'climb';
 const SLOT_BASE=8,MKT_DAILY=3;
 const slotsOf=()=>SLOT_BASE+Math.floor(plvState().lv/5)+3*(S.dyRank||0)+5*(S.slotsBought||0);
 const pfFull=()=>S.props.length>=slotsOf();
@@ -1630,7 +1641,7 @@ function regJoin(X){if(!X.joined)pxp(5,'join');if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v34-web';
+const VERSION='v35-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1658,7 +1669,7 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
   device:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio,touch:'ontouchstart' in window,ua:navigator.userAgent.slice(0,140)},
   counters:Object.assign({},T.c),flags:Object.assign({},T.flags),
   derived:{winRate:T.c.auctionsJoined?+(T.c.wins/T.c.auctionsJoined).toFixed(3):null,avgEquityPct:wins.length?+(wins.reduce((a,x)=>a+x.equityPct,0)/wins.length).toFixed(2):null,autoShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bidsAuto/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,bigShare:(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)?+(T.c.bigBids/(T.c.bidsHand+T.c.bidsAuto+T.c.bigBids)).toFixed(3):null,tapsPerMin:T.activeSec?+(T.taps/(T.activeSec/60)).toFixed(1):null},
-  snapshot:{cash:Math.round(S.cash),worth:Math.round(w),props:S.props.length,maxTier:S.maxTier,tier:S.tier,rentBanked:Math.round(S.rentTotal),paidOut:Math.round(S.paidOut||0),legacy:S.legacy||0,dynasties:S.dynasties||0,skipStreak:S.skipStreak||0,overdraft:!!S.od,debt:Math.round(debt()),calm:S.calm||0,listings:LST.length,offers:OFF.length,aucCity:AUC_CITY?AUC_CITY.place[0]:null,nemesis:S.nemesis||null,h2h:S.h2h||{},autoPay:!!S.autoPay,billsPerMonth:Math.round(bills().total),autoOn:S.autoOn,muted:S.muted,tour:S.tour,
+  snapshot:{phase:phase(),level:plvState().lv,slots:slotsOf(),mktLeft:mktLeft(),cash:Math.round(S.cash),worth:Math.round(w),props:S.props.length,maxTier:S.maxTier,tier:S.tier,rentBanked:Math.round(S.rentTotal),paidOut:Math.round(S.paidOut||0),legacy:S.legacy||0,dynasties:S.dynasties||0,skipStreak:S.skipStreak||0,overdraft:!!S.od,debt:Math.round(debt()),calm:S.calm||0,listings:LST.length,offers:OFF.length,aucCity:AUC_CITY?AUC_CITY.place[0]:null,nemesis:S.nemesis||null,h2h:S.h2h||{},autoPay:!!S.autoPay,billsPerMonth:Math.round(bills().total),autoOn:S.autoOn,muted:S.muted,tour:S.tour,
    holdings:S.props.slice(0,30).map(p=>({tier:p.ti,rare:!!p.rare,paid:Math.round(p.paid),value:Math.round(p.value),holdSec:p.boughtAt?Math.round((Date.now()-p.boughtAt)/1000):null,ageMonths:p.age,overGuidePct:p.prem!=null?+(p.prem*100).toFixed(1):null,vacant:p.vacant>0,loan:Math.round(p.loan||0),src:p.src||'auction',up:p.up?Object.keys(p.up):[],works:p.works?p.works.k:null,capex:Math.round(p.capex||0),from:p.ti0!=null?p.ti0:null}))},
   funnel:{firstBidSec:T.firstBidSec,firstWinSec:T.firstWinSec,newPlayer:S.sessions<=1,coachSeen:Object.keys(S.coach||{}),marketOpen:mktOpen()},
   tabSec:Object.assign({},T.tab),
@@ -1938,7 +1949,7 @@ function startAuction(){
  if(RUN&&RUN.i<RUN.n){A=runLot(RUN);renderLot();return;}
  if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();
  const feat=S.props.length>0&&S.featAt&&Date.now()>=S.featAt,daily=!feat&&S.props.length>0&&S.days.length>=2&&S.dailyDay!==today();
- if(feat){S.featAt=Date.now()+FEAT_EVERY;S.featWarned=false;T.c.featured++;}
+ if(feat){S.featAt=Date.now()+(honeymoon()?FEAT_EVERY*0.75:FEAT_EVERY);S.featWarned=false;T.c.featured++;}
  A=newAuction(feat?Math.max(S.tier,affordTier()):S.tier,AUC_CITY&&AUC_CITY.ti===S.tier?AUC_CITY.place:null,false,daily,feat);renderLot();
  if(feat){tlog('featured',{tier:A.lot.ti,rivals:A.rivals.length});sfx('rare');buzz([20,20,20]);}
  if(S.tierAuto===false&&S.tier<affordTier()&&worth()>TIERS[S.tier].max*15)setTimeout(()=>coach('outgrown','Your empire has outgrown '+TIERS[S.tier].name+' lots. Tap Auto in the tier row to bid where your cash is.'),1500);
@@ -1947,14 +1958,14 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)*rivalScale()}));
  /* v30c quiet rooms (iOS tester, 19 Oct: "just wanted more deals", kept stopping at the guide): 40% of Starter and 20% of Family lots have rivals who all quit at or under the price guide */
- const quietP=SD_BUILD||feat||daily||first||bg?0:L.ti===0?0.4:L.ti===1?0.2:0;if(Math.random()<quietP){for(const r of rivals)r.max=Math.min(r.max,L.guide*rnd(0.86,1.0));L.quiet=true;}
+ const quietP=SD_BUILD||feat||daily||first||bg?0:honeymoon()?(L.ti===0?0.65:0.4):stretch()?(L.ti===0?0.25:L.ti===1?0.08:0):(L.ti===0?0.4:L.ti===1?0.2:0);if(Math.random()<quietP){for(const r of rivals)r.max=Math.min(r.max,L.guide*rnd(0.86,1.0));L.quiet=true;}
  if(!first&&!daily&&!L.quiet&&rivals.length>1&&Math.random()<(holdings()>1e9?0.4:0.2)){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
  if(!SD_BUILD){for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
   if(!first&&!daily&&FRIENDS.length&&rivals.length>1&&Math.random()<0.2){const fr=pick(FRIENDS),st=fr.style||'sniper';if(!rivals.some(r=>r.name===fr.nick))rivals[rivals.length-1]={name:fr.nick,style:st,friend:true,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:L.value*(st==='aggro'?rnd(0.92,1.12):st==='cautious'?rnd(0.8,1.0):rnd(0.88,1.06))};}}
  {const w=WM_OF(L);L.fmt=w.fmt;if(w.rivals&&!SD_BUILD&&rivals.length>1&&Math.random()<0.6){const r=rivals[rivals.length-1];if(!r.boss&&!r.friend&&r.name!==S.nemesis){r.name=pick(w.rivals);r.local=true;}}}
  let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
  L.sky=skyAt(L.st);const find0=bg||SD_BUILD?undefined:inspect(feat);
- const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):L.quiet?Math.round(rnd(3,6)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:12,total:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):L.quiet?Math.round(rnd(3,6)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:honeymoon()&&!feat?10:12,total:honeymoon()&&!feat?10:12,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};if(!bg&&!first&&!daily&&!feat&&!SD_BUILD&&S.props.length>=2&&Math.random()<1/12){L.mystery=true;X.est.lo=roundTo(c*0.85,L.inc);X.est.hi=roundTo(c*1.15,L.inc);}X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
@@ -2000,7 +2011,7 @@ function auctionTick(dt){if(!A||document.hidden||(!$('#modal').hidden&&!TOURING)
  updAuction();}
 /* ---------- inspection after the hammer: most homes are as described, some hide a find, a few a jackpot. Earned by winning, never bought ---------- */
 const FINDS={good:['A pool hiding under the tarp','A granny flat out the back','Original hardwood floors','Approved plans for a second storey','Water views from the top floor'],flaw:['Termites in the subfloor','The roof needs replacing','An unapproved extension','A cracked slab'],jackpot:['Rezoned for townhouses','Heritage listing lifted','The developer next door wants the block','A rare corner block with two frontages']};
-function inspect(featured){const r=Math.random(),j=featured?0.15:0.05;if(r<j)return{kind:'jackpot',label:pick(FINDS.jackpot),pct:rnd(0.25,0.4)};if(r<j+0.2)return{kind:'good',label:pick(FINDS.good),pct:rnd(0.05,0.12)};if(r<j+0.32)return{kind:'flaw',label:pick(FINDS.flaw),pct:-rnd(0.04,0.09)};return null;}
+function inspect(featured){const r=Math.random(),luck=honeymoon()&&(S.wins||0)<5,j=featured?0.15:luck?0.12:0.05,g=luck?0.35:0.2;if(r<j)return{kind:'jackpot',label:pick(FINDS.jackpot),pct:rnd(0.25,0.4)};if(r<j+g)return{kind:'good',label:pick(FINDS.good),pct:rnd(0.05,0.12)};if(r<j+g+(luck?0.04:0.12))return{kind:'flaw',label:pick(FINDS.flaw),pct:-rnd(0.04,0.09)};return null;}
 function showReveal(f,amt,p){if(!A||A.bg)return;const art=$('#art');if(!art)return;art.querySelectorAll('.stamp').forEach(s=>s.remove());const d=document.createElement('div');d.className='reveal '+(f?f.kind:'clean');const rr=p&&p.rarity!=null?p.rarity:0;
  d.innerHTML=(f?`<small>${f.kind==='jackpot'?'Jackpot at inspection':'Inspection'}</small><b>${esc(f.label)}</b><em>${amt>=0?'+':''}${money(amt)} value</em>`:'<small>Inspection</small><b>Clean. No surprises.</b>')+(p?`<i class="rar r${rr}">${RAR[rr][0]}</i>`:'')+(p&&rr>=3?`<button class="sharebtn" data-share="${p.id}">Share this find</button>`:'');art.appendChild(d);
  if(rr>=3){d.classList.add('top');setTimeout(()=>{sfx('rare');confetti(true,rr===4?2.6:1.6);buzz([30,30,30,90]);},250);T.c.shareOffers++;}
@@ -2035,7 +2046,7 @@ function sdSheet(board,score){const rows=board&&board.top||[];
  $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch(API+'/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v,stars:S.legacy||0})});const b2=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
 async function openBoard(){try{const b=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
 function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
-function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:4;const L=A.lot,ui=!A.bg;
+function endAuction(){if(A.sell){endSell();return;}A.ended=true;A.nextIn=A.bg?2.5:honeymoon()?2.5:4;const L=A.lot,ui=!A.bg;
  if(ui&&L.mystery){const t=$('#tarp');if(t){t.classList.add('off');setTimeout(()=>t.remove(),700);}$('#addr').textContent=L.addr;T.c.mystery=(T.c.mystery||0)+1;}
  if(A.leader==='you'&&L.fmt==='board'&&!A.run&&!A.showdown&&Math.random()<0.1){const r2=A.rivals.filter(r=>r.bids>0).sort((a,b)=>b.max-a.max)[0];A.leader=r2||null;T.c.boardNo=(T.c.boardNo||0)+1;tlog('board_no',{tier:L.ti});if(ui)toast(`The co-op board said no. Your deposit's back${r2?' and '+rm(r2).short+' takes it':''}. New York, baby.`,'down');}
  if(A.leader==='you')recordAuction('you');else if(A.leader){recordAuction('rival',A.leader.name);if(A.st.hand+A.st.auto+A.st.big>0){T.c.losses++;T.c.outbid++;}}else{recordAuction('none');T.c.passedIn++;}
@@ -2244,25 +2255,26 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  const w=$('#iwWorth');w.textContent=sg(pr.day1);w.className=pr.day1>=0?'pos':'neg';$('#iwWorthN').textContent='Grows '+growPct(heatOf(q,L.guide))+'%/yr';
  $('#iwInc').innerHTML=A.ended?'':`Your income <b class="${now>=0?'pos':'neg'}">${sg(now)}/mo</b> → <b class="${now+pr.net>=0?'pos':'neg'}">${sg(now+pr.net)}/mo</b>`+(now+pr.net<0?'. Negative income drains your cash.':'');}
 /* v34: the two walls. Portfolio full: sell a home (or a Property manager in the app). Market cap: wait for tomorrow (or a Buyer's agent in the app). Auctions, offers and sales never pay for a win. */
-function slotsSheet(){T.c.slotSheets=(T.c.slotSheets||0)+1;tlog('slots_sheet',{homes:S.props.length,slots:slotsOf()});const items=inApp()?IAP.filter(x=>x.id==='slots_5'&&PRICES[x.id]):[],p=plvState();
+const iapRow=x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}${inApp()?'':' In the app.'}</small></div><button data-buy="${x.id}"${inApp()?'':' disabled'}>${inApp()?esc(PRICES[x.id]):esc(GUIDE_PRICE[x.id]||'App')}</button></div>`;
+function slotsSheet(){T.c.slotSheets=(T.c.slotSheets||0)+1;tlog('slots_sheet',{homes:S.props.length,slots:slotsOf()});const items=IAP.filter(x=>x.id==='slots_5'&&(!inApp()||PRICES[x.id])),p=plvState();
  $('#sheet').innerHTML=`<div class="upg"><h3>Portfolio full</h3><p>You hold <b>${S.props.length} of ${slotsOf()}</b> homes. Sell one to buy another, or grow the portfolio: <b>+1 slot every 5 levels</b> (next at level ${Math.ceil((p.lv+1)/5)*5}) and <b>+3 per dynasty mark</b>.</p>
- ${items.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ ${items.map(iapRow).join('')}
  <button class="sec" id="csSell">Sell a home</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
  $('#csSell').onclick=()=>{$('#modal').hidden=true;show('e');eGo('pf');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
-function mktSheet(){T.c.mktCapSheets=(T.c.mktCapSheets||0)+1;tlog('mkt_cap',{cap:mktCap(),level:plvState().lv});const items=inApp()?IAP.filter(x=>x.id==='market_5'&&PRICES[x.id]):[],p=plvState();
+function mktSheet(){T.c.mktCapSheets=(T.c.mktCapSheets||0)+1;tlog('mkt_cap',{cap:mktCap(),level:plvState().lv});const items=IAP.filter(x=>x.id==='market_5'&&(!inApp()||PRICES[x.id])),p=plvState();
  $('#sheet').innerHTML=`<div class="upg"><h3>No buys left today</h3><p>The Market sells <b>${mktCap()} homes a day</b> to you (3, plus one for every 10 levels; next at level ${Math.ceil((p.lv+1)/10)*10}). Auctions never run out: win there instead, and the count resets at midnight.</p>
- ${items.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ ${items.map(iapRow).join('')}
  <button class="sec" id="csGo">Go to the auctions</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
  $('#csGo').onclick=()=>{$('#modal').hidden=true;show('a');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
 /* rivals get richer as you do: +2% on their ceilings per dynasty mark, +0.1% per level, capped at +15%; stubborn rivals twice as common past $1B of holdings */
 const rivalScale=()=>1+Math.min(0.15,0.02*(S.dyRank||0)+0.001*(plvState().lv-1)+(holdings()>1e9?0.03:0));
 function cashSheet(q,ti){T.c.cashSheets=(T.c.cashSheets||0)+1;tlog('cash_sheet',{tier:ti,need:Math.round(depositFor(q,ti)),cash:Math.round(S.cash),borrowable:Math.round(borrowable())});
- const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=inApp()?IAP.filter(x=>/^cash_/.test(x.id)&&x.show()&&PRICES[x.id]):[];
+ const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=IAP.filter(x=>/^cash_/.test(x.id)&&x.show()&&(!inApp()||PRICES[x.id]));
  $('#sheet').innerHTML=`<div class="upg"><h3>Get back in</h3><p>This lot needs about <b>${money(need)}</b> for the deposit and stamp duty. You have <b>${money(S.cash)}</b>.</p>
  ${amt>=1e4?`<div class="uprow"><div class="uptxt"><b>Borrow against your homes</b><small>${money(amt)} onto your loans at ${(S.lock||0)>0?'4.5':'6'}% a year, 0.5% fee. ${money(av)} available.</small></div><button data-cs="eq">${money(amt)}</button></div>`:`<p class="upnote">Nothing left to borrow: your loans are at 60% of your homes' value.</p>`}
- ${packs.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ ${packs.map(iapRow).join('')}
  <button class="sec" id="csSell">Sell a home</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
  const eb=$('#sheet').querySelector('[data-cs="eq"]');if(eb)eb.onclick=()=>{$('#modal').hidden=true;borrowEquity(amt,'dock');};
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
@@ -2357,9 +2369,9 @@ function seaReward(lv,prem){const id=season().id;if(prem)return lv%2===0?{t:'cos
 function grantReward(r){if(r.t==='cash')S.cash+=r.v;else if(r.t==='regos')regAdd(r.v,'season');else if(r.t==='title')S.sTitles=(S.sTitles||[]).concat(r.v);else if(r.t==='cos'){const [k,v]=r.v.split(':');if(k==='frame'){S.frames=Array.from(new Set((S.frames||[]).concat(v)));}else S.paddles=Array.from(new Set((S.paddles||[]).concat(v)));}}
 /* v30d: the header shows the season level (replaces the EAT mark); tap opens the Season section */
 function drawSea(){try{const p=plvState(),max=p.lv>=PLV_MAX,pc=max?100:p.xp/plvNeed(p.lv)*100;$('#hSeaLv').textContent='Lv '+p.lv+(p.pr?' · '+roman(p.pr):'');$('#hSeaBar').style.width=pc+'%';$('#hSea').setAttribute('aria-label',`Level ${p.lv}${p.pr?', prestige '+p.pr:''}, ${Math.round(pc)}% to the next`);}catch(e){}}
-$('#hSea').onclick=()=>{T.c.seaTaps=(T.c.seaTaps||0)+1;dynastySheet('level');};
+$('#hSea').onclick=()=>{T.c.seaTaps=(T.c.seaTaps||0)+1;levelSheet();};
 /* v31 player level: lifetime XP ladder, 50 levels (`S.plv={xp,lv,pr}`, kept in carry()). Level 25 = +1 star, level 50 = +2 stars and a Prestige (level back to 1, pr+1). Fed by every sxp() call ×1.5 plus joins/bids. */
-const PLV_MAX=50,plvNeed=lv=>80+30*(lv-1);
+const PLV_MAX=50,plvNeed=lv=>lv<=4?50:80+30*(lv-1);
 function plvState(){if(!S.plv)S.plv={xp:0,lv:1,pr:0};return S.plv;}
 function pxp(n,why){const p=plvState();if(p.lv>=PLV_MAX)return;p.xp+=n;let up=false;while(p.lv<PLV_MAX&&p.xp>=plvNeed(p.lv)){p.xp-=plvNeed(p.lv);p.lv++;up=true;T.c.levelUps=(T.c.levelUps||0)+1;tlog('level',{lv:p.lv,pr:p.pr,why});
   if(p.lv===25){S.legacy=(S.legacy||0)+1;toast(`Level 25: +1 star. ${S.legacy} stars now.`,'up');sfx('rare');confetti(true);drawStars();}
@@ -2441,7 +2453,7 @@ const hazOf=p=>HAZ[p.sub]||((WM_OF&&WM_OF(p).haz)||['storm']);
 const DIS={flood:{n:'Flood',hit:[0.1,0.2],mo:[8,16],head:s=>`Floodwaters swamp ${s}`},fire:{n:'Bushfire',hit:[0.12,0.28],mo:[10,20],head:s=>`Bushfire front reaches ${s}`},storm:{n:'Severe storm',hit:[0.03,0.08],mo:[1,4],head:s=>`Wild storm rips through ${s}`},
  hail:{n:'Hailstorm',hit:[0.03,0.07],mo:[1,3],head:s=>`Golf-ball hail smashes ${s}`},cyclone:{n:'Cyclone',hit:[0.1,0.22],mo:[6,14],head:s=>`Cyclone crosses the coast near ${s}`},quake:{n:'Earthquake',hit:[0.08,0.24],mo:[6,16],head:s=>`Earthquake shakes ${s}`},
  erosion:{n:'Coastal erosion',hit:[0.04,0.1],mo:[0,3],head:s=>`King tides eat the beach at ${s}`},heat:{n:'Heatwave',hit:[0.01,0.03],mo:[0,2],head:s=>`46°C in ${s}: air-cons give up`}};
-function disaster(){if((S.disCalm||0)>0)return false;const cand=S.props.filter(p=>!(p.works&&p.works.redev));if(!cand.length)return false;
+function disaster(){if((S.disCalm||0)>0||honeymoon())return false;const cand=S.props.filter(p=>!(p.works&&p.works.redev));if(!cand.length)return false;
  const p0=pick(cand),hz=pick(hazOf(p0)),d=DIS[hz],sub=p0.sub,hit=rnd(d.hit[0],d.hit[1]),mine=S.props.filter(q=>q.sub===sub);let drop=0,fix=0;
  for(const q of mine){const dv=q.value*hit;q.value-=dv;drop+=dv;fix+=dv*0.3;if(!q.works)q.vacant=Math.max(q.vacant||0,Math.round(rnd(d.mo[0],d.mo[1])));q.hit=hz;}
  const pay=S.ins?fix*0.15:fix;S.cash-=pay;S.paidOut+=pay;S.disCalm=40;S.recov=(S.recov||[]).concat({sub,due:(S.mo||0)+Math.round(rnd(18,36)),pct:hit*0.9+0.04,hz}).slice(-12);
@@ -2834,13 +2846,22 @@ function rankOf(n){let i=0;for(let k=0;k<RANKS.length;k++)if(n>=RANKS[k][0])i=k;
 function rankBadges(){const n=S.legacy||0;for(const [need] of RANKS.slice(1))if(n>=need)award('rank'+need);}
 function lifeWin(p){S.life=S.life||{wins:0,epic:0,legend:0,bestFind:0};S.life.wins++;if(p.rarity>=3)S.life.epic++;if(p.rarity===4)S.life.legend++;const eq=(p.value-p.paid)/p.paid*100;if(eq>(S.life.bestFind||0))S.life.bestFind=Math.round(eq);}
 function drawDynCard(){const c=$('#dynCard');if(!c)return;const n=S.legacy||0,r=rankOf(n);c.innerHTML=`<span class="dstar">★ ${n}</span><span><b>${r.t}</b><small>${n?`+${Math.round(starBonus(n)*100)}% rent · start with ${money(startCash(n))}`:'Cash out at '+money(CASH_AT)+' for your first stars'}</small></span><em>Open</em>`;}
+/* v35: the header level chip opens the level ladder; the star opens the dynasty (stars, marks, cash-out). They used to open the same sheet. */
+function levelSheet(){const p=plvState(),max=p.lv>=PLV_MAX,pc=max?100:p.xp/plvNeed(p.lv)*100,next5=Math.ceil((p.lv+1)/5)*5,next10=Math.ceil((p.lv+1)/10)*10;tlog('level_open',{lv:p.lv,pr:p.pr});
+ const row=(at,what,got)=>`<div class="lrow${got?' got':''}"><b>${at}</b><span>${what}</span><em>${got?'✓':at-p.lv+' to go'}</em></div>`;
+ const rows=[[5,'+1 portfolio slot · cash drop'],[10,'+1 portfolio slot · +1 Market buy a day · cash drop'],[15,'+1 portfolio slot · cash drop'],[20,'+1 slot · +1 Market buy · cash drop'],[25,'★ 1 star · +1 slot · cash drop'],[30,'+1 slot · +1 Market buy · cash drop'],[35,'+1 slot · cash drop'],[40,'+1 slot · +1 Market buy · cash drop'],[50,'★★ 2 stars · Prestige mark · the climb restarts']];
+ $('#sheet').innerHTML=`<div class="dyn lvl"><div class="dhero"><span class="dbig">${p.lv}</span><div><small>Level ${p.lv} of ${PLV_MAX}${p.pr?' · Prestige '+roman(p.pr):''}</small><b>${max?'Maxed':plvNeed(p.lv)-p.xp+' XP to '+(p.lv+1)}</b><em>${honeymoon()?'Early levels come fast: one per win.':'XP from wins, joins, tours, duels, good news and rebuilds.'}</em></div></div>
+ <div class="bar"><i style="width:${pc}%"></i></div>
+ <div class="lvlist">${rows.map(([at,what])=>row(at,what,p.lv>=at)).join('')}</div>
+ <p class="dbon">Portfolio: <b>${S.props.length} of ${slotsOf()} homes</b> · Market: <b>${mktLeft()} of ${mktCap()} buys</b> left today.</p>
+ <button class="sec" id="lvDyn">Stars and dynasty</button><button class="sec" id="lvX">Close</button></div>`;$('#modal').hidden=false;
+ $('#lvDyn').onclick=()=>dynastySheet('level');$('#lvX').onclick=()=>{$('#modal').hidden=true;};}
 let legArmed2=false,legTimer=null;
 function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open',{from:from||'header',stars:S.legacy||0});const w=worth(),n=S.legacy||0,r=rankOf(n),pts=starsFor(w),can=w>=CASH_AT,L=S.life||{},pm=Math.round(S.playSec/60),joined=S.wins+S.losses;
  const nx=r.next,np=nx?Math.min(100,(n-RANKS[r.i][0])/(nx[0]-RANKS[r.i][0])*100):100;
  const stat=(k,v)=>`<div><small>${k}</small><strong>${v}</strong></div>`;
  $('#sheet').innerHTML=`<div class="dyn"><div class="dhero"><span class="dbig">★ ${n}</span><div><small>Prestige level ${r.i+1} of ${RANKS.length}</small><b>${r.t}</b><em>${nx?`${nx[1]} at ${nx[0]}★`:'Top of the ladder'}</em></div></div>
  <div class="bar"><i style="width:${np}%"></i></div>
- ${(()=>{const p=plvState(),pc=p.lv>=PLV_MAX?100:p.xp/plvNeed(p.lv)*100;return `<div class="dcash dlv"><b>Level ${p.lv} of ${PLV_MAX}${p.pr?' · Prestige '+roman(p.pr):''}</b><div class="bar"><i style="width:${pc}%"></i></div><p>${p.lv>=PLV_MAX?'Maxed. Prestige from the level-50 prompt.':(plvNeed(p.lv)-p.xp)+' XP to level '+(p.lv+1)+'.'} Level 25 pays <b>1 star</b>, level 50 pays <b>2 stars</b> and a Prestige mark; then the climb starts again. XP comes from wins, joins, tours, duels, good news and rebuilds.</p></div>`;})()}
  <div class="dcash dpr"><b>Dynasty mark${S.dyRank?': '+dyTier(S.dyRank-1)[1]:''}</b><p>${n>=dyNeed()?`You have ${n} stars. Prestige now for a permanent <b>+25% rent</b>, 3 more portfolio slots and the <b>${dyTier(S.dyRank||0)[1]}</b> mark.`:`At <b>${dyNeed()} stars</b> you can prestige the dynasty: +25% rent on every home, forever, 3 more portfolio slots and the ${dyTier(S.dyRank||0)[1]} mark. ${n} of ${dyNeed()} so far.`} Ladder: ${DYT.map(x=>x[1]+' '+x[0]+'★').join(' · ')}.</p><button class="legbtn" id="dyPrBtn"${n>=dyNeed()?'':' disabled'}>${n>=dyNeed()?'Prestige the dynasty':dyNeed()-n+' stars to go'}</button></div>
  <div class="dcash"><b>Cash out</b><p>${can?`Sell everything now for <b>+${pts}★</b>. ${money(starAt(pts+1))} would make it +${pts+1}★ (stars double in price each step).`:`Unlocks at ${money(CASH_AT)} net worth (${Math.floor(w/CASH_AT*100)}% there). It sells every home, banks your stars and starts a new dynasty.`} You keep stars, badges, streak and nemesis.</p>
  <button class="legbtn" id="legacyBtn"${can?'':' disabled'}>${can?'Cash out +'+pts+'★':'Cash out at '+money(CASH_AT)}</button></div>
@@ -3039,7 +3060,7 @@ let dCash=S.cash,dWorth=worth();
 function drawStars(){const b=$('#hStars'),n=S.legacy||0,t='★ '+n;if(b.textContent!==t)b.textContent=t;b.classList.toggle('ready',worth()>=CASH_AT);b.setAttribute('aria-label',`Dynasty: ${n} stars, ${rankOf(n).t}`);}
 $('#hStars').onclick=()=>dynastySheet('header');
 document.addEventListener('click',e=>{if(e.target.closest('#tourBtn')&&A&&!A.ended){hideCoach();houseTour(A.lot,'lot');return;}const b=e.target.closest('[data-dyn]');if(b){e.preventDefault();dynastySheet(b.id==='dynCard'?'empire':'overview');}});
-function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el.hidden=true;return;}if(!S.featAt){S.featAt=Date.now()+2*60e3;}
+function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el.hidden=true;return;}if(!S.featAt){S.featAt=Date.now()+(honeymoon()?90e3:2*60e3);}
  const ms=S.featAt-Date.now();el.hidden=false;el.textContent=ms>0?'Featured '+mmss(ms):'Featured next';el.classList.toggle('due',ms<=0);
  if(ms<=0&&!S.featWarned&&A&&!A.ended&&!A.featured){S.featWarned=true;toast('Featured auction up next: a rare home and a packed room.','up');}}
 setInterval(()=>{drawFeatIn();drawSd();},1000);
@@ -3159,9 +3180,11 @@ async function buyItem(id){const it=IAP.find(x=>x.id===id);if(!it||!STORE)return
   it.grant();T.c.iapBuys++;tlog('purchase',{id,kind:it.kind});save();soonFlush();buildEmpire();updAuction();$('#modal').hidden=true;toast(it.name+': done. Thanks for supporting the game!','up');sfx('win');confetti(false);}
  catch(e){toast('The store could not finish that purchase. You were not charged.','down');}}
 async function restoreItems(){if(!STORE)return;try{const owned=await STORE.restore();let n=0;for(const id of owned||[]){const it=IAP.find(x=>x.id===id&&x.kind==='non_consumable');if(it){it.grant();n++;}}T.c.iapRestores++;tlog('restore',{n});save();toast(n?'Purchases restored.':'Nothing to restore on this account.',n?'up':'');}catch(e){toast('The store could not restore purchases right now.','down');}}
-function shopSheet(){if(!STORE)return;T.c.shopViews++;tlog('shop_view',{});const items=IAP.filter(x=>x.show()&&PRICES[x.id]);
- $('#sheet').innerHTML=`<div class="upg shop"><h3>Shop</h3><p>Optional extras. The auctions stay fair: nothing here wins a lot for you.</p>${items.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')||'<p>Nothing to buy right now.</p>'}<button class="sec" id="shRestore">Restore purchases</button><button class="sec" id="shClose">Close</button></div>`;$('#modal').hidden=false;
- $('#shClose').onclick=()=>{$('#modal').hidden=true;};$('#shRestore').onclick=restoreItems;
+/* v35: the shop opens on the web too, as a preview: every item with its guide price and an "In the app" button, so testers see what the app sells. Only the app can buy. */
+const GUIDE_PRICE={remove_ads:'A$4.99',regos_10:'A$1.99',slots_5:'A$4.99',market_5:'A$2.99',cash_small:'A$2.99',cash_large:'A$9.99',rescue:'A$1.99',rate_lock:'A$1.99',finish_works:'A$0.99',season_pass:'A$7.99',cosmetic_pack:'A$4.99',city_pack:'A$2.99'};
+function shopSheet(){T.c.shopViews++;tlog('shop_view',{web:!STORE});const live=!!STORE,items=live?IAP.filter(x=>x.show()&&PRICES[x.id]):IAP.filter(x=>x.id!=='remove_ads'||CONFIG.ads.enabled);
+ $('#sheet').innerHTML=`<div class="upg shop"><h3>Shop</h3><p>${live?'Optional extras. The auctions stay fair: nothing here wins a lot for you.':'Purchases live in the Auction Empires app, coming to the App Store and Google Play. This is what it will sell; the auctions stay fair and nothing here wins a lot for you.'}</p>${items.map(x=>`<div class="uprow${live||x.show()?'':' off'}"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}"${live?'':' disabled'}>${live?esc(PRICES[x.id]):esc(GUIDE_PRICE[x.id]||'App')}</button></div>`).join('')||'<p>Nothing to buy right now.</p>'}${live?'<button class="sec" id="shRestore">Restore purchases</button>':'<p class="upnote">Prices are a guide and may differ by store. Your web game moves into the app with a transfer code (menu).</p>'}<button class="sec" id="shClose">Close</button></div>`;$('#modal').hidden=false;
+ $('#shClose').onclick=()=>{$('#modal').hidden=true;};if($('#shRestore'))$('#shRestore').onclick=restoreItems;
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});}
 document.addEventListener('click',e=>{if(e.target.closest('[data-shop]')){e.preventDefault();shopSheet();}});
 /* v31 transfer codes: the save travels to the app (or another phone) by a 9-character code the server holds for 30 days */
@@ -3187,7 +3210,7 @@ async function xferSheet(){$('#sheet').innerHTML=`<div class="upg xfer"><h3>Move
  $('#xfGet').onclick=async()=>{const b=$('#xfGet');b.disabled=true;b.textContent='Saving…';try{save();const j=await net('/api/save',{save:S});T.c.xferOut=(T.c.xferOut||0)+1;tlog('xfer_out',{});$('#xfMsg').innerHTML=`Your code: <b class="xfcode">${esc(j.code)}</b><br>Good for 30 days. Enter it on the other device.`;b.textContent='Code ready';if(navigator.clipboard)try{await navigator.clipboard.writeText(j.code);$('#xfMsg').innerHTML+='<br>Copied to the clipboard.';}catch(e){}}catch(e){b.disabled=false;b.textContent='Get a transfer code';$('#xfMsg').textContent=e.message;}};
  $('#xfUse').onclick=async()=>{const code=$('#xfIn').value.trim().toUpperCase();if(code.length<9){$('#xfMsg').textContent='Enter the whole code.';return;}if(S.props.length&&!$('#xfUse').dataset.arm){$('#xfUse').dataset.arm='1';$('#xfMsg').textContent='This replaces the game on this device. Tap Restore again to go ahead.';return;}
   try{const r=await fetch(API+'/api/save?code='+encodeURIComponent(code));const j=await r.json();if(!r.ok||!j.save)throw new Error(j.error||'No game found for that code.');const inc=j.save;for(const k of ['regVar','mkVar','adFree','noStats'])if(S[k]!=null&&inc[k]==null)inc[k]=S[k];localStorage.setItem(KEY,JSON.stringify(inc));T.c.xferIn=(T.c.xferIn||0)+1;tlog('xfer_in',{});$('#xfMsg').textContent='Restored. Reloading…';setTimeout(()=>location.reload(),600);}catch(e){$('#xfMsg').textContent=e.message;}};}
-function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button>${sdOpen()?'<button class="sec" id="mnSd">Daily showdown: one shot today</button>':''}<button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${SOC()?'<button class="sec" id="mnXfer">Move this game to another device</button>':''}${SOC()?'<button class="sec" id="mnFb">Rate the game and send feedback</button>':''}${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
+function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button>${sdOpen()?'<button class="sec" id="mnSd">Daily showdown: one shot today</button>':''}<button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${SOC()?'<button class="sec" id="mnXfer">Move this game to another device</button>':''}${SOC()?'<button class="sec" id="mnFb">Rate the game and send feedback</button>':''}<button class="sec" id="mnShop" data-shop="1">Shop${inApp()?'':' (app preview)'}</button><button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
  $('#mnTour').onclick=()=>tour(0);if($('#mnXfer'))$('#mnXfer').onclick=xferSheet;if($('#mnFb'))$('#mnFb').onclick=()=>feedbackSheet('menu');if($('#mnSd'))$('#mnSd').onclick=()=>{$('#modal').hidden=true;startShowdown();};$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
  $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');eGo('bad');};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnR18').onclick=()=>{if(S.r18){S.r18=false;save();$('#mnR18').textContent='R18+ mode: off';tlog('r18',{on:false});return;}$('#sheet').innerHTML=`<div class="upg"><h3>R18+ mode</h3><p>Darker satire: pandemics, recessions, wars and crypto crashes hit the market, tenants meet grim ends, and the headlines get rude. Every shock has an upside. For adults only.</p><button id="r18Yes">I'm 18 or over. Turn it on</button><button class="sec" id="r18No">Not now</button></div>`;$('#r18Yes').onclick=()=>{S.r18=true;save();T.c.r18On=(T.c.r18On||0)+1;tlog('r18',{on:true});$('#modal').hidden=true;toast('R18+ mode on. Brace yourself.','');pushNews('Adults only: markets get messy');};$('#r18No').onclick=()=>{$('#modal').hidden=true;};};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
 

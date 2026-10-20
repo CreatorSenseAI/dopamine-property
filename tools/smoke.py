@@ -67,7 +67,9 @@ with sync_playwright() as p:
         live = pg.locator(".lv").count()
         print(scheme, "live cards after first win:", live)
         if live:
-            pg.locator(".lvauto").first.click(); pg.wait_for_timeout(300)
+            en = pg.locator(".lvauto:not([disabled])")
+            if en.count(): en.first.click(); pg.wait_for_timeout(300)
+            else: print(scheme, "live auto buttons all disabled (past walk-away or short on cash), skipped")
             pg.screenshot(path=str(out / f"v11-live-{scheme}.png"))
             pg.locator(".lvmain").last.click(); pg.wait_for_timeout(400)
             print(scheme, "focused lot:", pg.inner_text("#addr"))
