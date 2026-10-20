@@ -34,9 +34,16 @@ def fits(pg, sel, label):
 
 
 def close_sheets(pg):
-    for _ in range(4):
-        if pg.is_visible("#modal"):
-            pg.locator("#sheet button").last.click(); pg.wait_for_timeout(250)
+    # v39: a fresh player meets onboarding (name -> home market -> 9-step tour) before anything else
+    for _ in range(16):
+        if not pg.is_visible("#modal"): break
+        if pg.is_visible("#onbName"):
+            pg.fill("#onbName", "Smoke"); pg.click("#onbGo"); pg.wait_for_timeout(400); continue
+        if pg.is_visible("#homeOk"):
+            pg.click("#homeOk"); pg.wait_for_timeout(400); continue
+        if pg.is_visible("#tNext"):
+            pg.click("#tNext"); pg.wait_for_timeout(150); continue
+        pg.locator("#sheet button").last.click(); pg.wait_for_timeout(250)
 
 
 def play_lot(pg, limit=250):
