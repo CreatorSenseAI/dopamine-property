@@ -29,7 +29,7 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   }
   function view(g, me) {
     const ws = weekStart();
-    const members = Object.entries(g.members).map(([id, m]) => ({ nick: m.nick, worth: m.worth || 0, stars: m.stars || 0, title: m.title || "", homes: m.homes || 0, best: m.best || null, style: m.style || "sniper", weekGain: m.week && m.week.at === ws ? (m.worth || 0) - m.week.worth : 0, me: id === me, key: crypto.createHash("sha1").update(g.code + id).digest("hex").slice(0, 10) }))
+    const members = Object.entries(g.members).map(([id, m]) => ({ nick: m.nick, worth: m.worth || 0, stars: m.stars || 0, title: m.title || "", homes: m.homes || 0, income: m.income || 0, best: m.best || null, style: m.style || "sniper", weekGain: m.week && m.week.at === ws ? (m.worth || 0) - m.week.worth : 0, me: id === me, key: crypto.createHash("sha1").update(g.code + id).digest("hex").slice(0, 10) }))
       .sort((a, b) => b.worth - a.worth);
     const feed = g.feed.slice(-30).reverse().map(e => ({ eid: e.eid, t: e.t, nick: e.nick, kind: e.kind, text: e.text, card: e.card || null, reacts: Object.fromEntries(REACTS.map(r => [r, (e.reacts && e.reacts[r] || []).length])), mine: REACTS.filter(r => (e.reacts && e.reacts[r] || []).includes(me)) }));
     const duels = (g.duels || []).slice(-20).map(id => read(dFile(id))).filter(Boolean).filter(d => d.from === me || d.to === me || d.done).slice(-10).map(d => duelView(d, me, g));

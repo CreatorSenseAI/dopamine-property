@@ -130,3 +130,8 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - CSS: the v29 `.news` ticker rule was removed (it restyled `.inrow.news`); neutral buttons (`.tour .back`, `.inx`, `.gx`, card/friend/pager buttons) carry a neutral `--bc` bevel; Market Buy button gets `.wall` (neutral) when slots or daily buys are out; friends footer links are pills.
 - Admin portal `/admin`: `?key=` once sets an HttpOnly cookie (`ak`, 30 days, `/admin/logout` clears it), so links stay clean. Tabs via `?tab=`: Overview, Players (last 60 sessions: phase, level, worth, homes/slots, tier, stars, device), Game (all the stat tiles), Feedback, Photos (status, per-bucket counts, Start/Stop links), Logs (24h digest, `&page=`). `authed(url, req)` accepts key or cookie.
 - Photo prompts no longer ask for a blurred for-sale board (it rendered as an ugly smudge).
+
+## Friends, walkthrough (v37, 20 Oct)
+- League rows are tappable → `memberSheet(m,g,rank)`: worth, week gain, homes, income (now in `social.js` `view()`), stars, best find, head-to-head from `S.h2h[nick]`, bidding style, Duel button. A "Ranked by net worth…" note sits above the list (stars and titles are lifetime; rank is worth).
+- Joining or creating a group needs a real name: `autoNick()` (still "Bidder ####") opens `nickSheet(then, why)` first and continues after save. The nick sheet rejects names under 3 characters or shaped like the auto name.
+- `TOUR` rewritten (9 steps): estimate/walk-away, swipe + flip, the four dock buttons + Need $, inspector/cards/sets, levels + slots + Market cap, news, stars + dynasty marks, friends + feedback.
