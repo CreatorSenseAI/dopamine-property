@@ -1441,6 +1441,7 @@ body[data-paddle="ember"] .pad.you b{background:linear-gradient(135deg,#ff6a00,#
 body[data-paddle="ice"] .pad.you b{background:linear-gradient(135deg,#bff3ff,#5bc8ff)!important;color:#0a2a44}
 body[data-paddle="royal"] .pad.you b{background:linear-gradient(135deg,#4b1fa6,#8b45d6)!important;color:#ffd34d}
 body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34d,#fff,#ffd34d)!important;color:#1a1200}
+.sheet .onbskip{display:block;width:auto;margin:10px auto 0;font-size:13px;color:var(--muted);text-decoration:underline;font-family:var(--f-body);letter-spacing:0;text-transform:none;background:none;box-shadow:none;border:0;padding:4px 8px;text-shadow:none}
 </style>
 </head>
 <body>
@@ -1681,7 +1682,9 @@ const mktCap=()=>mktMax();
 const mktNext=()=>{const m=mktMeter();return m.n>=mktMax()?0:Math.max(0,MKT_EVERY-(Date.now()-m.at));};
 const DYT=[[50,'Gold'],[100,'Diamond'],[200,'Adamantium'],[300,'Mythril'],[400,'Eternal'],[500,'Infinite']];
 const dyTier=r=>DYT[Math.min(r,DYT.length-1)];
-const rentOf=p=>p.value*RENT[baseTi(p)]*(1+starBonus(S.legacy)+0.25*(S.dyRank||0))*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1);
+/* v44: 75 stars and 4 dynasty marks were 4.25x rent, which took Matt from $4B to $99B in 90 minutes. The bonus now caps at +150% and yields compress past $10B of holdings (x0.75 at $100B, x0.5 at $1T) */
+const RENT_CAP=1.5,rentBonus=()=>1+Math.min(RENT_CAP,starBonus(S.legacy)+0.25*(S.dyRank||0)),yieldComp=h=>h>1e10?Math.max(0.4,1-0.25*Math.log10(h/1e10)):1;
+const rentOf=p=>p.value*RENT[baseTi(p)]*rentBonus()*yieldComp(holdings())*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
 const LOCK_RATE=0.00375;/* bank rate lock: 4.5% a year */
@@ -1702,7 +1705,7 @@ const sg=n=>(n>=0?'+':'')+money(n);
 const landTax=h=>0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8)+0.0005*Math.max(0,h-1e9)+0.0008*Math.max(0,h-1e10);
 const LT_BR=[2e6,25e6,1e8,1e9,1e10];const ltBracket=h=>LT_BR.filter(b=>h>b).length;
 function project(price,ti,val,style){const pay=payFor(price,ti),h=holdings(),strata=style==='unit'||style==='tower';
- const rent=val*RENT[ti]*(1+starBonus(S.legacy)+0.25*(S.dyRank||0)),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*rate();
+ const rent=val*RENT[ti]*rentBonus()*yieldComp(h+val),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*rate();
  return{out:pay.out,loan:pay.loan,duty:pay.duty,rent,costs:own+lt+int,net:rent-own-lt-int,day1:val-price-pay.duty};}
 const incomeNow=()=>S.props.reduce((a,p)=>a+(p.vacant>0?0:rentOf(p)),0)-bills().total;
 const RIVALS=[
@@ -1753,7 +1756,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v43-web';
+const VERSION='v44-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2784,13 +2787,14 @@ let GLOBE_HOME=null;
 function globeInto(el){const g=$('#globeSec');if(!g)return;if(!GLOBE_HOME)GLOBE_HOME={parent:g.parentNode,next:g.nextSibling};el.appendChild(g);g.hidden=false;$('#gsel').hidden=true;G.world=true;G.sel=null;G.w=0;gstart();gzoomTo(WLL[S.home||'au'][0]-10,WLL[S.home||'au'][1],1);}
 function globeBack(){const g=$('#globeSec');if(!g||!GLOBE_HOME)return;G.world=false;gstop();g.hidden=true;G.w=0;GLOBE_HOME.parent.insertBefore(g,GLOBE_HOME.next);GLOBE_HOME=null;}
 function homeRows(){return WPINS.map(w=>{const W=WORLD.find(x=>x.k===w.k),open=S.maxTier>=w.need,home=(S.home||'au')===w.k;return `<button class="hrow${home?' on':''}" data-home="${w.k}"><span class="wflag">${w.flag}</span><span class="htxt"><b>${esc(w.sub)}</b><small>${esc(W.blurb)}${open?'':` · opens at ${TIERS[w.need].name}`}</small></span><em>${home?'Home':open?'Open':TIERS[w.need].name}</em></button>`;}).join('');}
-function homePick(k){const w=WORLD.find(x=>x.k===k);if(!w)return;S.home=k;S.wm=k;T.c['home_'+k]=(T.c['home_'+k]||0)+1;tlog('home_pick',{k,open:S.maxTier>=w.need});$('#sheet').querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('on',b.dataset.home===k));const nt=$('#homeNote');if(nt)nt.innerHTML=homeNote();const hl=$('#sheet .hlist');if(hl)hl.innerHTML=homeRows();bindHome();buildChips();save();}
+function homePick(k){const w=WORLD.find(x=>x.k===k);if(!w)return;S.home=k;S.wm=k;T.c['home_'+k]=(T.c['home_'+k]||0)+1;tlog('home_pick',{k,open:S.maxTier>=w.need});$('#sheet').querySelectorAll('[data-home]').forEach(b=>b.classList.toggle('on',b.dataset.home===k));{const ok=$('#homeOk');if(ok&&ok.dataset.onb)ok.textContent='Start in '+w.name;}const nt=$('#homeNote');if(nt)nt.innerHTML=homeNote();const hl=$('#sheet .hlist');if(hl)hl.innerHTML=homeRows();bindHome();buildChips();save();}
 function homeNote(){const w=WORLD.find(x=>x.k===(S.home||'au')),open=S.maxTier>=w.need;return `<b>${w.flag} ${esc(w.name)}</b>: ${open?'your auctions come from here.':`your auctions start in Australia and move to ${esc(w.name)} the moment you unlock ${TIERS[w.need].name} ($${(TIERS[w.need].unlock/1e6).toFixed(1).replace('.0','')}M net worth).`} You can bid anywhere that's open from the Market button, any time.`;}
 function bindHome(){$('#sheet').querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>homePick(b.dataset.home));}
-function homeSheet(from){$('#sheet').innerHTML=`<div class="upg home${from==='onb'?' noclose':''}"><h3>Home market</h3><p>Tap a flag on the globe or pick from the list. New countries open as your markets do.</p><div class="gslot" id="gslot"></div><p class="hnote2" id="homeNote">${homeNote()}</p><div class="hlist">${homeRows()}</div><button id="homeOk">${from==='onb'?'Next':'Done'}</button></div>`;$('#modal').hidden=false;globeInto($('#gslot'));bindHome();
+function homeSheet(from){$('#sheet').innerHTML=`<div class="upg home${from==='onb'?' noclose':''}"><h3>Home market</h3><p>Tap a flag on the globe or pick from the list. New countries open as your markets do.</p><div class="gslot" id="gslot"></div><p class="hnote2" id="homeNote">${homeNote()}</p><div class="hlist">${homeRows()}</div><button id="homeOk"${from==='onb'?' data-onb="1"':''}>${from==='onb'?'Start in '+esc((WORLD.find(x=>x.k===(S.home||'au'))||WORLD[0]).name):'Done'}</button></div>`;$('#modal').hidden=false;globeInto($('#gslot'));bindHome();
  $('#homeOk').onclick=()=>{globeBack();$('#modal').hidden=true;if(from==='onb'){S.onb=2;save();tour(0,true);}};}
-function onboard(step){step=step||0;if(step===0){$('#sheet').innerHTML=`<div class="upg onb noclose"><div class="onbmark">AE</div><h3>Auction Empires</h3><p>Bid against rival investors, collect the rent, build an empire. Fast, fair, a little bit ruthless.</p><label class="onbl">What do your mates call you?<input id="onbName" maxlength="16" placeholder="Your name" autocomplete="nickname" value="${autoNick()?'':esc(myNick())}"></label><p class="hint" id="onbHint">&nbsp;</p><button id="onbGo">Let's go</button></div>`;$('#modal').hidden=false;setTimeout(()=>{const i=$('#onbName');if(i)i.focus();},80);
-  $('#onbGo').onclick=()=>{const v=($('#onbName').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3){$('#onbHint').textContent='At least 3 letters or numbers.';return;}S.nick=v;S.onb=1;tlog('onboard',{step:'name'});save();homeSheet('onb');};}}
+function onboard(step){step=step||0;if(step===0){$('#sheet').innerHTML=`<div class="upg onb noclose"><div class="onbmark">AE</div><h3>Auction Empires</h3><p>Bid against rival investors, collect the rent, build an empire. Fast, fair, a little bit ruthless.</p><label class="onbl">What do your mates call you?<input id="onbName" maxlength="16" placeholder="Your name" autocomplete="nickname" value="${autoNick()?'':esc(myNick())}"></label><p class="hint" id="onbHint">&nbsp;</p><button id="onbGo">Let's go</button><button class="linkbtn onbskip" id="onbSkip">Skip, just let me bid</button></div>`;$('#modal').hidden=false;setTimeout(()=>{const i=$('#onbName');if(i)i.focus();},80);
+  $('#onbGo').onclick=()=>{const v=($('#onbName').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3){$('#onbHint').textContent='At least 3 letters or numbers.';return;}S.nick=v;S.onb=1;tlog('onboard',{step:'name'});save();homeSheet('onb');};$('#onbSkip').onclick=()=>{tlog('onboard',{step:'skip'});endOnb(true);};}}
+function endOnb(skipped){$('#modal').hidden=true;globeBack();S.onb=3;if(!S.tour){S.tour=1;S.rules=4;}TOUR_ONB=false;S.firstLots=0;if(A&&!A.ended&&!A.bg&&A.st.hand+A.st.auto+A.st.big===0){recordAuction('switched');startAuction();}tlog('onboard',{step:'done',skipped:!!skipped});save();toast(`Welcome, ${esc(myNick())}. Your first auction is live: get your hand up.`,'up',null);setTimeout(()=>coach('bid','Tap Bid before the clock runs out. The green zone is a steal.'),1200);}
 /* v37: tap a league row for the player's card */
 function memberSheet(m,g,rank){if(!m)return;const h=(S.h2h||{})[m.nick],RN=['Common','Sought-after','Prime','Epic','Legendary'],style={aggro:'Aggressive bidder',cautious:'Cautious bidder',sniper:'Sniper: waits, then strikes'}[m.style]||'';
  const tile=(k,v,c)=>`<div><small>${k}</small><strong class="${c||''}">${v}</strong></div>`;
@@ -3079,7 +3083,7 @@ function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open'
  <div class="dcash dpr"><b>Dynasty mark${S.dyRank?': '+dyTier(S.dyRank-1)[1]:''}</b><p>${n>=dyNeed()?`You have ${n} stars. Prestige now for a permanent <b>+25% rent</b>, 3 more portfolio slots and the <b>${dyTier(S.dyRank||0)[1]}</b> mark.`:`At <b>${dyNeed()} stars</b> you can prestige the dynasty: +25% rent on every home, forever, 3 more portfolio slots and the ${dyTier(S.dyRank||0)[1]} mark. ${n} of ${dyNeed()} so far.`} Ladder: ${DYT.map(x=>x[1]+' '+x[0]+'★').join(' · ')}, then +100★ a mark.</p><button class="legbtn" id="dyPrBtn"${n>=dyNeed()?'':' disabled'}>${n>=dyNeed()?'Prestige the dynasty':dyNeed()-n+' stars to go'}</button></div>
  <div class="dcash"><b>Cash out</b><p>${can?`Sell everything now for <b>+${pts}★</b>. ${money(starAt(pts+1))} would make it +${pts+1}★ (stars double in price each step).`:`Unlocks at ${money(CASH_AT)} net worth (${Math.floor(w/CASH_AT*100)}% there). It sells every home, banks your stars and starts a new dynasty.`} You keep stars, badges, streak and nemesis.</p>
  <button class="legbtn" id="legacyBtn"${can?'':' disabled'}>${can?'Cash out +'+pts+'★':'Cash out at '+money(CASH_AT)}</button></div>
- <p class="dbon">${n?`Stars pay rent on every home: 10% each to 10 stars, 4% to 30, 1% after. Yours: <b>+${Math.round(starBonus(n)*100)}% rent</b>, start with <b>${money(startCash(n))}</b>. Dynasty marks are the big late bonus.`:'Stars are permanent. The first ten add <b>10% rent</b> each and <b>$100K</b> starting cash, every dynasty after.'}</p>
+ <p class="dbon">${n?`Stars pay rent on every home: 10% each to 10 stars, 4% to 30, 1% after. Yours: <b>+${Math.round(Math.min(RENT_CAP,starBonus(n)+0.25*(S.dyRank||0))*100)}% rent</b> (stars and dynasty marks together cap at +${RENT_CAP*100}%), start with <b>${money(startCash(n))}</b>. Dynasty marks are the big late bonus.`:'Stars are permanent. The first ten add <b>10% rent</b> each and <b>$100K</b> starting cash, every dynasty after.'}</p>
  <div class="ladder">${RANKS.map(([need,t],i)=>`<span class="${n>=need?'on':''}${i===r.i?' cur':''}"><b>${t}</b><small>${need}★</small></span>`).join('')}</div>
  <div class="dstats">${stat('Dynasties',S.dynasties||0)}${stat('Best worth',money(Math.max(S.bestWorth||0,w)))}${stat('Homes won',(L.wins||0)||S.wins)}${stat('Epic+ finds',L.epic||0)}${stat('Best find',L.bestFind?'+'+L.bestFind+'%':'-')}${stat('Time played',pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m')}</div>
  <button class="sec" id="dynX">Close</button></div>`;$('#modal').hidden=false;
@@ -3482,10 +3486,10 @@ const TOUR=[
  {h:'Read the news',b:()=>`<p>Floods, fires, rate moves, booms, possums in the roof and tenants who leave for Bali all hit your homes. Disaster cover is in <b>Money and bank</b>; every disaster is followed by a rebuild boom.</p><p>Missed something? The <b>bell</b> under the header keeps every notification.</p>`},
  {h:'Stars and dynasties',b:()=>`<p>Past <b>$100M</b> you can <b>cash out</b> for stars: start again with more cash and more rent, and a new title. Stars double in price each step.</p><p>At <b>50 stars</b> prestige the dynasty for the <b>Gold</b> mark: +25% rent for good, then Diamond, Adamantium and beyond. Tap the <b>★</b> in the header any time.</p>`},
  {h:'Come back, bring mates',b:()=>`<p>Your <b>streak</b> pays more each day and day 7 brings a Prime lot. Seasons add rewards as you play.</p><p><b>Friends</b> in Empire: start a group, share the code, race in the weekly league, duel on the same lot, and meet on Thursday nights for Auction Night. The menu has a feedback form: tell us what to fix.</p>`}];
-function tour(i,onb){i=i||0;const t=TOUR[i],last=i===TOUR.length-1;if(onb)TOUR_ONB=true;else if(i===0)TOUR_ONB=false;
- $('#sheet').innerHTML=`<div class="tour"><div class="tstep">${i+1} of ${TOUR.length}</div><h3>${t.h}</h3>${t.b()}<div class="dots">${TOUR.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><div class="tbtns">${i?'<button class="back" id="tBack">Back</button>':''}<button id="tNext">${last?'Start bidding':'Next'}</button></div></div>`;
+function tour(i,onb){i=i||0;if(onb)TOUR_ONB=true;else if(i===0)TOUR_ONB=false;const n=TOUR_ONB?4:TOUR.length,t=TOUR[i],last=i===n-1;
+ $('#sheet').innerHTML=`<div class="tour${TOUR_ONB?' noclose':''}"><div class="tstep">${i+1} of ${n}</div><h3>${t.h}</h3>${t.b()}<div class="dots">${TOUR.slice(0,n).map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div><div class="tbtns">${i?'<button class="back" id="tBack">Back</button>':''}<button id="tNext">${last?'Start bidding':'Next'}</button></div>${TOUR_ONB&&!last?'<button class="linkbtn onbskip" id="tSkip">Skip to the auction</button>':''}</div>`;
  $('#modal').hidden=false;tlog('tour',{step:i});
- $('#tNext').onclick=()=>{if(last){$('#modal').hidden=true;if(!S.tour){S.tour=1;S.rules=4;}if(TOUR_ONB){S.onb=3;tlog('onboard',{step:'done'});TOUR_ONB=false;toast(`Welcome, ${esc(myNick())}. Your first auction is live: get your hand up.`,'up');}save();}else tour(i+1);};const b=$('#tBack');if(b)b.onclick=()=>tour(i-1);$('#tNext').focus();}
+ $('#tNext').onclick=()=>{if(last){if(TOUR_ONB){endOnb(false);return;}$('#modal').hidden=true;if(!S.tour){S.tour=1;S.rules=4;}save();}else tour(i+1);};const b=$('#tBack');if(b)b.onclick=()=>tour(i-1);const sk=$('#tSkip');if(sk)sk.onclick=()=>{tlog('onboard',{step:'skip',at:i});endOnb(true);};$('#tNext').focus();}
 let TOUR_ONB=false;
 $('#help').onclick=()=>menu();
 
