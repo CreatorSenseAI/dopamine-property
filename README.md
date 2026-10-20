@@ -65,6 +65,7 @@ window.DPStore = {
   buy: async id => ({ ok: true }),             // resolves after the store confirms (and the receipt is validated)
   owned: async () => ["remove_ads"],           // non-consumables this account owns (checked on launch)
   restore: async () => ["remove_ads"],         // the "Restore purchases" button (Apple requires one)
+  review: () => {},                            // optional: open the native store rating sheet (SKStoreReviewController / In-App Review); the game calls it after a Legendary win or a dynasty prestige, at most weekly
 };
 ```
 
@@ -77,12 +78,13 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | `slots_10` | consumable | Property manager: +10 portfolio slots, permanent, stacks |
 | `market_5` | consumable | Buyer's agent: +5 Market buys on the meter now, stacks |
 | `cash_1` … `cash_8` | consumable | fixed cash ladder: $250K (A$1.49), $1M (2.99), $5M (7.99), $25M (14.99), $100M (29.99), $300M (59.99), $600M (99.99), $1B (149.99) |
-| `season_pass` | consumable | this season's premium reward column (cosmetics + registrations) |
+| `season_pass` | consumable | this season's pass row: Epic homes, exclusive frames and paddles, cash, registrations, Market buys |
+| `finish_works` | consumable | every upgrade and build under way finishes now |
+| `double_back` | consumable | doubles the welcome-back credit (rent and growth from the time away), once per return |
 | `cosmetic_pack` | non-consumable | neon, marble and holo card frames; gold, neon and black paddles |
 | `city_pack` | consumable | opens the next country one market early |
 | `rescue` | consumable | stops one repossession |
 | `rate_lock` | consumable | 4.5% on loans for 24 months |
-| `finish_works` | consumable | finishes every upgrade under way |
 
 All guaranteed results: no paid chance, no paid auction wins, game cash never converts back to money. The catalogue lives in `IAP` in `public/index.html`; `/admin` shows shop opens, purchases by id and restores (revenue is in App Store Connect and Play Console).
 

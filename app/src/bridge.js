@@ -31,7 +31,7 @@
       P.Haptics.impact({ style: strongest >= 50 ? "HEAVY" : strongest >= 20 ? "MEDIUM" : "LIGHT" }).catch(() => {}); return true; }; }
   /* push */
   if (P.PushNotifications) { const PN = P.PushNotifications;
-    PN.addListener("registration", t => { try { fetch(window.EAT_API + "/api/push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ installId: localStorage.getItem("dp-install"), token: t.value, platform }) }); } catch (e) {} });
+    PN.addListener("registration", t => { try { fetch(window.EAT_API + "/api/push", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ installId: localStorage.getItem("dp-install"), token: t.value, platform, tzo: -new Date().getTimezoneOffset() }) }); } catch (e) {} });
     PN.addListener("pushNotificationActionPerformed", a => { const d = (a.notification && a.notification.data) || {}; if (d.join && window.EAT_JOIN) window.EAT_JOIN(d.join); });
     PN.checkPermissions().then(p => p.receive === "granted" ? PN.register() : PN.requestPermissions().then(r => r.receive === "granted" && PN.register())).catch(() => {}); }
   /* deep links */

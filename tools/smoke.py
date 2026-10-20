@@ -237,7 +237,7 @@ with sync_playwright() as p:
     st = pg.evaluate("JSON.parse(localStorage.getItem('dopamine-property-v1'))")
     kept = {k: st.get(k) for k in ["regVar", "mkVar", "joined", "adFree", "streak", "dynasties", "legacy"]}; kept["header"] = pg.inner_text("#hStars"); kept["badges"] = sorted((st.get("badges") or {}).keys())
     print("after cash-out:", kept, "| market tab visible:", pg.is_visible("#tM"))
-    assert st.get("regVar") == 1 and st.get("mkVar") == 0 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
+    assert st.get("regVar") == 1 and st.get("mkVar") == 1 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
     assert "rank1" in kept["badges"] and st.get("legacy", 0) >= 1, "stars and title badge should land on cash-out"
     pg.close()
 

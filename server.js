@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml" };
 const ID = /^[a-z0-9]{6,32}$/i;
 
 for (const d of ["sessions", "players", "boards", "saves"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
@@ -389,7 +389,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <nav><h1><b>AE</b> Admin</h1>${NAV.map(([id, n]) => `<a href="/admin?tab=${id}" class="${tab === id ? "on" : ""}">${n}</a>`).join("")}<span class="sp"></span><a href="/">Open game</a><a href="/admin/logout">Log out</a></nav>
 <div class="wrap">
 <section class="${tab === "overview" ? "on" : ""}">
-<p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a></p>
+<p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a> · backup ${LAST_BACKUP ? LAST_BACKUP.at.slice(0, 16).replace("T", " ") + " UTC, " + Math.round(LAST_BACKUP.bytes / 1024) + " KB" + (LAST_BACKUP.remote ? ", copied to the bucket" : ", local only (set S3_* to copy off the box)") : "none yet"} · <a href="/admin/backup">back up now</a></p>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
@@ -401,7 +401,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
 <h2>Dynasty and layout (v25)</h2><div class="g">${tile("Dynasty sheet opens", s.dynOpens, s.prestiges + " cash-outs")}${tile("Goal chip taps", s.goalTaps)}${tile("If-you-win opens", s.ifwinOpens)}${tile("Empire sections", s.esec)}</div>
 <h2>Events, world, seasons (v29)</h2><div class="g">${tile("Disasters", s.disasters, s.recoveries + " rebuild booms")}${tile("Good news", s.goodEvents)}${tile("R18+ shocks", s.shocks, s.r18On + " turned R18+ on")}${tile("Insurance toggles", s.insToggles)}${tile("Prizes", s.prizes)}${tile("World sheet", s.worldViews, s.sealed + " sealed rounds · " + s.boardNo + " board rejections")}${tile("Takeovers", s.takeovers, s.turfWon + " won")}${tile("Season levels", s.seasonLevels)}${tile("Mystery lots", s.mystery)}${tile("Event animations", s.fx)}${tile("Rarity explainer", s.rarityInfo)}</div>
-<h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Push tokens", s.soc.pushTokens || 0, "sending needs APNs/FCM keys")}${tile("Live arena", (s.soc.arenaOnline || 0) + " online now", (s.arenaBids || 0) + " player bids · " + (s.arenaWins || 0) + " player wins · " + (s.soc.arenaRuns || 0) + " runs kept")}${tile("Duel prizes", s.duelW || 0, "duel wins paid")}</div>
+<h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Push", (s.soc.pushTokens || 0) + " tokens", "iOS " + pusher.status().ios + " · Android " + pusher.status().android + " · " + pusher.status().lastSent + " sent in 2 days")}${tile("Live arena", (s.soc.arenaOnline || 0) + " online now", (s.arenaBids || 0) + " player bids · " + (s.arenaWins || 0) + " player wins · " + (s.soc.arenaRuns || 0) + " runs kept")}${tile("Duel prizes", s.duelW || 0, "duel wins paid")}</div>
 <h2>Cash and balance (v26)</h2><div class="g">${tile("Equity loans", s.equityLoans, "$" + Math.round((s.equityBorrowed || 0) / 1e6 * 10) / 10 + "M borrowed")}${tile("Out of reach taps", s.cashSheets, "opened the cash sheet")}${tile("Spend warnings", s.spendWarns, "upgrade or build would block bidding")}${tile("Offer comebacks", s.offerComebacks)}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}${tile("Redevelopments", s.redevs, s.redevDone + " finished · $" + Math.round((s.redevSpend || 0) / 1e6 * 10) / 10 + "M spent")}${tile("Build problems", s.blowouts + " blowouts", s.buildDelays + " delays")}${tile("Mansion tax paid", "$" + Math.round((s.mansionTax || 0) / 1000) + "K")}</div>
 <h2>A/B: auctions first (Market removed)</h2><div class="g">${s.abm.map(a => tile(a.v ? "Market kept" : "Auctions first", a.auctionTime + " time in auctions", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · join ${a.join} · ${a.winsPerSession} wins/session · ${a.mktBuys} market buys · ${a.sellAuctions} sold at auction`)).join("")}${tile("Rich-list climbs", s.rankUps, "after beating rivals")}</div>
@@ -449,6 +449,7 @@ function authed(url, req) {
 
 // ---------- routes ----------
 const social = require("./social")({ DATA, send, readBody, writeJSON, limited, ID, NICK });
+const pusher = require("./push")({ DATA, writeJSON });
 http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   try {
@@ -465,6 +466,7 @@ http.createServer(async (req, res) => {
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
+    if (url.pathname === "/admin/backup") { if (!authed(url, req)) return send(req, res, 401, "text/plain", "admin key?"); await backupNow("manual"); return send(req, res, 302, "text/plain", "", { location: "/admin" }); }
     if (url.pathname === "/admin/logout") return send(req, res, 200, "text/html", "<p>Logged out. <a href=\"/\">Game</a></p>", { "set-cookie": "ak=; Path=/admin; Max-Age=0" });
     if (url.pathname === "/admin/gen-images") {
       if (!authed(url, req)) return send(req, res, 404, "text/plain", "not found");
@@ -498,6 +500,36 @@ http.createServer(async (req, res) => {
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
 }).listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+
+
+/* ---------- backups (v46): a gzipped JSON bundle of everything in DATA except photos, nightly at 03:10 UTC and on boot when today's is missing; 7 kept. Optional copy to any S3-compatible bucket (Cloudflare R2, S3) with S3_ENDPOINT, S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION. ---------- */
+const BK_DIR = path.join(DATA, "backups"); fs.mkdirSync(BK_DIR, { recursive: true });
+function bundleData() {
+  const out = {}, skip = new Set(["img", "backups"]);
+  (function walk(dir, rel) { for (const ent of fs.readdirSync(dir, { withFileTypes: true })) { if (rel === "" && skip.has(ent.name)) continue; const full = path.join(dir, ent.name), r = rel ? rel + "/" + ent.name : ent.name; if (ent.isDirectory()) walk(full, r); else if (ent.isFile() && /\.(json|txt)$/.test(ent.name)) { try { out[r] = fs.readFileSync(full, "utf8"); } catch {} } } })(DATA, "");
+  return zlib.gzipSync(Buffer.from(JSON.stringify({ at: new Date().toISOString(), files: out })));
+}
+function s3Put(key, body) {
+  const ep = process.env.S3_ENDPOINT, bucket = process.env.S3_BUCKET, ak = process.env.S3_KEY, sk = process.env.S3_SECRET, region = process.env.S3_REGION || "auto";
+  if (!ep || !bucket || !ak || !sk) return Promise.resolve(false);
+  const u = new URL(ep.replace(/\/$/, "") + "/" + bucket + "/" + key), now = new Date(), amz = now.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z"), day = amz.slice(0, 8);
+  const hash = crypto.createHash("sha256").update(body).digest("hex"), hmac = (k, d) => crypto.createHmac("sha256", k).update(d).digest();
+  const headers = { host: u.host, "x-amz-content-sha256": hash, "x-amz-date": amz, "content-type": "application/gzip", "content-length": String(body.length) };
+  const signed = ["host", "x-amz-content-sha256", "x-amz-date"], canon = ["PUT", u.pathname, "", ...signed.map(h => h + ":" + headers[h]), "", signed.join(";"), hash].join("\n");
+  const scope = `${day}/${region}/s3/aws4_request`, sts = ["AWS4-HMAC-SHA256", amz, scope, crypto.createHash("sha256").update(canon).digest("hex")].join("\n");
+  const sig = crypto.createHmac("sha256", hmac(hmac(hmac(hmac("AWS4" + sk, day), region), "s3"), "aws4_request")).update(sts).digest("hex");
+  headers.authorization = `AWS4-HMAC-SHA256 Credential=${ak}/${scope}, SignedHeaders=${signed.join(";")}, Signature=${sig}`;
+  return fetch(u, { method: "PUT", headers, body }).then(r => { if (!r.ok) throw new Error("S3 " + r.status); return true; });
+}
+let LAST_BACKUP = null;
+async function backupNow(why) {
+  try { const day = new Date().toISOString().slice(0, 10), file = path.join(BK_DIR, "data-" + day + ".json.gz"), body = bundleData(); fs.writeFileSync(file, body);
+    const keep = fs.readdirSync(BK_DIR).filter(f => f.startsWith("data-")).sort(); for (const f of keep.slice(0, Math.max(0, keep.length - 7))) fs.unlinkSync(path.join(BK_DIR, f));
+    let remote = false; try { remote = await s3Put("auction-empires/data-" + day + ".json.gz", body); } catch (e) { console.log("BACKUP remote failed: " + e.message); }
+    LAST_BACKUP = { at: new Date().toISOString(), bytes: body.length, remote, why }; console.log(`BACKUP ${why}: ${(body.length / 1024).toFixed(0)} KB -> ${file}${remote ? " + remote" : ""}`); } catch (e) { console.log("BACKUP failed: " + e.message); }
+}
+function backupTick() { const now = new Date(), day = now.toISOString().slice(0, 10); if (!fs.existsSync(path.join(BK_DIR, "data-" + day + ".json.gz")) && now.getUTCHours() >= 3) backupNow("nightly"); }
+setTimeout(() => backupTick(), 20000); setInterval(backupTick, 15 * 60e3);
 
 /* play logs straight into the Railway service log (read with the Railway logs tool, filter "DG"; no admin key needed):
    the last 24h at boot, then new sessions every 30 min */

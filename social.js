@@ -157,7 +157,7 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       ok(req, res, arenaView(b.installId)); },
     // ---------- push tokens (sending needs APNs/FCM credentials) ----------
     async "POST /api/push"(req, res) { const b = await body(req, res, 2048); if (!b) return; const t = String(b.token || "").slice(0, 300); if (!t) return bad(req, res, "no token");
-      writeJSON(path.join(DATA, "push", b.installId + ".json"), { token: t, platform: b.platform === "ios" ? "ios" : "android", at: new Date().toISOString() }); ok(req, res); }
+      writeJSON(path.join(DATA, "push", b.installId + ".json"), { token: t, platform: b.platform === "ios" ? "ios" : "android", tzo: Math.round(num(b.tzo, -840, 840)), at: new Date().toISOString() }); ok(req, res); }
   };
   return {
     async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; await r(req, res, url); return true; },
