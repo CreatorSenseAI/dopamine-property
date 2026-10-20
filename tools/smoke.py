@@ -24,7 +24,8 @@ def page(b, scheme, seed=None, q="?mkt=0"):
 
 
 def esec(pg, k):
-    pg.select_option("#eSec", k); pg.wait_for_timeout(250)
+    pg.evaluate("document.querySelectorAll('#coach,#toast').forEach(e=>e.hidden=true)")
+    pg.click("#eSecBtn"); pg.wait_for_timeout(150); pg.click("[data-sec=%s]" % k); pg.wait_for_timeout(250)
 
 
 def fits(pg, sel, label):
