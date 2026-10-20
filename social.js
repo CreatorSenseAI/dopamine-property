@@ -7,7 +7,7 @@ const crypto = require("crypto");
 module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID, NICK }) {
   for (const d of ["groups", "members", "duels", "nights", "push"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
   const CODE = /^EAT-[A-HJ-NP-Z2-9]{4}$/, WEEK = /^\d{4}-W\d{2}$/, ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const MAX_MEMBERS = 50, MAX_GROUPS = 5, FEED = 60, KINDS = ["epic", "legendary", "cashout", "boss", "duel", "night", "joined", "takeover"], REACTS = ["fire", "gavel", "lol"];
+  const MAX_MEMBERS = 50, MAX_GROUPS = 5, FEED = 60, KINDS = ["epic", "legendary", "cashout", "boss", "duel", "night", "joined", "takeover", "arena"], REACTS = ["fire", "gavel", "lol"];
   const read = f => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
   const gFile = c => path.join(DATA, "groups", c + ".json"), mFile = id => path.join(DATA, "members", id + ".json");
   const dFile = id => path.join(DATA, "duels", id + ".json"), nFile = w => path.join(DATA, "nights", w + ".json");
@@ -17,8 +17,10 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   const num = (v, lo, hi) => { v = Number(v); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : 0; };
   const ipOf = req => (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   const weekStart = () => { const d = new Date(); const day = (d.getUTCDay() + 6) % 7; d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - day); return d.toISOString(); };
-  async function body(req, res, max = 8192) {
-    if (limited(ipOf(req))) { send(req, res, 429, "application/json", '{"error":"slow down"}'); return null; }
+  const arHits = new Map(); // arena polls run at 1-2 a second per player, so they get their own, looser, per-IP limit
+  const arLimited = ip => { const now = Date.now(), h = arHits.get(ip) || [0, now]; if (now - h[1] > 60000) { h[0] = 0; h[1] = now; } h[0]++; arHits.set(ip, h); if (arHits.size > 5000) arHits.clear(); return h[0] > 900; };
+  async function body(req, res, max = 8192, fast) {
+    if (fast ? arLimited(ipOf(req)) : limited(ipOf(req))) { send(req, res, 429, "application/json", '{"error":"slow down"}'); return null; }
     try { const b = JSON.parse(await readBody(req, max)); if (!b || !ID.test(String(b.installId))) throw 0; return b; } catch { send(req, res, 400, "application/json", '{"error":"bad request"}'); return null; }
   }
   const ok = (req, res, o) => send(req, res, 200, "application/json", JSON.stringify(o || { ok: true }), { "cache-control": "no-store" });
@@ -46,6 +48,30 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
     if (g.feed.length > FEED) g.feed = g.feed.slice(-FEED);
   }
 
+  // ---------- arena state (in memory; the last results are kept in DATA/arena.json) ----------
+  const ARENA_EVERY = 4 * 60e3, AR_LOBBY = 40e3, AR_LIVE = 45e3, AR_NAMES = ["Harbour Capital", "Doug from Dural", "Wren Family Trust", "Kestrel Holdings", "The Nguyens", "Pemberton & Co", "Marchetti Family Office", "Aurelian Sovereign Fund"];
+  const arena = { online: {}, hist: read(path.join(DATA, "arena.json")) || [], nextAt: Date.now() + 25e3 };
+  let AR = null;
+  const onlineNow = () => Object.entries(arena.online).filter(([, o]) => Date.now() - o.at < 150e3);
+  function arenaRivals() { const v = AR.lot.value, n = 3 + (Math.random() < 0.5 ? 1 : 0), names = AR_NAMES.slice().sort(() => Math.random() - 0.5).slice(0, n);
+    AR.rivals = names.map((name, i) => ({ name, max: Math.round(v * (i === 0 ? 1.04 + Math.random() * 0.11 : 0.9 + Math.random() * 0.14)), nextAt: Date.now() + 1500 + Math.random() * 3000, bids: 0 })); }
+  function arenaTick() { const now = Date.now();
+    for (const [id, o] of Object.entries(arena.online)) if (now - o.at > 10 * 60e3) delete arena.online[id];
+    if (!AR && now >= arena.nextAt) { const on = onlineNow(); if (!on.length) { arena.nextAt = now + 30e3; return; } const tiers = on.map(([, o]) => o.tier).sort((a, b) => a - b), med = tiers[Math.floor(tiers.length / 2)] || 0, tier = Math.max(1, Math.min(4, med));
+      AR = { id: crypto.randomBytes(5).toString("hex"), phase: "lobby", tier, seed: crypto.randomInt(1, 2 ** 31 - 1), lobbyAt: now, startAt: now + AR_LOBBY, endAt: now + AR_LOBBY + AR_LIVE, lot: null, price: 0, leader: null, bids: [], bidders: {}, rivals: [], winner: null }; }
+    if (!AR) return;
+    if (AR.phase === "lobby" && now >= AR.startAt) { if (!AR.lot) { AR = null; arena.nextAt = now + 60e3; return; } AR.phase = "live"; AR.endAt = now + AR_LIVE; for (const r of AR.rivals) r.nextAt = now + 1000 + Math.random() * 2500; }
+    if (AR.phase === "live") { const min = AR.leader ? AR.price + AR.lot.inc : AR.lot.open;
+      for (const r of AR.rivals) { if (now < r.nextAt) continue; r.nextAt = now + 1200 + Math.random() * 3000; if (AR.leader && AR.leader.ai && AR.leader.nick === r.name) continue; if (min > r.max) continue; if (AR.leader && !AR.leader.ai && Math.random() < 0.25) continue;
+        AR.price = min; AR.leader = { id: null, nick: r.name, ai: true }; r.bids++; AR.bids.push({ nick: r.name, amt: min, at: now, ai: true }); if (AR.bids.length > 40) AR.bids = AR.bids.slice(-40); if (AR.endAt - now < 6000 && AR.endAt - AR.startAt < 110e3) AR.endAt = now + 6000; break; }
+      if (now >= AR.endAt) { AR.phase = "done"; AR.doneAt = now; AR.winner = AR.leader; const w = AR.leader, n = Object.keys(AR.bidders).length + AR.rivals.filter(r => r.bids).length;
+        arena.hist.unshift({ id: AR.id, at: new Date().toISOString(), addr: AR.lot.addr, sub: AR.lot.sub, price: AR.price, winner: w ? w.nick : null, ai: w ? w.ai : null, bidders: n, players: Object.keys(AR.bidders).length }); arena.hist = arena.hist.slice(0, 12); writeJSON(path.join(DATA, "arena.json"), arena.hist);
+        if (w && !w.ai) for (const code of myGroups(w.id)) { const g = read(gFile(code)); if (!g) continue; post(g, w.id, "arena", `won the live auction for ${AR.lot.addr}, ${AR.lot.sub} at $${(AR.price / 1e6).toFixed(2)}M against ${n - 1} bidders`); writeJSON(gFile(code), g); }
+        arena.nextAt = now + ARENA_EVERY - AR_LOBBY; } }
+    if (AR.phase === "done" && now - AR.doneAt > 45e3) AR = null; }
+  function arenaView(me) { const on = onlineNow().length, next = AR ? null : Math.max(0, arena.nextAt - Date.now()); if (!AR) return { phase: "none", nextIn: next, online: on, last: arena.hist[0] || null };
+    return { id: AR.id, phase: AR.phase, tier: AR.tier, seed: AR.seed, lot: AR.lot, price: AR.price, leader: AR.leader ? { nick: AR.leader.nick, ai: AR.leader.ai, me: AR.leader.id === me } : null, bids: AR.bids.slice(-6).map(b => ({ nick: b.nick, amt: b.amt, ai: !!b.ai, me: b.me === me })), startsIn: Math.max(0, AR.startAt - Date.now()), endsIn: Math.max(0, AR.endAt - Date.now()), online: on, players: Object.keys(AR.bidders).length, rivals: AR.rivals.map(r => r.name), winner: AR.winner ? { nick: AR.winner.nick, ai: AR.winner.ai, me: AR.winner.id === me } : null, bid: AR.bidders[me] ? true : false, last: arena.hist[0] || null }; }
+  setInterval(arenaTick, 400);
   const routes = {
     async "POST /api/group/create"(req, res) { const b = await body(req, res); if (!b) return;
       const nick = clean(b.nick), name = clean(b.name).slice(0, 24) || "My crew"; if (!NICK.test(nick)) return bad(req, res, "Pick a name of 3 to 16 letters or numbers.");
@@ -119,6 +145,15 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       let all = Object.entries(read(nFile(w)) || {}).map(([id, e]) => ({ id, ...e })); if (code) { const g = read(gFile(code)); if (g) all = all.filter(e => g.members[e.id]); }
       all.sort((a, b) => b.score - a.score || a.at.localeCompare(b.at)); const rank = all.findIndex(e => e.id === me) + 1;
       ok(req, res, { week: w, count: all.length, rank: rank || null, top: all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, wins: e.wins, stars: e.stars, me: e.id === me })) }); },
+    // ---------- live arena (v41): one shared lot for everyone online, every few minutes, AI rivals plus every player who taps Bid ----------
+    async "POST /api/arena"(req, res) { const b = await body(req, res, 4096, true); if (!b) return; const nick = clean(b.nick).slice(0, 16) || "Bidder"; arena.online[b.installId] = { nick, at: Date.now(), tier: Math.round(num(b.tier, 0, 4)) }; arenaTick();
+      if (b.lot && AR && AR.phase === "lobby" && !AR.lot) { const L = b.lot, v = num(L.value, 1e5, 1e12); if (v > 0 && Math.round(num(L.ti, 0, 4)) === AR.tier) { AR.lot = { addr: clean(L.addr).slice(0, 40), sub: clean(L.sub).slice(0, 30), st: clean(L.st).slice(0, 6), value: Math.round(v), guide: Math.round(num(L.guide, 1e4, 1e12)), open: Math.round(num(L.open, 1e4, 1e12)), inc: Math.round(num(L.inc, 1e3, 1e9)), style: clean(L.style).slice(0, 12), beds: Math.round(num(L.beds, 1, 12)), land: Math.round(num(L.land, 0, 1e6)), seed: Math.round(num(L.seed, 0, 2 ** 31)), rare: true, ti: AR.tier, feats: Array.isArray(L.feats) ? L.feats.slice(0, 4).map(x => clean(x).slice(0, 30)) : [] }; AR.price = AR.lot.open; arenaRivals(); } }
+      ok(req, res, arenaView(b.installId)); },
+    async "POST /api/arena/bid"(req, res) { const b = await body(req, res, 8192, true); if (!b) return; arenaTick(); if (!AR || AR.phase !== "live" || !AR.lot) return bad(req, res, "Not live", 409);
+      const nick = clean(b.nick).slice(0, 16) || "Bidder", min = AR.leader ? AR.price + AR.lot.inc : AR.lot.open, amt = Math.round(num(b.amt, 0, 1e13)); if (amt < min) return ok(req, res, Object.assign({ late: true }, arenaView(b.installId))); if (amt > Math.max(min * 1.5, AR.price + AR.lot.inc * 12)) return bad(req, res, "Too big a jump", 400);
+      if (AR.leader && AR.leader.id === b.installId) return ok(req, res, arenaView(b.installId));
+      AR.price = amt; AR.leader = { id: b.installId, nick, ai: false }; AR.bids.push({ nick, amt, at: Date.now(), me: b.installId }); if (AR.bids.length > 40) AR.bids = AR.bids.slice(-40); AR.bidders[b.installId] = nick; for (const r of AR.rivals) r.nextAt = Date.now() + 900 + Math.random() * 2200; if (AR.endAt - Date.now() < 8000 && AR.endAt - AR.startAt < 110e3) AR.endAt = Date.now() + 8000;
+      ok(req, res, arenaView(b.installId)); },
     // ---------- push tokens (sending needs APNs/FCM credentials) ----------
     async "POST /api/push"(req, res) { const b = await body(req, res, 2048); if (!b) return; const t = String(b.token || "").slice(0, 300); if (!t) return bad(req, res, "no token");
       writeJSON(path.join(DATA, "push", b.installId + ".json"), { token: t, platform: b.platform === "ios" ? "ios" : "android", at: new Date().toISOString() }); ok(req, res); }
@@ -127,6 +162,6 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
     async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; await r(req, res, url); return true; },
     stats() { const count = d => { try { return fs.readdirSync(path.join(DATA, d)).filter(f => f.endsWith(".json")).length; } catch { return 0; } };
       let members = 0, feed = 0; for (const f of fs.readdirSync(path.join(DATA, "groups"))) { const g = read(path.join(DATA, "groups", f)); if (g) { members += Object.keys(g.members).length; feed += g.feed.length; } }
-      return { groups: count("groups"), groupMembers: members, feedPosts: feed, duels: count("duels"), pushTokens: count("push") }; }
+      return { groups: count("groups"), groupMembers: members, feedPosts: feed, duels: count("duels"), pushTokens: count("push"), arenaOnline: onlineNow().length, arenaRuns: arena.hist.length, arenaLast: arena.hist[0] || null }; }
   };
 };
