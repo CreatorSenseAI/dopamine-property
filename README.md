@@ -74,6 +74,8 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | --- | --- | --- |
 | `remove_ads` | non-consumable | no ads |
 | `regos_10` | consumable | 10 bidder registrations |
+| `slots_5` | consumable | Property manager: +5 portfolio slots, permanent, stacks |
+| `market_5` | consumable | Buyer's agent: +5 Market buys, stacks |
 | `cash_small` | consumable | game cash sized to your markets ($250K at Starter up to $200M at Icon) |
 | `cash_large` | consumable | 8× the small pack (Family and up) |
 | `season_pass` | consumable | this season's premium reward column (cosmetics + registrations) |

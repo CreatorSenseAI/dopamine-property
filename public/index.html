@@ -1327,6 +1327,13 @@ body::before{content:"";position:fixed;inset:0;background:var(--noise);opacity:.
 .om{background:var(--panel);box-shadow:inset 0 1px 0 var(--hi),0 0 0 2px var(--green),0 12px 30px rgba(0,0,0,.4)}
 .msearch input{background:var(--panel);box-shadow:inset 0 2px 4px rgba(0,0,0,.18)}
 .gzoom button{box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo)}
+/* feedback form */
+.fbstars{display:flex;justify-content:center;gap:6px;margin:4px 0 12px}
+.sheet .fbstars .fbs{width:46px;height:46px;padding:0;border-radius:50%;font-size:28px;line-height:1;background:var(--sunk);color:var(--line);box-shadow:inset 0 1px 0 var(--hi),0 2px 0 var(--lo);--bc:var(--sunk);text-shadow:none;transition:transform .1s,color .1s}
+.sheet .fbstars .fbs.on{color:#1a1200;background:linear-gradient(180deg,#ffe9a3,#f2c14e 55%,#d9a52e);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 0 #a8780f,0 0 12px var(--glow);transform:scale(1.08)}
+.fbk textarea,.fbk input{display:block;width:100%;font:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);margin-bottom:8px;resize:vertical}
+.fbk textarea:focus-visible,.fbk input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.fbk .hint{margin:0 0 8px;min-height:1.3em}
 /* flat fallbacks for browsers without color-mix */
 @supports not (color:color-mix(in srgb,#000,#fff)){
   .gb,.bid,.bigbid,.buy,.sheet button,.dock .dock4>button{background:var(--bc);box-shadow:0 3px 0 rgba(0,0,0,.35)!important}
@@ -1539,7 +1546,19 @@ function sets(){let n=S.props.length,h=0;for(const p of S.props)h=(h*31+p.id)|0;
  const sub={},street={};for(const p of S.props){sub[p.sub]=(sub[p.sub]||0)+1;const k=p.sub+'|'+streetOf(p);street[k]=(street[k]||0)+1;}setC={sig,sub,street};return setC;}
 const setMult=p=>{const c=sets();return 1+(c.sub[p.sub]>=SET_N?0.1:0)+(c.street[p.sub+'|'+streetOf(p)]>=2?0.05:0)+(natOn(WM_OF(p).k)?0.05:0)+((S.turf||{})[p.sub]?0.05:0);};
 const baseTi=p=>p.ti0!=null?p.ti0:p.ti;/* a house keeps its original rent yield after an upgrade moves it up a category */
-const rentOf=p=>p.value*RENT[baseTi(p)]*(1+0.1*(S.legacy||0)+0.25*(S.dyRank||0))*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1);
+/* v34 friction: stars pay less the more you have (10% each to 10, 4% to 30, 1% after), starting cash tops out, dynasty marks are the late-game ladder */
+const starBonus=n=>{n=n||0;return Math.min(n,10)*0.10+Math.min(Math.max(n-10,0),20)*0.04+Math.max(n-30,0)*0.01;};
+const startCash=n=>{n=n||0;return 450000+100000*Math.min(n,20)+25000*Math.max(n-20,0);};
+/* portfolio slots: 8 to start, +1 per 5 levels, +3 per dynasty mark, +5 per Property manager (app). Market buys: 3 a day, +1 per 10 levels, +5 per Buyer's agent (app). */
+const SLOT_BASE=8,MKT_DAILY=3;
+const slotsOf=()=>SLOT_BASE+Math.floor(plvState().lv/5)+3*(S.dyRank||0)+5*(S.slotsBought||0);
+const pfFull=()=>S.props.length>=slotsOf();
+const mktCap=()=>MKT_DAILY+Math.floor(plvState().lv/10)+(S.mktExtra||0);
+function mktDay(){const d=new Date().toDateString();if(!S.mkt||S.mkt.d!==d)S.mkt={d,n:0};return S.mkt;}
+const mktLeft=()=>Math.max(0,mktCap()-mktDay().n);
+const DYT=[[50,'Gold'],[100,'Diamond'],[200,'Adamantium'],[400,'Mythril'],[800,'Eternal'],[1600,'Infinite']];
+const dyTier=r=>DYT[Math.min(r,DYT.length-1)];
+const rentOf=p=>p.value*RENT[baseTi(p)]*(1+starBonus(S.legacy)+0.25*(S.dyRank||0))*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
 const LOCK_RATE=0.00375;/* bank rate lock: 4.5% a year */
@@ -1556,9 +1575,11 @@ const growPct=h=>((BASEG+(h||0))*1200).toFixed(1);
 const ZONES={steal:'Steal',good:'Good buy',fair:'Fair price',over:'Overpaying'};
 const waOf=e=>e.wa||e.hi,zoneOf=(q,L,e)=>q<Math.min(L.guide,e.lo)?'steal':q<waOf(e)*0.97?'good':q<=waOf(e)?'fair':'over';
 const sg=n=>(n>=0?'+':'')+money(n);
-const landTax=h=>0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8);
+/* v34: land tax keeps climbing past $1B and $10B of holdings (0.23%/month at the top, more than Icon rent yields), so a $60B empire bleeds instead of compounding */
+const landTax=h=>0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8)+0.0005*Math.max(0,h-1e9)+0.0008*Math.max(0,h-1e10);
+const LT_BR=[2e6,25e6,1e8,1e9,1e10];const ltBracket=h=>LT_BR.filter(b=>h>b).length;
 function project(price,ti,val,style){const pay=payFor(price,ti),h=holdings(),strata=style==='unit'||style==='tower';
- const rent=val*RENT[ti]*(1+0.1*(S.legacy||0)),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*rate();
+ const rent=val*RENT[ti]*(1+starBonus(S.legacy)+0.25*(S.dyRank||0)),own=val*(COUNCIL+UPKEEP+(strata?STRATA:0)),lt=landTax(h+val)-landTax(h),int=pay.loan*rate();
  return{out:pay.out,loan:pay.loan,duty:pay.duty,rent,costs:own+lt+int,net:rent-own-lt-int,day1:val-price-pay.duty};}
 const incomeNow=()=>S.props.reduce((a,p)=>a+(p.vacant>0?0:rentOf(p)),0)-bills().total;
 const RIVALS=[
@@ -1576,7 +1597,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['plv','dyRank','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['plv','dyRank','slotsBought','mktExtra','mkt','fbDone','fbAsked','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1609,7 +1630,7 @@ function regJoin(X){if(!X.joined)pxp(5,'join');if(X.joined)return true;
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v33-web';
+const VERSION='v34-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1667,7 +1688,7 @@ const canPay=(n,ti)=>S.cash>=n*(1+DUTY[ti])||(S.cash>=depositFor(n,ti)&&debt()+n
 const loanFor=(n,ti)=>{const full=n*(1+DUTY[ti]);return S.cash>=full?0:Math.min(n*LVR,full-Math.max(0,S.cash));};
 function payFor(n,ti){const duty=(S.dutyFree||0)>0?0:n*DUTY[ti],loan=loanFor(n,ti);return{out:n+duty-loan,loan,duty};}
 function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=p.value;council+=p.value*COUNCIL;upkeep+=p.value*UPKEEP;if(isStrata(p))strata+=p.value*STRATA;}
- const land=0.0003*Math.max(0,h-2e6)+0.0003*Math.max(0,h-25e6)+0.0004*Math.max(0,h-1e8),interest=debt()*rate(),od=S.cash<0?-S.cash*0.005:0,ins=S.ins?h*INS_RATE:0;return{council,strata,upkeep,land,interest,od,ins,total:council+strata+upkeep+land+interest+od+ins,landRate:h?land/h:0};}
+  const land=landTax(h),interest=debt()*rate(),od=S.cash<0?-S.cash*0.005:0,ins=S.ins?h*INS_RATE:0;return{council,strata,upkeep,land,interest,od,ins,total:council+strata+upkeep+land+interest+od+ins,landRate:h?land/h:0};}
 const propCost=(p,lr)=>p.value*(COUNCIL+UPKEEP+(isStrata(p)?STRATA:0)+lr);
 const basis=p=>p.paid+(p.duty||0)+(p.capex||0);
 const held=p=>p.age==null||p.age>=12;
@@ -1924,10 +1945,10 @@ function startAuction(){
  if(daily){S.dailyDay=today();T.c.dailyLots++;tlog('daily_lot',{tier:A.lot.ti});const d7=(S.streak||0)>0&&S.streak%7===0;if(d7)A.prime=true;setTimeout(()=>toast(d7?`Day ${S.streak} of your streak: win today's lot and it's guaranteed Prime or better.`:'Today’s lot: a rare home with softer rivals. Free to enter, one a day.','up'),1200);}if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
 function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
- const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)}));
+ const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)*rivalScale()}));
  /* v30c quiet rooms (iOS tester, 19 Oct: "just wanted more deals", kept stopping at the guide): 40% of Starter and 20% of Family lots have rivals who all quit at or under the price guide */
  const quietP=SD_BUILD||feat||daily||first||bg?0:L.ti===0?0.4:L.ti===1?0.2:0;if(Math.random()<quietP){for(const r of rivals)r.max=Math.min(r.max,L.guide*rnd(0.86,1.0));L.quiet=true;}
- if(!first&&!daily&&!L.quiet&&rivals.length>1&&Math.random()<0.2){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
+ if(!first&&!daily&&!L.quiet&&rivals.length>1&&Math.random()<(holdings()>1e9?0.4:0.2)){const r=pick(rivals);r.max*=rnd(1.05,1.12);r.stub=true;}
  if(!SD_BUILD){for(const r of rivals){const h=(S.h2h||{})[r.name];if(h&&h.w-h.l>=3&&S.props.some(q=>q.sub===L.sub)){r.max*=1.06;r.grudge=true;}}
   if(!first&&!daily&&FRIENDS.length&&rivals.length>1&&Math.random()<0.2){const fr=pick(FRIENDS),st=fr.style||'sniper';if(!rivals.some(r=>r.name===fr.nick))rivals[rivals.length-1]={name:fr.nick,style:st,friend:true,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:L.value*(st==='aggro'?rnd(0.92,1.12):st==='cautious'?rnd(0.8,1.0):rnd(0.88,1.06))};}}
  {const w=WM_OF(L);L.fmt=w.fmt;if(w.rivals&&!SD_BUILD&&rivals.length>1&&Math.random()<0.6){const r=rivals[rivals.length-1];if(!r.boss&&!r.friend&&r.name!==S.nemesis){r.name=pick(w.rivals);r.local=true;}}}
@@ -1971,10 +1992,10 @@ function auctionTick(dt){if(!A||document.hidden||(!$('#modal').hidden&&!TOURING)
    placeBid(r,nb);r.cool=inWar?rnd(0.2,0.45):rnd(0.4,1.3);if(inWar&&A.war&&--A.war.n<=0)A.war=null;break;}}
  if(A.clock<=4&&!A.fin&&!A.bg&&!A.sealed&&!A.run&&A.lot.fmt==='sealed'&&A.st.hand+A.st.auto+A.st.big>0){A.fin=true;A.sealed=true;sealedSheet();return;}
  if(A.clock<=4)A.fin=true;/* once the final call starts, auto-bid hands the paddle back for the rest of this lot */
- if(A.auto&&A.leader!=='you'&&(A.bg||!A.fin)){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){if(Math.random()<3*dt&&regJoin(A))placeBid('you',nb,false,'auto');}else if(!A.autoWarned&&A.leader){A.autoWarned=true;T.c.autoLimitHits++;if(!A.bg)toast('Auto-bid hit your limit. Bid by hand to stay in.','down');}}
+ if(A.auto&&A.leader!=='you'&&(A.bg||!A.fin)&&!pfFull()){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){if(Math.random()<3*dt&&regJoin(A))placeBid('you',nb,false,'auto');}else if(!A.autoWarned&&A.leader){A.autoWarned=true;T.c.autoLimitHits++;if(!A.bg)toast('Auto-bid hit your limit. Bid by hand to stay in.','down');}}
  const st=A.clock<=1?3:A.clock<=2?2:A.clock<=4?1:0;if(st>A.stage){A.stage=st;sfx('call');showCall(st);if(!A.bg){$('#lotCard').dataset.fin=String(st);buzz(st===3?[30,80,30,80,30]:[25,90,25]);}}
  const sec=Math.ceil(A.clock);if(A.clock<=3&&sec!==A.lastSec){A.lastSec=sec;sfx('tick');}
- if(!A.bg&&A.auto&&!A.sell&&!A.cue&&A.leader&&A.leader!=='you'&&A.fin&&A.clock>0.3){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){A.cue=true;setTimeout(yourCall,300);}}
+ if(!A.bg&&A.auto&&!A.sell&&!A.cue&&A.leader&&A.leader!=='you'&&A.fin&&A.clock>0.3&&!pfFull()){const nb=nextBid();if(nb<=A.autoMax&&canPay(nb,A.lot.ti)){A.cue=true;setTimeout(yourCall,300);}}
  if(A.clock<=0)endAuction();
  updAuction();}
 /* ---------- inspection after the hammer: most homes are as described, some hide a find, a few a jackpot. Earned by winning, never bought ---------- */
@@ -2222,6 +2243,21 @@ function updDeal(){const L=A.lot,e=A.est,mine=A.leader==='you',q=A.ended?(A.bid|
  $('#iwSum').textContent=sg(pr.net)+'/mo';$('#iwSum').className='iwsum '+(pr.net>=0?'pos':'neg');const f=$('#iwFlow');f.textContent=sg(pr.net)+'/mo';f.className=pr.net>=0?'pos':'neg';$('#iwFlowN').textContent='Rent '+money(pr.rent)+', costs '+money(pr.costs);
  const w=$('#iwWorth');w.textContent=sg(pr.day1);w.className=pr.day1>=0?'pos':'neg';$('#iwWorthN').textContent='Grows '+growPct(heatOf(q,L.guide))+'%/yr';
  $('#iwInc').innerHTML=A.ended?'':`Your income <b class="${now>=0?'pos':'neg'}">${sg(now)}/mo</b> → <b class="${now+pr.net>=0?'pos':'neg'}">${sg(now+pr.net)}/mo</b>`+(now+pr.net<0?'. Negative income drains your cash.':'');}
+/* v34: the two walls. Portfolio full: sell a home (or a Property manager in the app). Market cap: wait for tomorrow (or a Buyer's agent in the app). Auctions, offers and sales never pay for a win. */
+function slotsSheet(){T.c.slotSheets=(T.c.slotSheets||0)+1;tlog('slots_sheet',{homes:S.props.length,slots:slotsOf()});const items=inApp()?IAP.filter(x=>x.id==='slots_5'&&PRICES[x.id]):[],p=plvState();
+ $('#sheet').innerHTML=`<div class="upg"><h3>Portfolio full</h3><p>You hold <b>${S.props.length} of ${slotsOf()}</b> homes. Sell one to buy another, or grow the portfolio: <b>+1 slot every 5 levels</b> (next at level ${Math.ceil((p.lv+1)/5)*5}) and <b>+3 per dynasty mark</b>.</p>
+ ${items.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ <button class="sec" id="csSell">Sell a home</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
+ $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
+ $('#csSell').onclick=()=>{$('#modal').hidden=true;show('e');eGo('pf');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
+function mktSheet(){T.c.mktCapSheets=(T.c.mktCapSheets||0)+1;tlog('mkt_cap',{cap:mktCap(),level:plvState().lv});const items=inApp()?IAP.filter(x=>x.id==='market_5'&&PRICES[x.id]):[],p=plvState();
+ $('#sheet').innerHTML=`<div class="upg"><h3>No buys left today</h3><p>The Market sells <b>${mktCap()} homes a day</b> to you (3, plus one for every 10 levels; next at level ${Math.ceil((p.lv+1)/10)*10}). Auctions never run out: win there instead, and the count resets at midnight.</p>
+ ${items.map(x=>`<div class="uprow"><div class="uptxt"><b>${esc(x.name)}</b><small>${esc(x.desc)}</small></div><button data-buy="${x.id}">${esc(PRICES[x.id])}</button></div>`).join('')}
+ <button class="sec" id="csGo">Go to the auctions</button><button class="sec" id="csX">Close</button></div>`;$('#modal').hidden=false;
+ $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
+ $('#csGo').onclick=()=>{$('#modal').hidden=true;show('a');};$('#csX').onclick=()=>{$('#modal').hidden=true;};}
+/* rivals get richer as you do: +2% on their ceilings per dynasty mark, +0.1% per level, capped at +15%; stubborn rivals twice as common past $1B of holdings */
+const rivalScale=()=>1+Math.min(0.15,0.02*(S.dyRank||0)+0.001*(plvState().lv-1)+(holdings()>1e9?0.03:0));
 function cashSheet(q,ti){T.c.cashSheets=(T.c.cashSheets||0)+1;tlog('cash_sheet',{tier:ti,need:Math.round(depositFor(q,ti)),cash:Math.round(S.cash),borrowable:Math.round(borrowable())});
  const need=depositFor(q,ti),wa=A&&A.est?Math.max(q,waOf(A.est)):q,av=borrowable(),amt=Math.min(av,Math.max(1e4,Math.ceil((depositFor(wa,ti)*1.25-S.cash)/1e4)*1e4)),packs=inApp()?IAP.filter(x=>/^cash_/.test(x.id)&&x.show()&&PRICES[x.id]):[];
  $('#sheet').innerHTML=`<div class="upg"><h3>Get back in</h3><p>This lot needs about <b>${money(need)}</b> for the deposit and stamp duty. You have <b>${money(S.cash)}</b>.</p>
@@ -2249,17 +2285,18 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  else if(A.ended){bb.disabled=true;bb.innerHTML=A.leader==='you'?'Yours':'Sold';}
  else if(A.leader==='you'){bb.disabled=true;bb.innerHTML='You lead';}
  else if(regOut(A)){bb.disabled=true;bb.innerHTML='No regos';}
+ else if(pfFull()){bb.disabled=false;bb.classList.add('need');bb.innerHTML='Full<small>'+S.props.length+' of '+slotsOf()+' homes</small>';}
  else if(!canPay(nb,L.ti)){bb.disabled=false;bb.classList.add('need');bb.innerHTML='Need<small>'+money(depositFor(nb,L.ti))+'</small>';}
  else{bb.disabled=false;bb.innerHTML='Bid<small>'+money(nb)+'</small>';bb.setAttribute('aria-label','Bid '+full(nb)+(needsLoan(nb,L.ti)?' with a loan':''));}
- const ga=nb+L.inc*4;$('#bigBtn').disabled=!!A.sell||A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A);$('.auto').hidden=!!A.sell;$('#bigBtn').hidden=!!A.sell;
+ const ga=nb+L.inc*4;$('#bigBtn').disabled=!!A.sell||A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A)||pfFull();$('.auto').hidden=!!A.sell;$('#bigBtn').hidden=!!A.sell;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell&&(S.reg.n<=2||A.joined&&S.reg.n<=1);ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
  updDeal();
  $('#autoBtn').setAttribute('aria-pressed',!!A.auto);$('.auto').classList.toggle('on',!!A.auto);$('#autoBtn').innerHTML=A.auto?'Auto-bid<small>on</small>':'Auto-bid';$('#autoBtn').disabled=!!A.sell;
  $('#autoLim').textContent=money(A.autoMax);{const ft=$('#featTag');if(ft&&A.featured)ft.textContent=(A.showdown?'Showdown · ':'Featured · ')+A.crowd+' watching';const lt=$('#lotTag');if(lt&&!A.featured){const t=`${WM_OF(L).k!=='au'?wtag(L):'Lot '+L.no+' · '+TIERS[L.ti].name} · ${A.lot.ti>=4?A.crowd.toLocaleString('en-AU')+' on the stream':A.crowd+' in the room'}${L.quiet?' · quiet room':''}`;if(lt.textContent!==t)lt.textContent=t;}}$('#autoLim').setAttribute('aria-label','Auto-bid limit '+money(A.autoMax));
  const sl=skipLeft(),sb=$('#skipBtn');sb.disabled=!A.ended&&(A.leader==='you'||sl>0);if(A.sell&&!A.ended){sb.disabled=true;sb.innerHTML='Selling';}else if(!A.ended)sb.innerHTML=sl>0?'Skip<small>'+Math.ceil(sl)+'s</small>':'Next lot';}
-$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(!canPay(nb,A.lot.ti)){cashSheet(nb,A.lot.ti);return;}if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
+$('#bidBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const nb=nextBid();if(pfFull()){slotsSheet();return;}if(!canPay(nb,A.lot.ti)){cashSheet(nb,A.lot.ti);return;}if(!regJoin(A)){updAuction();return;}placeBid('you',nb);};
 /* big bid: jump four extra steps; rivals hesitate and some fold on the spot */
-$('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(!canPay(amt,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}let folded=null;
+$('#bigBtn').onclick=()=>{if(!A||A.ended||A.leader==='you')return;const amt=nextBid()+A.lot.inc*4;if(pfFull()){slotsSheet();return;}if(!canPay(amt,A.lot.ti))return;if(!regJoin(A)){updAuction();return;}let folded=null;
  for(const r of A.rivals){if(r.out)continue;if(r.style==='aggro'&&r.max>=amt+A.lot.inc*3&&Math.random()<0.45){r.counterNext=true;r.think=0;r.cool=rnd(0.6,1.1);continue;}if(r.max>=amt+A.lot.inc&&Math.random()<0.3){r.max=amt;folded=r;}r.cool=Math.max(r.cool,0)+rnd(0.8,1.6);}
  if(folded){A.st.folds++;T.c.bigFolds++;}placeBid('you',amt,true);if(folded)dropOut(folded);};
 $('#autoBtn').onclick=()=>{if(!A)return;A.auto=!A.auto;S.autoOn=A.auto;T.c.autoToggles++;tlog('autopilot',{on:A.auto});if(A.auto)A.autoWarned=false;updAuction();save();};
@@ -2550,12 +2587,12 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  const ap=$('#autoPayBtn');ap.setAttribute('aria-pressed',!!S.autoPay);ap.textContent='Auto-pay: '+(S.autoPay?'on':'off');
  renderBank(dt);
  $('#debtNote').textContent=S.autoPay?'Spare rent goes straight onto your loans every month. Your cash stays put for bidding.':'Turn on auto-pay to put spare rent onto your loans every month.';
- $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>over $2M of property</small>',-B.land],['Mortgage interest <small>'+((S.lock||0)>0?'4.5% a year, locked':'6% a year')+'</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),...(B.ins?[['Disaster cover <small>covers 85% of disaster repairs</small>',-B.ins]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
+ $('#billRows').innerHTML=[['Rent coming in',rentNow,'in'],['Council rates',-B.council],['Strata levies <small>units and towers</small>',-B.strata],['Insurance and upkeep',-B.upkeep],['Land tax <small>'+(B.landRate?(B.landRate*100).toFixed(2)+'% a month, bracket '+ltBracket(holdings())+' of 5':'over $2M of property')+'</small>',-B.land],['Mortgage interest <small>'+((S.lock||0)>0?'4.5% a year, locked':'6% a year')+'</small>',-B.interest],...(B.od?[['Overdraft interest <small>6% a year on negative cash</small>',-B.od]]:[]),...(B.ins?[['Disaster cover <small>covers 85% of disaster repairs</small>',-B.ins]]:[]),['Net each month',rentNow-B.total,'tot']].map(r=>`<div class="brow ${r[2]||''}"><span>${r[0]}</span><span class="num">${r[2]&&r[1]>0?'+':''}${money(r[1])}</span></div>`).join('');
  $('#billNote').textContent=`Also: stamp duty of 3 to 7% on every purchase, and capital gains tax on every profitable sale (30%, or 15% once you have held for 12 months), and mansion tax on any sale over $5M (4%, or 5.5% over $10M). Tax and bills paid so far: ${money(S.paidOut)}.`;
  {const led=$('#ledSum');if(led){const n=rentNow-B.total;led.textContent=sg(n)+'/mo';led.className='fsum '+(n>=0?'pos':'neg');}}drawStars();
  {const g=goalInfo();$('#unlockTxt').textContent=g.long;$('#unlockBar').style.width=g.p+'%';$('#unlock').classList.toggle('dyn',g.dyn);}
  $('#moTop').innerHTML=`<div><small>Cash</small><strong>${money(S.cash)}</strong></div><div><small>Debt</small><strong>${money(dt)}</strong></div><div><small>Net a month</small><strong class="${rentNow-B.total>=0?'pos':'neg'}">${sg(rentNow-B.total)}</strong></div>`;
- {const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const top=[4,3,2].find(i=>n[i]);$('#oHomes').textContent=S.props.length;const of=$('#oFinds');of.textContent=top!=null?n[top]+' '+RAR[top][0]:'-';of.className=top!=null?'rt r'+top:'';
+ {const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const top=[4,3,2].find(i=>n[i]);$('#oHomes').textContent=S.props.length+' / '+slotsOf();const of=$('#oFinds');of.textContent=top!=null?n[top]+' '+RAR[top][0]:'-';of.className=top!=null?'rt r'+top:'';
   const c=sets();$('#oSets').textContent=Object.values(c.sub).filter(v=>v>=SET_N).length+' done';$('#oRank').textContent='#'+richRank();$('#oStars').textContent='★'+(S.legacy||0)+' '+rankOf(S.legacy||0).t;
   $('#oBadges').textContent=Object.keys(S.badges||{}).length+'/'+BADGES.length;$('#oStreak').textContent=(S.streak||0)+' day'+((S.streak||0)===1?'':'s');}
  eSel();drawDynCard();drawSkyline();
@@ -2777,7 +2814,7 @@ $('#plist').onclick=e=>{if(!e.target.closest('button')){const pe=e.target.closes
  const p=S.props.find(q=>q.id===id);if(p)sellSheet(p);};
 function bankrupt(){const owed=-S.cash;T.c.bankruptcies++;tlog('bankrupt',{owed:Math.round(owed),sessionPlaySec:T.playSec,legacy:S.legacy||0});
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,rules:4,legacy:S.legacy||0,dynasties:S.dynasties||0,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
- S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+(S.legacy||0)*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');save();sfx('lose');
+ S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=startCash(S.legacy);clearMarket();buildChips();buildEmpire();startAuction();show('a');save();sfx('lose');
  modal(`<h3>Bankrupt</h3><p>The bank sold every house and you still owed ${money(owed)}. The debt is written off and you start again.</p><span class="big">${money(S.cash)}</span><p>Your legacy stars are safe. Borrowing makes the wins bigger and the falls harder.</p>`,'Start again');}
 function applyRepay(amt){amt=Math.min(amt,debt(),Math.max(0,S.cash));if(amt<=0)return 0;const paid=amt;S.cash-=amt;
  for(const p of S.props.slice().sort((a,b)=>(b.loan||0)-(a.loan||0))){if(amt<=0)break;const x=Math.min(p.loan||0,amt);p.loan=(p.loan||0)-x;amt-=x;}return paid;}
@@ -2791,12 +2828,12 @@ $('#repayBtn').onclick=e=>{const b=e.currentTarget,amt=Math.min(debt(),Math.max(
 $('#autoPayBtn').onclick=()=>{S.autoPay=!S.autoPay;T.c.autoPayToggles++;tlog('autopay',{on:S.autoPay,debt:Math.round(debt())});updEmpire();save();};
 /* ---------- Dynasty: stars, prestige titles, cash-out (header star opens it) ---------- */
 const RANKS=[[0,'Newcomer'],[1,'Investor'],[3,'Baron'],[6,'Mogul'],[10,'Tycoon'],[15,'Titan'],[25,'Dynasty'],[50,'Legend'],[100,'Immortal']];
-const dyNeed=()=>50*((S.dyRank||0)+1);
-function dyPrestige(){if((S.legacy||0)<dyNeed())return;S.dyRank=(S.dyRank||0)+1;S.frames=(S.frames||[]).concat(S.frames&&S.frames.includes('dynasty')?[]:['dynasty']);T.c.dyPrestige=(T.c.dyPrestige||0)+1;tlog('dynasty_prestige',{rank:S.dyRank,stars:S.legacy});award('dynasty');$('#modal').hidden=true;setTimeout(()=>modal(`<h3>Dynasty ${roman(S.dyRank+1)}</h3><p>Your name carries a dynasty mark now.</p><span class="big">+25% rent</span><p>Permanent, on every home, on top of your stars. The next mark needs ${dyNeed()} stars.</p>`,'Carry on',()=>{sfx('rare');confetti(true,2);}),200);drawStars();save();}
+const dyNeed=()=>dyTier(S.dyRank||0)[0]*(S.dyRank>=DYT.length-1?Math.pow(2,S.dyRank-DYT.length+2):1);
+function dyPrestige(){if((S.legacy||0)<dyNeed())return;S.dyRank=(S.dyRank||0)+1;S.frames=(S.frames||[]).concat(S.frames&&S.frames.includes('dynasty')?[]:['dynasty']);T.c.dyPrestige=(T.c.dyPrestige||0)+1;tlog('dynasty_prestige',{rank:S.dyRank,stars:S.legacy});award('dynasty');$('#modal').hidden=true;setTimeout(()=>modal(`<h3>${dyTier(S.dyRank-1)[1]} dynasty</h3><p>Your name carries the ${dyTier(S.dyRank-1)[1]} mark now, and your portfolio grows by 3 homes.</p><span class="big">+25% rent</span><p>Permanent, on every home, on top of your stars. The ${dyTier(S.dyRank)[1]} mark needs ${dyNeed()} stars.</p>`,'Carry on',()=>{sfx('rare');confetti(true,2);}),200);drawStars();save();}
 function rankOf(n){let i=0;for(let k=0;k<RANKS.length;k++)if(n>=RANKS[k][0])i=k;return{i,t:RANKS[i][1],next:RANKS[i+1]||null};}
 function rankBadges(){const n=S.legacy||0;for(const [need] of RANKS.slice(1))if(n>=need)award('rank'+need);}
 function lifeWin(p){S.life=S.life||{wins:0,epic:0,legend:0,bestFind:0};S.life.wins++;if(p.rarity>=3)S.life.epic++;if(p.rarity===4)S.life.legend++;const eq=(p.value-p.paid)/p.paid*100;if(eq>(S.life.bestFind||0))S.life.bestFind=Math.round(eq);}
-function drawDynCard(){const c=$('#dynCard');if(!c)return;const n=S.legacy||0,r=rankOf(n);c.innerHTML=`<span class="dstar">★ ${n}</span><span><b>${r.t}</b><small>${n?`+${n*10}% rent · start with ${money(450000+n*100000)}`:'Cash out at '+money(CASH_AT)+' for your first stars'}</small></span><em>Open</em>`;}
+function drawDynCard(){const c=$('#dynCard');if(!c)return;const n=S.legacy||0,r=rankOf(n);c.innerHTML=`<span class="dstar">★ ${n}</span><span><b>${r.t}</b><small>${n?`+${Math.round(starBonus(n)*100)}% rent · start with ${money(startCash(n))}`:'Cash out at '+money(CASH_AT)+' for your first stars'}</small></span><em>Open</em>`;}
 let legArmed2=false,legTimer=null;
 function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open',{from:from||'header',stars:S.legacy||0});const w=worth(),n=S.legacy||0,r=rankOf(n),pts=starsFor(w),can=w>=CASH_AT,L=S.life||{},pm=Math.round(S.playSec/60),joined=S.wins+S.losses;
  const nx=r.next,np=nx?Math.min(100,(n-RANKS[r.i][0])/(nx[0]-RANKS[r.i][0])*100):100;
@@ -2804,10 +2841,10 @@ function dynastySheet(from){T.c.dynOpens=(T.c.dynOpens||0)+1;tlog('dynasty_open'
  $('#sheet').innerHTML=`<div class="dyn"><div class="dhero"><span class="dbig">★ ${n}</span><div><small>Prestige level ${r.i+1} of ${RANKS.length}</small><b>${r.t}</b><em>${nx?`${nx[1]} at ${nx[0]}★`:'Top of the ladder'}</em></div></div>
  <div class="bar"><i style="width:${np}%"></i></div>
  ${(()=>{const p=plvState(),pc=p.lv>=PLV_MAX?100:p.xp/plvNeed(p.lv)*100;return `<div class="dcash dlv"><b>Level ${p.lv} of ${PLV_MAX}${p.pr?' · Prestige '+roman(p.pr):''}</b><div class="bar"><i style="width:${pc}%"></i></div><p>${p.lv>=PLV_MAX?'Maxed. Prestige from the level-50 prompt.':(plvNeed(p.lv)-p.xp)+' XP to level '+(p.lv+1)+'.'} Level 25 pays <b>1 star</b>, level 50 pays <b>2 stars</b> and a Prestige mark; then the climb starts again. XP comes from wins, joins, tours, duels, good news and rebuilds.</p></div>`;})()}
- <div class="dcash dpr"><b>Dynasty mark${S.dyRank?' '+roman(S.dyRank):''}</b><p>${n>=dyNeed()?`You have ${n} stars. Prestige now for a permanent <b>+25% rent</b> and the Dynasty ${roman((S.dyRank||0)+1)} mark.`:`At <b>${dyNeed()} stars</b> you can prestige the dynasty: +25% rent on every home, forever, and a mark on your name. ${n} of ${dyNeed()} so far.`}</p><button class="legbtn" id="dyPrBtn"${n>=dyNeed()?'':' disabled'}>${n>=dyNeed()?'Prestige the dynasty':dyNeed()-n+' stars to go'}</button></div>
+ <div class="dcash dpr"><b>Dynasty mark${S.dyRank?': '+dyTier(S.dyRank-1)[1]:''}</b><p>${n>=dyNeed()?`You have ${n} stars. Prestige now for a permanent <b>+25% rent</b>, 3 more portfolio slots and the <b>${dyTier(S.dyRank||0)[1]}</b> mark.`:`At <b>${dyNeed()} stars</b> you can prestige the dynasty: +25% rent on every home, forever, 3 more portfolio slots and the ${dyTier(S.dyRank||0)[1]} mark. ${n} of ${dyNeed()} so far.`} Ladder: ${DYT.map(x=>x[1]+' '+x[0]+'★').join(' · ')}.</p><button class="legbtn" id="dyPrBtn"${n>=dyNeed()?'':' disabled'}>${n>=dyNeed()?'Prestige the dynasty':dyNeed()-n+' stars to go'}</button></div>
  <div class="dcash"><b>Cash out</b><p>${can?`Sell everything now for <b>+${pts}★</b>. ${money(starAt(pts+1))} would make it +${pts+1}★ (stars double in price each step).`:`Unlocks at ${money(CASH_AT)} net worth (${Math.floor(w/CASH_AT*100)}% there). It sells every home, banks your stars and starts a new dynasty.`} You keep stars, badges, streak and nemesis.</p>
  <button class="legbtn" id="legacyBtn"${can?'':' disabled'}>${can?'Cash out +'+pts+'★':'Cash out at '+money(CASH_AT)}</button></div>
- <p class="dbon">${n?`Every star: <b>+10% rent</b> on every home and <b>+$100K</b> starting cash. Yours: <b>+${n*10}% rent</b>, start with <b>${money(450000+n*100000)}</b>.`:'Stars are permanent. Each one adds <b>10% rent</b> to every home and <b>$100K</b> to your starting cash, every dynasty after.'}</p>
+ <p class="dbon">${n?`Stars pay rent on every home: 10% each to 10 stars, 4% to 30, 1% after. Yours: <b>+${Math.round(starBonus(n)*100)}% rent</b>, start with <b>${money(startCash(n))}</b>. Dynasty marks are the big late bonus.`:'Stars are permanent. The first ten add <b>10% rent</b> each and <b>$100K</b> starting cash, every dynasty after.'}</p>
  <div class="ladder">${RANKS.map(([need,t],i)=>`<span class="${n>=need?'on':''}${i===r.i?' cur':''}"><b>${t}</b><small>${need}★</small></span>`).join('')}</div>
  <div class="dstats">${stat('Dynasties',S.dynasties||0)}${stat('Best worth',money(Math.max(S.bestWorth||0,w)))}${stat('Homes won',(L.wins||0)||S.wins)}${stat('Epic+ finds',L.epic||0)}${stat('Best find',L.bestFind?'+'+L.bestFind+'%':'-')}${stat('Time played',pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m')}</div>
  <button class="sec" id="dynX">Close</button></div>`;$('#modal').hidden=false;
@@ -2817,7 +2854,7 @@ $('#dynX').onclick=()=>{$('#modal').hidden=true;};{const b=$('#dyPrBtn');if(b)b.
   legArmed2=false;clearTimeout(legTimer);$('#modal').hidden=true;cashOut(w,pts);};}
 function cashOut(w,pts){T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const r0=rankOf(S.legacy||0).i;
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:Math.max(S.bestWorth,w),muted:S.muted,tour:S.tour,rules:S.rules,legacy:(S.legacy||0)+pts,dynasties:(S.dynasties||0)+1,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
- S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=450000+S.legacy*100000;clearMarket();buildChips();buildEmpire();startAuction();show('a');drawStars();rankBadges();save();
+ S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=startCash(S.legacy);clearMarket();buildChips();buildEmpire();startAuction();show('a');drawStars();rankBadges();save();
  const r=rankOf(S.legacy),up=r.i>r0;groupEvent('cashout',`cashed out at ${money(w)} for +${pts}★ (${r.t})`);
  modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}<p>${S.legacy} stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});}
 $('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
@@ -2870,8 +2907,8 @@ function renderDeck(){const l=topListing(),dk=$('#deck'),bb=$('#buyBtn'),pb=$('#
  if(!l){if(deckId!=='empty'){deckId='empty';dk.innerHTML=`<div class="empty">Nothing listed that matches right now. New listings land every few seconds.<br><button class="linkbtn" id="mClear">Show everything</button></div>`;}bb.disabled=pb.disabled=true;bb.textContent='Buy';$('#mCount').textContent='';return;}
  if(deckId!==l.mid){deckId=l.mid;dk.innerHTML=cardHTML(l);}
  const c=$('#mcard');if(c){const tb=c.querySelector('[data-k="ttl"]');tb.textContent=l.ttl+'s';tb.classList.toggle('hot',l.ttl<=5);const bar=c.querySelector('.mclock i');bar.style.width=(l.ttl/l.ttl0*100)+'%';bar.classList.toggle('hot',l.ttl<=5);c.querySelector('[data-k="meta"]').textContent=metaText(l);}
- const ok=canPay(l.ask,l.ti);bb.disabled=!ok;pb.disabled=false;bb.textContent=ok?('Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' · loan':'')):('Need '+money(depositFor(l.ask,l.ti)));
- const n=LST.filter(matches).length,nd=LST.filter(x=>matches(x)&&x.deal).length;$('#mCount').textContent=`${n} for sale${nd?` · ${nd} deal${nd>1?'s':''}`:''}. Swipe right to buy, left to pass.`;}
+ const ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0;bb.disabled=false;pb.disabled=false;bb.textContent=pfFull()?('Portfolio full · '+S.props.length+' of '+slotsOf()):mktLeft()<=0?'No buys left today':canPay(l.ask,l.ti)?('Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' · loan':'')):('Need '+money(depositFor(l.ask,l.ti)));
+ const n=LST.filter(matches).length,nd=LST.filter(x=>matches(x)&&x.deal).length;$('#mCount').textContent=`${n} for sale${nd?` · ${nd} deal${nd>1?'s':''}`:''} · ${mktLeft()} of ${mktCap()} buys left today. Swipe right to buy, left to pass.`;}
 $('#deck').addEventListener('click',e=>{const w=e.target.closest('[data-watch]');if(w){e.stopPropagation();toggleWatch(+w.dataset.watch);w.setAttribute('aria-pressed',WATCH.has(+w.dataset.watch));return;}if(e.target.closest('#mClear')){MK={tier:-1,type:'all',deals:false,city:null};$('#mQ').value='';mFilter();}});
 $('#deck').addEventListener('pointerdown',e=>{if(e.target.closest('[data-watch]'))e.stopPropagation();},true);
 const WATCH=new Set();
@@ -2882,14 +2919,15 @@ function renderWatch(){const live=LST.filter(l=>WATCH.has(l.mid));for(const id o
 $('#wlist').onclick=e=>{const b=e.target.closest('[data-wbuy]');if(!b)return;const l=LST.find(x=>x.mid===+b.dataset.wbuy);if(l&&buyListing(l)){WATCH.delete(l.mid);deckId=null;renderMarket();}};
 let qT=null;$('#mQ').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{MK.q=e.target.value.trim().toLowerCase();if(MK.q)T.c.searches=(T.c.searches||0)+1;mFilter();},180);});
 $('#wmapBtn').onclick=()=>{const g=$('#globeSec'),open=g.hidden;g.hidden=!open;$('#wmapBtn').setAttribute('aria-expanded',open);$('#wmapBtn').textContent=open?'Hide world map':'World map: shop by city';if(open){gstart();g.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}else gstop();};
-function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}
+function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(pfFull()){slotsSheet();return false;}if(mktLeft()<=0){mktSheet();return false;}if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}
  const pay=payFor(l.ask,l.ti);S.cash-=pay.out;S.paidOut+=pay.duty;if(i>=0)LST.splice(i,1);
  S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,land:l.land,beds:l.beds,feats:l.feats,seed:l.seed,rare:l.rare,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
- T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);award('first_win');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
+ mktDay().n++;T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);award('first_win');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
  tlog('mkt_buy',{offmkt:!!l.offmkt,tier:l.ti,rare:l.rare,deal:l.deal,ask:Math.round(l.ask),value:Math.round(l.value),loan:Math.round(pay.loan),secsLeft:l.ttl,city:l.sub,cashAfter:Math.round(S.cash)});
  const eq=l.value-l.ask;toast(`Bought ${l.addr}.`+(eq>0?` +${money(eq)} equity.`:'')+(pay.loan?` Loan ${money(pay.loan)}.`:''),'up');
  sfx(l.deal||l.rare?'win':'cash');if(l.deal||l.rare)confetti(l.rare);buildEmpire();updAuction();save();soonFlush();return true;}
 function swipe(kind,viaDrag){const c=$('#mcard'),l=topListing();if(!c||!l||swiping)return;
+ if(kind==='buy'&&(pfFull()||mktLeft()<=0)){c.style.transform='';c.style.setProperty('--sw',0);if(pfFull())slotsSheet();else mktSheet();return;}
  if(kind==='buy'&&!canPay(l.ask,l.ti)){c.style.transform='';c.style.setProperty('--sw',0);toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return;}
  swiping=true;if(viaDrag)T.c.mktSwipes++;const dir=kind==='buy'?1:-1;c.classList.remove('dragging');c.style.setProperty('--sw',dir);c.style.transform=`translateX(${dir*120}%) rotate(${dir*18}deg)`;c.style.opacity='0';
  setTimeout(()=>{swiping=false;if(kind==='buy')buyListing(l);else{const i=LST.indexOf(l);if(i>=0){LST.splice(i,1);LST.push(l);}T.c.mktPasses++;sfx('rival');}deckId=null;renderMarket();},200);}
@@ -2920,8 +2958,8 @@ function offMarketTick(){if(OM){OM.ttl--;if(OM.ttl<=0){T.c.offmktMissed++;tlog('
  /* only deals you can actually take: try your tiers from the top down until one is affordable */
  let l=null;for(let ti=S.maxTier;ti>=0&&!l;ti--){for(let k=0;k<3&&!l;k++){const c=makeListing({ti,deal:true});if(!c)continue;c.ask=roundTo(c.value*rnd(0.82,0.88),c.inc);if(canPay(c.ask,c.ti))l=c;}}
  if(!l)return;l.ttl=l.ttl0=10;l.offmkt=true;OM=l;T.c.offmktShown++;sfx('cash');renderOM();}
-function renderOM(){const el=$('#om');$('#toasts').classList.toggle('shift',!!OM);if(!OM){el.hidden=true;el.innerHTML='';return;}const l=OM,d=Math.round((1-l.ask/l.value)*100),ok=canPay(l.ask,l.ti);
- el.hidden=false;el.innerHTML=`<div class="pthumb">${artOf(l)}</div><div class="ommain"><div class="omtag">Off-market · ${esc(l.sub)} · ${TIERS[l.ti].name}</div><div class="omprice">${money(l.ask)} <em class="dpill good">${d}% under</em></div><div class="omsub">Seller needs a quick sale · <span data-k="omt">${l.ttl}s</span></div></div><div class="ombtns"><button class="ombuy" id="omBuy" ${ok?'':'disabled'}>${ok?'Buy'+(needsLoan(l.ask,l.ti)?' · loan':''):'Need '+money(depositFor(l.ask,l.ti))}</button><button class="odec" id="omX">Pass</button></div><i class="obar" data-k="ombar"></i>`;renderOMtick();}
+function renderOM(){const el=$('#om');$('#toasts').classList.toggle('shift',!!OM);if(!OM){el.hidden=true;el.innerHTML='';return;}const l=OM,d=Math.round((1-l.ask/l.value)*100),ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0;
+ el.hidden=false;el.innerHTML=`<div class="pthumb">${artOf(l)}</div><div class="ommain"><div class="omtag">Off-market · ${esc(l.sub)} · ${TIERS[l.ti].name}</div><div class="omprice">${money(l.ask)} <em class="dpill good">${d}% under</em></div><div class="omsub">Seller needs a quick sale · <span data-k="omt">${l.ttl}s</span></div></div><div class="ombtns"><button class="ombuy" id="omBuy" ${ok||pfFull()||mktLeft()<=0?'':'disabled'}>${pfFull()?'Full':mktLeft()<=0?'No buys':ok?'Buy'+(needsLoan(l.ask,l.ti)?' · loan':''):'Need '+money(depositFor(l.ask,l.ti))}</button><button class="odec" id="omX">Pass</button></div><i class="obar" data-k="ombar"></i>`;renderOMtick();}
 function renderOMtick(){const el=$('#om');if(!OM||el.hidden)return;const t=el.querySelector('[data-k="omt"]'),b=el.querySelector('[data-k="ombar"]');if(t)t.textContent=OM.ttl+'s';if(b)b.style.width=(OM.ttl/OM.ttl0*100)+'%';}
 {let sx=null,dx=0;const om=$('#om');
  om.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;sx=e.clientX;dx=0;});
@@ -3101,6 +3139,8 @@ const IAP=[
  {id:'season_pass',kind:'consumable',name:'Season pass',desc:'The premium column of this season\'s track: card frames, paddles and extra registrations. Cosmetics only.',show:()=>S.sp!==season().id,grant:()=>{S.sp=season().id;const lv=S.sx&&S.sx.id===S.sp?S.sx.lv:0;for(let i=1;i<=lv;i++)grantReward(seaReward(i,true));}},
  {id:'cosmetic_pack',kind:'non_consumable',name:'Collector pack',desc:'Neon, marble and holo card frames, plus gold, neon and black paddles. Looks only.',show:()=>!(S.frames||[]).includes('marble'),grant:()=>{S.frames=Array.from(new Set((S.frames||[]).concat(['neon','marble','holo'])));S.paddles=Array.from(new Set((S.paddles||[]).concat(['gold','neon','black'])));}},
  {id:'remove_ads',kind:'non_consumable',name:'Remove ads',desc:'No ads, ever. Changes nothing else in the game.',show:()=>CONFIG.ads.enabled&&!adFree(),grant:()=>{S.adFree={at:Date.now()};document.querySelectorAll('.adslot').forEach(x=>x.remove());}},
+ {id:'slots_5',kind:'consumable',name:'Property manager: +5 homes',desc:'Five more portfolio slots, for good. Stacks.',show:()=>S.props.length>=slotsOf()-2,grant:()=>{S.slotsBought=(S.slotsBought||0)+1;}},
+ {id:'market_5',kind:'consumable',name:'Buyer\'s agent: +5 Market buys',desc:'Five more Market purchases, any day. Stacks.',show:()=>mktOn()&&mktLeft()<=1,grant:()=>{S.mktExtra=(S.mktExtra||0)+5;}},
  {id:'regos_10',kind:'consumable',name:'10 bidder registrations',desc:'Bid in 10 more auctions now instead of waiting for refills.',show:()=>regOn(),grant:()=>{regRefill();S.reg.n+=10;}},
  {id:'cash_small',kind:'consumable',name:'Cash top-up',get desc(){return '+'+money(cashPack(0))+' game cash, sized to your markets.';},show:()=>true,grant:()=>{S.cash+=cashPack(0);}},
  {id:'cash_large',kind:'consumable',name:'Big cash top-up',get desc(){return '+'+money(cashPack(1))+' game cash, sized to your markets.';},show:()=>S.maxTier>=1,grant:()=>{S.cash+=cashPack(1);}},
@@ -3125,18 +3165,36 @@ function shopSheet(){if(!STORE)return;T.c.shopViews++;tlog('shop_view',{});const
  $('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});}
 document.addEventListener('click',e=>{if(e.target.closest('[data-shop]')){e.preventDefault();shopSheet();}});
 /* v31 transfer codes: the save travels to the app (or another phone) by a 9-character code the server holds for 30 days */
+/* v34 feedback: star rating + a line, from the menu or the one-time nudge after a few sessions. Anonymous unless they type a contact. */
+function feedbackSheet(src){T.c.fbOpens=(T.c.fbOpens||0)+1;tlog('feedback_open',{src});let stars=0;
+ $('#sheet').innerHTML=`<div class="upg fbk"><h3>Rate Auction Empires</h3><p>One tap, one line. It goes straight to the person building it.</p>
+ <div class="fbstars" role="radiogroup" aria-label="Star rating">${[1,2,3,4,5].map(i=>`<button type="button" class="fbs" data-s="${i}" aria-label="${i} star${i>1?'s':''}">★</button>`).join('')}</div>
+ <textarea id="fbText" rows="4" maxlength="1500" placeholder="What would make it better? What was fun? What was confusing?"></textarea>
+ <input id="fbContact" type="text" maxlength="120" placeholder="Email or @handle, only if you want a reply (optional)" autocomplete="off">
+ <p class="hint" id="fbHint">&nbsp;</p>
+ <button id="fbSend">Send</button><button class="sec" id="fbX">${src==='nudge'?'Not now':'Close'}</button></div>`;$('#modal').hidden=false;
+ const paint=()=>$('#sheet').querySelectorAll('.fbs').forEach(b=>b.classList.toggle('on',+b.dataset.s<=stars));
+ $('#sheet').querySelectorAll('.fbs').forEach(b=>b.onclick=()=>{stars=+b.dataset.s;paint();buzz(8);sfx('tick');});
+ $('#fbX').onclick=()=>{$('#modal').hidden=true;if(src==='nudge'){S.fbAsked=Date.now();save();}};
+ $('#fbSend').onclick=async()=>{const text=$('#fbText').value.trim(),contact=$('#fbContact').value.trim(),h=$('#fbHint');if(!stars&&!text){h.textContent='Tap a star or write a line first.';return;}
+  const b=$('#fbSend');b.disabled=true;h.textContent='Sending…';
+  try{await net('/api/feedback',{stars,text,contact,version:VERSION,level:plvState().lv,worth:Math.round(worth()),sessions:S.sessions,device:(innerWidth+'x'+innerHeight+' '+(navigator.userAgent.match(/iPhone|iPad|Android|Windows|Mac/)||[''])[0]),source:src});
+   T.c.fbSent=(T.c.fbSent||0)+1;tlog('feedback_sent',{stars,len:text.length,src});S.fbDone=Date.now();S.fbAsked=Date.now();save();$('#modal').hidden=true;toast(stars>=4?'Thanks! That made the day.':'Thanks. Read within the day, acted on within the week.','up');}
+  catch(e){b.disabled=false;h.textContent=e.message||'Could not send. Try again in a moment.';}};}
+/* nudge once: third session, at least three wins, 90s in, and not already done; never more than once a month after a "Not now" */
+function fbNudge(){if(!SOC()||S.fbDone||document.hidden||$('#modal')&&!$('#modal').hidden)return;if(S.sessions<3||S.wins<3)return;if(S.fbAsked&&Date.now()-S.fbAsked<30*864e5)return;if(A&&!A.ended&&A.leader==='you')return;feedbackSheet('nudge');}
 async function xferSheet(){$('#sheet').innerHTML=`<div class="upg xfer"><h3>Move this game</h3><p>Get a code here, then open the game on the other device (or in the app), tap the menu and enter it. Everything comes across: homes, cash, stars, badges, level.</p><button id="xfGet">Get a transfer code</button><div class="frform"><input id="xfIn" maxlength="11" placeholder="EAT-XXXX-XXXX" autocapitalize="characters" aria-label="Transfer code"><button class="sec" id="xfUse">Restore</button></div><p class="hint" id="xfMsg"></p><button class="sec" id="xfX">Close</button></div>`;$('#modal').hidden=false;$('#xfX').onclick=()=>{$('#modal').hidden=true;};
  $('#xfGet').onclick=async()=>{const b=$('#xfGet');b.disabled=true;b.textContent='Saving…';try{save();const j=await net('/api/save',{save:S});T.c.xferOut=(T.c.xferOut||0)+1;tlog('xfer_out',{});$('#xfMsg').innerHTML=`Your code: <b class="xfcode">${esc(j.code)}</b><br>Good for 30 days. Enter it on the other device.`;b.textContent='Code ready';if(navigator.clipboard)try{await navigator.clipboard.writeText(j.code);$('#xfMsg').innerHTML+='<br>Copied to the clipboard.';}catch(e){}}catch(e){b.disabled=false;b.textContent='Get a transfer code';$('#xfMsg').textContent=e.message;}};
  $('#xfUse').onclick=async()=>{const code=$('#xfIn').value.trim().toUpperCase();if(code.length<9){$('#xfMsg').textContent='Enter the whole code.';return;}if(S.props.length&&!$('#xfUse').dataset.arm){$('#xfUse').dataset.arm='1';$('#xfMsg').textContent='This replaces the game on this device. Tap Restore again to go ahead.';return;}
   try{const r=await fetch(API+'/api/save?code='+encodeURIComponent(code));const j=await r.json();if(!r.ok||!j.save)throw new Error(j.error||'No game found for that code.');const inc=j.save;for(const k of ['regVar','mkVar','adFree','noStats'])if(S[k]!=null&&inc[k]==null)inc[k]=S[k];localStorage.setItem(KEY,JSON.stringify(inc));T.c.xferIn=(T.c.xferIn||0)+1;tlog('xfer_in',{});$('#xfMsg').textContent='Restored. Reloading…';setTimeout(()=>location.reload(),600);}catch(e){$('#xfMsg').textContent=e.message;}};}
-function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button>${sdOpen()?'<button class="sec" id="mnSd">Daily showdown: one shot today</button>':''}<button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${SOC()?'<button class="sec" id="mnXfer">Move this game to another device</button>':''}${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
- $('#mnTour').onclick=()=>tour(0);if($('#mnXfer'))$('#mnXfer').onclick=xferSheet;if($('#mnSd'))$('#mnSd').onclick=()=>{$('#modal').hidden=true;startShowdown();};$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
+function menu(){$('#sheet').innerHTML=`<div class="menu"><h3>Menu</h3><button id="mnTour">How to play</button><button class="sec" id="mnSound">Sound: ${S.muted?'off':'on'}</button>${sdOpen()?'<button class="sec" id="mnSd">Daily showdown: one shot today</button>':''}<button class="sec" id="mnRecap">This session</button><button class="sec" id="mnBadges">Badges and sets</button><button class="sec" id="mnStats">Anonymous play stats: ${S.noStats?'off':'on'}</button><button class="sec" id="mnR18">R18+ mode: ${S.r18?'on':'off'}</button>${SOC()?'<button class="sec" id="mnXfer">Move this game to another device</button>':''}${SOC()?'<button class="sec" id="mnFb">Rate the game and send feedback</button>':''}${inApp()?'<button class="sec" id="mnShop" data-shop="1">Shop</button>':''}<button class="sec" id="mnClose">Close</button></div>`;$('#modal').hidden=false;
+ $('#mnTour').onclick=()=>tour(0);if($('#mnXfer'))$('#mnXfer').onclick=xferSheet;if($('#mnFb'))$('#mnFb').onclick=()=>feedbackSheet('menu');if($('#mnSd'))$('#mnSd').onclick=()=>{$('#modal').hidden=true;startShowdown();};$('#mnSound').onclick=()=>{toggleMute();$('#mnSound').textContent='Sound: '+(S.muted?'off':'on');};$('#mnRecap').onclick=()=>recap(false);
  $('#mnBadges').onclick=()=>{$('#modal').hidden=true;show('e');eGo('bad');};$('#mnClose').onclick=()=>{$('#modal').hidden=true;};$('#mnR18').onclick=()=>{if(S.r18){S.r18=false;save();$('#mnR18').textContent='R18+ mode: off';tlog('r18',{on:false});return;}$('#sheet').innerHTML=`<div class="upg"><h3>R18+ mode</h3><p>Darker satire: pandemics, recessions, wars and crypto crashes hit the market, tenants meet grim ends, and the headlines get rude. Every shock has an upside. For adults only.</p><button id="r18Yes">I'm 18 or over. Turn it on</button><button class="sec" id="r18No">Not now</button></div>`;$('#r18Yes').onclick=()=>{S.r18=true;save();T.c.r18On=(T.c.r18On||0)+1;tlog('r18',{on:true});$('#modal').hidden=true;toast('R18+ mode on. Brace yourself.','');pushNews('Adults only: markets get messy');};$('#r18No').onclick=()=>{$('#modal').hidden=true;};};$('#mnStats').onclick=()=>{S.noStats=!S.noStats;save();$('#mnStats').textContent='Anonymous play stats: '+(S.noStats?'off':'on');};$('#mnTour').focus();}
 
 /* ---------- walkthrough ---------- */
 const DEMO=`<div class="demo"><div class="meter"><div class="track"><i class="z-steal" style="left:0;width:24%"></i><i class="z-good" style="left:24%;width:22%"></i><i class="z-fair" style="left:46%;width:30%"></i><i class="z-over" style="left:76%;width:24%"></i></div><i class="wa" style="left:76%"></i><i class="mk" style="left:38%"><span>Next bid $395K</span></i></div><div class="legend"><span><i class="z-steal"></i>Steal</span><span><i class="z-good"></i>Good buy</span><span><i class="z-fair"></i>Fair</span><span><i class="z-over"></i>Overpaying</span></div></div>`;
 const TOUR=[
- {h:'Build an empire',b:()=>`<p>You start with <b>${money(450000+(S.legacy||0)*100000)}</b>. Win homes at auction, collect rent and grow your net worth.</p><div class="tiers">${TIERS.map(t=>`<span>${t.name}</span>`).join('')}</div><p>Each milestone opens a bigger market. Your next goal is the chip at the top left. The <b>Market</b> button beside it picks what comes up next, and later the world markets.</p>`},
+ {h:'Build an empire',b:()=>`<p>You start with <b>${money(startCash(S.legacy))}</b>. Win homes at auction, collect rent and grow your net worth.</p><div class="tiers">${TIERS.map(t=>`<span>${t.name}</span>`).join('')}</div><p>Each milestone opens a bigger market. Your next goal is the chip at the top left. The <b>Market</b> button beside it picks what comes up next, and later the world markets.</p>`},
  {h:'Is it a good deal?',b:()=>DEMO+`<p>The <b>estimate</b> is roughly what the home is really worth. Win it under that and you're richer the moment the hammer falls.</p><p>Green is good. Past the <b>walk-away</b> line you're overpaying.</p>`},
  {h:'Look closer',b:()=>`<p><b>Swipe the photo</b> to walk through the rooms. Glowing spots are clues: some move your walk-away line, some hint at a find.</p><p><b>Tap the address</b> (the <b>i</b>) to flip the card. The back shows what the home does to your money if you win: cash today, rent minus costs each month, and your net worth. Tap the back to flip it again.</p>`},
  {h:'How to bid',b:()=>`<p><b>Bid</b> raises one step. <b>Go big</b> jumps ahead and can scare rivals off.</p><p><b>Auto-bid</b> carries you to the final call, then hands you the paddle: the last seconds are yours.</p><p>Short on cash? The button says <b>Need $…</b>. Tap it to borrow against your homes or sell one.</p>`},
@@ -3167,7 +3225,7 @@ else awayCredit(since);
 setInterval(()=>{auctionTick(0.1);liveTick(0.1);},100);
 setInterval(econTick,1000);
 setInterval(save,3000);
-setTimeout(dailyCheck,900);setTimeout(drawBell,300);setTimeout(drawSea,300);
+setTimeout(dailyCheck,900);setTimeout(drawBell,300);setTimeout(drawSea,300);setTimeout(fbNudge,90000);
 })();
 </script>
 </body>

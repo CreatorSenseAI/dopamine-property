@@ -100,6 +100,24 @@ async function boardPost(req, res) {
 /* v31 transfer codes: a save travels between the web game and the app (different origins, so localStorage can't). 30-day files in DATA/saves. */
 const SAVE_CODE = /^EAT-[A-Z2-9]{4}-[A-Z2-9]{4}$/, saveFile = c => path.join(DATA, "saves", c + ".json");
 function newSaveCode() { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; const p = () => Array.from(crypto.randomBytes(4)).map(b => A[b % A.length]).join(""); for (let i = 0; i < 20; i++) { const c = "EAT-" + p() + "-" + p(); if (!fs.existsSync(saveFile(c))) return c; } return null; }
+// ---------- v34 feedback: in-game star rating + comment, stored one file per entry, listed on /admin ----------
+const FB_DIR = path.join(DATA, "feedback"); fs.mkdirSync(FB_DIR, { recursive: true });
+async function feedbackPost(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 20000)); } catch { return send(req, res, 400, "application/json", JSON.stringify({ error: "bad feedback" })); }
+  const stars = Math.max(0, Math.min(5, Math.round(+b.stars || 0))), text = String(b.text || "").replace(/\s+/g, " ").trim().slice(0, 1500), contact = String(b.contact || "").trim().slice(0, 120);
+  if (!stars && !text) return send(req, res, 400, "application/json", JSON.stringify({ error: "Pick a star rating or write a line." }));
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const doc = { id, at: new Date().toISOString(), stars, text, contact, installId: ID.test(String(b.installId)) ? b.installId : null, nick: String(b.nick || "").slice(0, 40), version: String(b.version || "").slice(0, 20), level: +b.level || 0, worth: +b.worth || 0, sessions: +b.sessions || 0, device: String(b.device || "").slice(0, 80), source: String(b.source || "menu").slice(0, 20) };
+  writeJSON(path.join(FB_DIR, id + ".json"), doc);
+  console.log(`FB ${"★".repeat(stars)}${"☆".repeat(5 - stars)} ${doc.installId || "?"} lv${doc.level} ${doc.source}: ${text || "(no comment)"}${contact ? " <" + contact + ">" : ""}`);
+  send(req, res, 200, "application/json", JSON.stringify({ ok: true }));
+}
+function feedbackList(n) {
+  let files = []; try { files = fs.readdirSync(FB_DIR).filter(f => f.endsWith(".json")).sort().reverse().slice(0, n || 100); } catch { }
+  return files.map(f => { try { return JSON.parse(fs.readFileSync(path.join(FB_DIR, f), "utf8")); } catch { return null; } }).filter(Boolean);
+}
 async function savePost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
@@ -338,7 +356,7 @@ function adminPage(k) {
 <style>:root{--bg:#0c1220;--s:#151e31;--ink:#eef2f8;--mu:#97a3b9;--line:#29354f;--g:#3fd08f;--r:#ff4b61;--y:#f2bb45}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;padding:16px;max-width:960px;margin:auto}
 h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:22px 0 8px}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.t{background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
+.fb{display:flex;flex-direction:column;gap:6px;margin:8px 0}.fbr{background:var(--s);border:1px solid var(--line);border-radius:8px;padding:8px 10px}.fbr b{color:#e0a020;letter-spacing:.1em}.fbr span{display:block;font-size:11px;color:var(--mu)}.fbr p{margin:4px 0 0;font-size:13px}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}.t{background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
 .t small{display:block;color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.t b{font:600 20px ui-monospace,monospace}.t em{display:block;font-style:normal;color:var(--mu);font-size:12px}
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
 .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}.bars i{display:block;width:100%;background:var(--y);border-radius:3px 3px 0 0}.bars span{font-size:10px;color:var(--mu)}
@@ -351,6 +369,7 @@ a{color:var(--y)}p{color:var(--mu)}</style></head><body>
 <h2>Auction tension (v20)</h2><div class="g">${tile("Your call cues", s.finalCues, "auto-bid handed back the paddle")}${tile("Inspections", "good " + s.findGood + " · flaw " + s.findFlaw + " · jackpot " + s.findJackpot)}${tile("Featured auctions", s.featured, s.featuredWon + " won")}${tile("Selling", s.sellAuctionSold + "/" + s.sellAuctions + " sold at auction", s.agentSales + " agent sales")}</div>
 <h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
 <h2>Dynasty and layout (v25)</h2><div class="g">${tile("Dynasty sheet opens", s.dynOpens, s.prestiges + " cash-outs")}${tile("Goal chip taps", s.goalTaps)}${tile("If-you-win opens", s.ifwinOpens)}${tile("Empire sections", s.esec)}</div>
+<h2>Feedback (v34)</h2>${(() => { const fb = feedbackList(200), n = fb.length, avg = n ? (fb.reduce((a, x) => a + x.stars, 0) / n).toFixed(2) : "–"; const dist = [5, 4, 3, 2, 1].map(k => k + "★ " + fb.filter(x => x.stars === k).length).join(" · "); return `<div class="g">${tile("Ratings", n, "average " + avg)}${tile("Spread", dist)}</div><div class="fb">${fb.slice(0, 60).map(x => `<div class="fbr"><b>${"★".repeat(x.stars)}${"☆".repeat(5 - x.stars)}</b><span>${esc(x.at.slice(0, 16).replace("T", " "))} · ${esc(x.installId || "?")} · lv${x.level} · ${esc(x.version)} · ${esc(x.source)}${x.contact ? " · " + esc(x.contact) : ""}</span><p>${esc(x.text) || "<i>no comment</i>"}</p></div>`).join("") || "<p>No feedback yet</p>"}</div>`; })()}
 <h2>Events, world, seasons (v29)</h2><div class="g">${tile("Disasters", s.disasters, s.recoveries + " rebuild booms")}${tile("Good news", s.goodEvents)}${tile("R18+ shocks", s.shocks, s.r18On + " turned R18+ on")}${tile("Insurance toggles", s.insToggles)}${tile("Prizes", s.prizes)}${tile("World sheet", s.worldViews, s.sealed + " sealed rounds · " + s.boardNo + " board rejections")}${tile("Takeovers", s.takeovers, s.turfWon + " won")}${tile("Season levels", s.seasonLevels)}${tile("Mystery lots", s.mystery)}${tile("Event animations", s.fx)}${tile("Rarity explainer", s.rarityInfo)}</div>
 <h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Push tokens", s.soc.pushTokens || 0, "sending needs APNs/FCM keys")}</div>
 <h2>Cash and balance (v26)</h2><div class="g">${tile("Equity loans", s.equityLoans, "$" + Math.round((s.equityBorrowed || 0) / 1e6 * 10) / 10 + "M borrowed")}${tile("Out of reach taps", s.cashSheets, "opened the cash sheet")}${tile("Spend warnings", s.spendWarns, "upgrade or build would block bidding")}${tile("Offer comebacks", s.offerComebacks)}</div>
@@ -405,6 +424,7 @@ http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
+    if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
