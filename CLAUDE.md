@@ -172,3 +172,8 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - Rent: `rentBonus()` = 1 + min(`RENT_CAP` 1.5, stars + 0.25 × dynasty marks); `yieldComp(holdings)` = 1 to $10B, then 1 − 0.25·log10(h/$10B) (floor 0.4). Both in `rentOf` and `project`. Matt's 75★ + 4 marks was 4.25× rent: $4B → $99B in 90 minutes.
 - Onboarding: "Skip, just let me bid" on the welcome, the home sheet button reads "Start in {market}", the onboarding tour is the first 4 steps with "Skip to the auction"; `endOnb(skipped)` closes everything, restarts a fresh first lot (`S.firstLots=0`) and shows the bid coach. The first new player on v42 took 12 minutes to the first bid (3 min on the name, 7 taps on Australia, 9 tour steps).
 - Server: the boot digest logs the newest 30 pages (not the first 30) and the 30-minute drip runs (`setInterval(logDigest)`).
+
+## Works in real time (v45, 21 Oct)
+- The first brand-new player (iPhone, 20 Oct) went $450K → $480M in 67 minutes with 9 auction wins: 16 upgrades, 7 reclasses and 5 redevelopments, each finishing in 6–30 seconds (a month is a second) at +13–20% value for 5–8% cost, with equity loans funding the next. Works now take real minutes: Makeover 2, Pool 3, Extension 4, Duplex 8, Mansion 12 (`UPG`/`REDEV` `mo` in months = seconds), at most `WORKS_MAX` 3 upgrades at once (`worksOn()`), blowout 0.3%/month and delay 0.2%/month (+60). Labels use `fmtDur()` (m:ss). `finish_works` IAP ("Finish all works now", app) is the speed-up.
+- Rate lock needs a loan (15 pointless $2K locks in that session).
+- `EAT_DEBUG.finishAll()` ends every build; smoke pages run with `?debug=1` and use it.

@@ -1756,7 +1756,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v44-web';
+const VERSION='v45-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1824,9 +1824,9 @@ function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis
 /* ---------- upgrades: spend game cash to lift a home's value; works pause the rent; a big enough lift moves it up a category ---------- */
 const hasPool=p=>baseTi(p)>=2||!!(p.up&&p.up.pool)||(p.feats||[]).some(f=>/pool/i.test(f));
 const UPG=[
- {k:'reno',name:'Makeover',tag:'Renovated',desc:'New kitchen, bathrooms, floors and paint.',cost:0.08,lift:[0.12,0.20],mo:12,why:p=>p.dwell?'New build: nothing to renovate':null},
- {k:'pool',name:'Add a pool',tag:'Pool',desc:'In-ground pool and landscaping.',cost:0.05,lift:[0.08,0.11],mo:6,why:p=>heritageNo(p)?heritageNo(p):isStrata(p)?'No yard to put one in':hasPool(p)?'Already has a pool':(p.land||0)<600?`Won't fit. Needs 600 m² of land, this has ${p.land||0} m².`:null},
- {k:'ext',name:'Extension',tag:'Extended',desc:'An extra bedroom and a second living area.',cost:0.08,lift:[0.12,0.17],mo:10,why:p=>heritageNo(p)?heritageNo(p):isStrata(p)?'Strata won’t approve it':(p.land||0)<450?`Won't fit. Needs 450 m² of land, this has ${p.land||0} m².`:null}
+ {k:'reno',name:'Makeover',tag:'Renovated',desc:'New kitchen, bathrooms, floors and paint.',cost:0.08,lift:[0.12,0.20],mo:120,why:p=>p.dwell?'New build: nothing to renovate':null},
+ {k:'pool',name:'Add a pool',tag:'Pool',desc:'In-ground pool and landscaping.',cost:0.05,lift:[0.08,0.11],mo:180,why:p=>heritageNo(p)?heritageNo(p):isStrata(p)?'No yard to put one in':hasPool(p)?'Already has a pool':(p.land||0)<600?`Won't fit. Needs 600 m² of land, this has ${p.land||0} m².`:null},
+ {k:'ext',name:'Extension',tag:'Extended',desc:'An extra bedroom and a second living area.',cost:0.08,lift:[0.12,0.17],mo:240,why:p=>heritageNo(p)?heritageNo(p):isStrata(p)?'Strata won’t approve it':(p.land||0)<450?`Won't fit. Needs 450 m² of land, this has ${p.land||0} m².`:null}
 ];
 /* a home moves up a category once its value passes halfway between its market and the next */
 const classLine=ti=>ti<TIERS.length-1?(TIERS[ti].max+TIERS[ti+1].min)/2:Infinity;
@@ -1834,7 +1834,7 @@ const upCost=(p,u)=>roundTo(p.value*u.cost,1000);
 const upgAvail=p=>UPG.filter(u=>!(p.up&&p.up[u.k])&&!u.why(p));
 /* the card only offers Upgrade when there is something left to do and you can pay for it */
 const upgOpen=p=>S.props.length>=3&&!p.works&&!p.listed&&(upgAvail(p).some(u=>S.cash>=upCost(p,u))||redevAvail(p).some(x=>S.cash>=upCost(p,x)));
-function startWorks(p,k){const u=UPG.find(x=>x.k===k);if(!u||p.works||(p.up&&p.up[k])||u.why(p)||!S.props.includes(p))return;const c=upCost(p,u);
+function startWorks(p,k){const u=UPG.find(x=>x.k===k);if(!u||p.works||(p.up&&p.up[k])||u.why(p)||!S.props.includes(p))return;if(worksOn()>=WORKS_MAX){toast('Your tradies are flat out on '+WORKS_MAX+' homes. Wait for one to finish.','down');return;}const c=upCost(p,u);
  if(S.cash<c){toast('Not enough cash for the '+u.name.toLowerCase()+'. It costs '+money(c)+'.','down');return;}
  S.cash-=c;p.capex=(p.capex||0)+c;p.works={k,lift:rnd(u.lift[0],u.lift[1])};p.vacant=u.mo;OFF=OFF.filter(o=>o.pid!==p.id);
  T.c.upgrades++;T.c.upgradeSpend+=Math.round(c);tlog('upgrade_start',{k,tier:p.ti,style:p.style,land:p.land||0,cost:Math.round(c),value:Math.round(p.value),cashAfter:Math.round(S.cash)});
@@ -1846,10 +1846,12 @@ function finishWorks(p,quiet){const w=p.works;if(!w)return;if(w.redev){finishRed
  builtIds='';}
 /* ---------- redevelopment: knock down and rebuild. Step 1: duplex and mansion. Bought with game cash; build time = no rent, costs keep running ---------- */
 const REDEV=[
- {k:'duplex',name:'Duplex',desc:'Knock down and build two homes side by side: two tenants, two rents, sell one and keep one.',cost:0.65,end:[1.7,2.05],mo:24,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':(p.land||0)<600?`Needs 600 m² of land, this has ${p.land||0} m².`:null},
- {k:'mansion',name:'Mansion',desc:'Knock down and build one big statement home. Mansion tax applies when you sell over $5M.',cost:0.9,end:[2.0,2.4],mo:30,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':baseTi(p)<2?'Only in Prestige suburbs and up':(p.land||0)<1000?`Needs 1,000 m² of land, this has ${p.land||0} m².`:null}
+ {k:'duplex',name:'Duplex',desc:'Knock down and build two homes side by side: two tenants, two rents, sell one and keep one.',cost:0.65,end:[1.7,2.05],mo:480,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':(p.land||0)<600?`Needs 600 m² of land, this has ${p.land||0} m².`:null},
+ {k:'mansion',name:'Mansion',desc:'Knock down and build one big statement home. Mansion tax applies when you sell over $5M.',cost:0.9,end:[2.0,2.4],mo:720,why:p=>isStrata(p)?'Units and towers can’t be knocked down':p.dwell?'Already redeveloped':baseTi(p)<2?'Only in Prestige suburbs and up':(p.land||0)<1000?`Needs 1,000 m² of land, this has ${p.land||0} m².`:null}
 ];
-const REDEV_MAX=2;/* your builder can run two sites at once */
+const REDEV_MAX=2,WORKS_MAX=3;/* your builder can run two sites at once, your tradies three upgrades. v45: works take real minutes (a month is a second), the first new player turned $450K into $480M in an hour with 12-second makeovers and 30-second mansions */
+const worksOn=()=>S.props.filter(q=>q.works&&!q.works.redev).length;
+const fmtDur=s=>s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):s+'s';
 const buildsOn=()=>S.props.filter(q=>q.works&&q.works.redev).length;
 const redevAvail=p=>S.maxTier<1||buildsOn()>=REDEV_MAX?[]:REDEV.filter(r=>!r.why(p));
 function reclass(p){let moved=false;while(p.ti<TIERS.length-1&&p.value>=classLine(p.ti)){if(p.ti0==null)p.ti0=p.ti;p.ti++;moved=true;}if(moved){p.value*=1.06;T.c.reclassed++;award('new_class');}return moved;}
@@ -1860,8 +1862,8 @@ function startRedev(p,k){const r=REDEV.find(x=>x.k===k);if(!r||p.works||r.why(p)
  toast(r.name+' build started at '+p.addr+'. '+money(-c)+'. No rent for '+r.mo+' months; bills keep coming.','');sfx('cash');builtIds='';updEmpire();save();soonFlush();}
 /* things that go wrong on a build site, at most once each per build */
 function buildEvents(p){const w=p.works;if(!w||!w.redev)return;
- if(!w.blown&&Math.random()<0.02){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000),onLoan=S.cash<x;if(onLoan){p.loan=(p.loan||0)+x;S.borrowed=true;}else S.cash-=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x),onLoan});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+(onLoan?', added to the loan on the site.':'.'),'down',true);}
- if(!w.late&&Math.random()<0.01){w.late=true;p.vacant+=6;T.c.buildDelays++;tlog('build_delay',{k:w.k});note('build','Builder delay at '+p.addr+': 6 more months.','down',true);}}
+ if(!w.blown&&Math.random()<0.003){w.blown=true;const x=roundTo(w.cost*rnd(0.12,0.25),1000),onLoan=S.cash<x;if(onLoan){p.loan=(p.loan||0)+x;S.borrowed=true;}else S.cash-=x;p.capex=(p.capex||0)+x;T.c.blowouts++;tlog('build_blowout',{k:w.k,extra:Math.round(x),onLoan});note('build','Cost blowout on the '+w.k+' at '+p.addr+': '+money(-x)+(onLoan?', added to the loan on the site.':'.'),'down',true);}
+ if(!w.late&&Math.random()<0.002){w.late=true;p.vacant+=60;T.c.buildDelays++;tlog('build_delay',{k:w.k});note('build','Builder delay at '+p.addr+': another minute.','down',true);}}
 function finishRedev(p,quiet){const w=p.works;p.works=null;const before=p.value,total=p.value*w.end;p.up={};p.dwell=w.k;p.heat=0;let out=[p];/* rare + rarity carry to the new build (both duplex halves) */
  if(w.k==='mansion'){p.value=total;p.style='villa';delete p.img;p.beds=Math.max(p.beds||5,6);p.feats=['New build','Mansion'];}
  else{const land=Math.round((p.land||0)/2),half={paid:p.paid/2,duty:(p.duty||0)/2,capex:(p.capex||0)/2};
@@ -2747,7 +2749,7 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
  if(sig()!==builtIds){buildEmpire();return;}
  for(const p of S.props){const el=document.querySelector(`.prop[data-id="${p.id}"]`);if(!el)continue;const gain=(p.value/basis(p)-1)*100;
   el.querySelector('[data-k="v"]').textContent=money(p.value);const gp=el.querySelector('[data-k="g"]');gp.textContent=(gain>=25&&held(p)?'Sell now ':'')+(gain>=0?'+':'')+gain.toFixed(1)+'%';gp.className='pill '+(gain>=25&&held(p)?'hot':gain>=0?'up':'down');gp.hidden=!!(p.works&&p.works.redev);
-  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?(p.works.redev?'Building ':'Works '):'Vacant ')+p.vacant+'s';rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
+  const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?(p.works.redev?'Building ':'Works '):'Vacant ')+fmtDur(p.vacant);rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');sb.disabled=!!p.listed;sb.textContent=p.listed?'At auction':'Sell';}
  const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
@@ -2967,7 +2969,7 @@ function renderBank(dt){const box=$('#bankBox');const av=borrowable(),show=S.pro
 $('#bankRows').onclick=e=>{const b=e.target.closest('[data-bank]');if(!b)return;const k=b.dataset.bank;
  if(k==='eq'){borrowEquity(+b.dataset.amt,'bank');return;}
  if(k==='ins'){S.ins=!S.ins;T.c.insToggles=(T.c.insToggles||0)+1;tlog('insurance',{on:S.ins});toast(S.ins?'Disaster cover on. Sleep easy.':'Disaster cover off. Fingers crossed.',S.ins?'up':'');$('#bankBox').dataset.sig='';updEmpire();save();return;}
- if(k==='lock'&&!(S.lock>0)){const f=lockFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.lock=24;T.c.rateLocks++;tlog('bank_buy',{k,fee:Math.round(f),debt:Math.round(debt())});toast('Rate locked at 4.5% for 24 months. Fee '+money(f)+'.','up');sfx('cash');}
+ if(k==='lock'&&!(S.lock>0)){if(debt()<1){toast('Nothing to lock: you have no loans.','');return;}const f=lockFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.lock=24;T.c.rateLocks++;tlog('bank_buy',{k,fee:Math.round(f),debt:Math.round(debt())});toast('Rate locked at 4.5% for 24 months. Fee '+money(f)+'.','up');sfx('cash');}
  else if(k==='rescue'&&!S.rescue){const f=rescueFee();if(S.cash<f)return;S.cash-=f;S.paidOut+=f;S.rescue=true;T.c.rescueBuys++;tlog('bank_buy',{k,fee:Math.round(f),holdings:Math.round(holdings())});toast('Rescue cover active. Fee '+money(f)+'.','up');sfx('cash');}
  $('#bankBox').dataset.sig='';updEmpire();save();soonFlush();};
 /* ---------- selling: take it to auction (rivals bid it up against your reserve) or sell to an agent now ---------- */
@@ -3501,7 +3503,7 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o)};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o)};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 if(/[?&]debug=1/.test(location.search))window.__eat={get S(){return S;},get A(){return A;},pullCard,cardSheet,houseTour:(p,f)=>houseTour(p,f),eGo,show,startAuction,award};
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}

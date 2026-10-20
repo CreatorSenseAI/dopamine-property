@@ -13,7 +13,7 @@ errors = []
 IGNORE = ("ERR_TUNNEL", "fonts.g", "net::ERR", "Failed to load resource")
 
 
-def page(b, scheme, seed=None, q="?mkt=0"):
+def page(b, scheme, seed=None, q="?mkt=0&debug=1"):
     pg = b.new_page(viewport={"width": 360, "height": 643}, device_scale_factor=2, color_scheme=scheme)
     pg.on("pageerror", lambda e: errors.append(f"{scheme}: {e}"))
     pg.on("console", lambda m: m.type == "error" and not any(s in m.text for s in IGNORE) and errors.append(f"{scheme} console: {m.text}"))
@@ -151,9 +151,11 @@ with sync_playwright() as p:
     card = '.prop[data-id="1"]'
     print("during works:", pg.inner_text(card + ' [data-k="r"]'))
     pg.locator(card).screenshot(path=str(out / "v14-works.png"))
-    pg.wait_for_timeout(6500); close_sheets(pg)
+    pg.wait_for_timeout(1500); pg.evaluate("EAT_DEBUG.finishAll()"); pg.wait_for_timeout(600); close_sheets(pg)
     print("after pool:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
-    pg.click('[data-up="1"]'); pg.wait_for_timeout(300); pg.click('[data-upk="reno"]'); pg.wait_for_timeout(13500); close_sheets(pg)
+    pg.wait_for_timeout(1200); close_sheets(pg); pg.click('[data-up="1"]'); pg.wait_for_timeout(400)
+    if not pg.locator('[data-upk="reno"]').count(): print("upgrade sheet after pool:", pg.inner_text("#sheet").replace("\n", " | ")[:300])
+    pg.click('[data-upk="reno"]'); pg.wait_for_timeout(1500); pg.evaluate("EAT_DEBUG.finishAll()"); pg.wait_for_timeout(600); close_sheets(pg)
     print("after makeover:", pg.inner_text(card + " .psub"), pg.inner_text(card + ' [data-k="v"]'))
     assert "Family" in pg.inner_text(card + " .psub"), "makeover should push it into Family"
     pg.locator(card).screenshot(path=str(out / "v14-upgraded.png"))
@@ -162,15 +164,16 @@ with sync_playwright() as p:
     pg.click('[data-up="3"]'); pg.wait_for_timeout(300); pg.screenshot(path=str(out / "v18-redev-sheet.png"))
     pg.click('[data-rdk="duplex"]'); pg.wait_for_timeout(1500)
     pg.locator('.prop[data-id="3"]').screenshot(path=str(out / "v18-building.png"))
-    for _ in range(40):
+    pg.evaluate("EAT_DEBUG.finishAll()")
+    for _ in range(6):
         pg.wait_for_timeout(1000); close_sheets(pg)
         if "Duplex" in pg.inner_text('.prop[data-id="3"] .psub'): break
     print("duplex:", pg.inner_text('.prop[data-id="3"] .pname'), "|", pg.inner_text('.prop[data-id="3"] .psub'), "| homes", pg.inner_text("#pCount"))
     assert "1/" in pg.inner_text('.prop[data-id="3"] .pname'), "duplex should split into 1/ and 2/"
     # ---------- bank: rate lock ----------
-    esec(pg, "mo"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200)
+    close_sheets(pg); esec(pg, "mo"); pg.locator("#bankBox").scroll_into_view_if_needed(); pg.wait_for_timeout(1200); close_sheets(pg)
     pg.screenshot(path=str(out / "v15-bank.png"))
-    pg.click('[data-bank="lock"]'); pg.wait_for_timeout(1200)
+    pg.evaluate("document.querySelector('[data-bank=\"lock\"]').click()"); pg.wait_for_timeout(1200)
     print("bank:", pg.inner_text("#bankRows").replace("\n", " | ")[:160])
     pg.close()
 
