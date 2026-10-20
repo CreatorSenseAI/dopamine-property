@@ -17,7 +17,7 @@ const ADMIN_KEY = process.env.ADMIN_KEY || "";
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain" };
 const ID = /^[a-z0-9]{6,32}$/i;
 
-for (const d of ["sessions", "players", "boards"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
+for (const d of ["sessions", "players", "boards", "saves"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
 
 // ---------- static files, read once at boot ----------
 const files = new Map();
@@ -97,6 +97,26 @@ async function boardPost(req, res) {
   writeJSON(boardFile(b.day), board);
   send(req, res, 204, "text/plain", "");
 }
+/* v31 transfer codes: a save travels between the web game and the app (different origins, so localStorage can't). 30-day files in DATA/saves. */
+const SAVE_CODE = /^EAT-[A-Z2-9]{4}-[A-Z2-9]{4}$/, saveFile = c => path.join(DATA, "saves", c + ".json");
+function newSaveCode() { const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; const p = () => Array.from(crypto.randomBytes(4)).map(b => A[b % A.length]).join(""); for (let i = 0; i < 20; i++) { const c = "EAT-" + p() + "-" + p(); if (!fs.existsSync(saveFile(c))) return c; } return null; }
+async function savePost(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 600000)); } catch { return send(req, res, 400, "application/json", JSON.stringify({ error: "That game is too big to move. Try again in a moment." })); }
+  if (!b || !b.save || typeof b.save !== "object" || !ID.test(String(b.installId))) return send(req, res, 400, "application/json", JSON.stringify({ error: "bad save" }));
+  const code = newSaveCode(); if (!code) return send(req, res, 503, "application/json", JSON.stringify({ error: "Try again" }));
+  writeJSON(saveFile(code), { code, installId: b.installId, at: new Date().toISOString(), save: b.save });
+  send(req, res, 200, "application/json", JSON.stringify({ code }));
+}
+function saveGet(req, res, url) {
+  const code = String(url.searchParams.get("code") || "").toUpperCase().replace(/^(EAT)?-?/, "EAT-");
+  if (!SAVE_CODE.test(code)) return send(req, res, 400, "application/json", JSON.stringify({ error: "That code doesn't look right. Codes look like EAT-7KQ2-M4PX." }));
+  let j; try { j = JSON.parse(fs.readFileSync(saveFile(code), "utf8")); } catch { return send(req, res, 404, "application/json", JSON.stringify({ error: "No game found for that code. Codes last 30 days." })); }
+  if (Date.now() - Date.parse(j.at) > 30 * 864e5) { try { fs.unlinkSync(saveFile(code)); } catch { } return send(req, res, 410, "application/json", JSON.stringify({ error: "That code has expired. Get a new one from the first device." })); }
+  send(req, res, 200, "application/json", JSON.stringify({ save: j.save }), { "cache-control": "no-store" });
+}
+setInterval(() => { try { for (const f of fs.readdirSync(path.join(DATA, "saves"))) { const p = path.join(DATA, "saves", f); if (Date.now() - fs.statSync(p).mtimeMs > 31 * 864e5) fs.unlinkSync(p); } } catch { } }, 6 * 3600e3);
 function boardGet(req, res, url) {
   const d = url.searchParams.get("day") || "", me = url.searchParams.get("me") || "";
   if (!DAY.test(d)) return send(req, res, 400, "application/json", "{}");
@@ -120,6 +140,16 @@ const IMG_STYLES = {
   modern: ["architect-designed contemporary home with timber cladding, floor-to-ceiling glass and a pool", "minimalist concrete and glass house cantilevered on a hillside with ocean views at golden hour", "luxury two-storey modern home with a stone facade and landscaped garden at dusk"],
   tower: ["luxury residential tower with glass balconies overlooking a harbour at dusk, penthouse lights on", "sleek high-rise apartment tower on a waterfront promenade at blue hour", "boutique luxury residential tower with sculpted balconies and a rooftop garden at sunset"],
 };
+/* v31 room photos for the swipe tour: one set per room, shared across house styles */
+const IMG_ROOM_BASE = "Photorealistic real-estate listing photo, interior, wide angle, bright natural light, styled for sale, invented home, no people, no text, no signage, no logos, no watermarks.";
+const IMG_ROOMS = {
+  living: ["open-plan living room with a linen sofa, timber floors and large windows onto a garden", "contemporary living room with a stone feature wall, low sofa and a view through sliding doors", "sunlit living room in a renovated cottage with a fireplace and white walls"],
+  kitchen: ["modern white kitchen with a stone island bench, pendant lights and timber stools", "country-style kitchen with shaker cabinets, a farmhouse sink and a window over the garden", "sleek dark kitchen with a long island, integrated appliances and a splashback window"],
+  bed: ["main bedroom with a king bed, soft linen, timber floors and a window seat", "coastal bedroom with white walls, a rattan bedhead and sheer curtains blowing", "luxury bedroom with a walk-in robe glimpse and city skyline through glass"],
+  yard: ["Australian backyard with a timber deck, lawn, a gum tree and an outdoor dining setting", "backyard with a swimming pool, sun loungers and tropical planting", "courtyard garden with raised veggie beds, a fire pit and string lights"],
+  lobby: ["apartment building lobby with marble floors, a concierge desk and warm lighting", "boutique apartment entry with timber panelling, planters and a glass door"],
+  view: ["apartment balcony with outdoor furniture overlooking a harbour at dusk", "penthouse terrace with a glass balustrade and a city skyline at golden hour"],
+};
 const GEN = { running: false, done: 0, failed: 0, total: 0, errors: [], startedAt: null, finishedAt: null };
 const imgManifestFile = path.join(IMG_DIR, "manifest.json");
 const readImgManifest = () => { try { return JSON.parse(fs.readFileSync(imgManifestFile, "utf8")); } catch { return {}; } };
@@ -138,14 +168,27 @@ async function genImages(per) {
   for (const [style, variants] of Object.entries(IMG_STYLES)) {
     man[style] = man[style] || [];
     for (let i = 0; i < per; i++) {
+      if (man[style].length >= per) break;
       const file = `${style}-${Date.now().toString(36)}-${i}.webp`;
       try {
         fs.writeFileSync(path.join(IMG_DIR, file), await genOne(`${IMG_BASE} Subject: ${variants[(man[style].length + i) % variants.length]}.`));
-        man[style].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++;
-      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); if (GEN.failed >= 5 && GEN.done === 0) { GEN.running = false; GEN.finishedAt = new Date().toISOString(); return; } }
+        man[style].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; console.log(`IMG ${style} ${man[style].length}/${per}`);
+      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); console.log("IMG fail " + style + " " + String(e.message || e).slice(0, 120)); if (GEN.failed >= 5 && GEN.done === 0) { GEN.running = false; GEN.finishedAt = new Date().toISOString(); return; } }
     }
   }
-  GEN.running = false; GEN.finishedAt = new Date().toISOString();
+  const roomPer = Math.max(2, Math.round(per / 2));
+  for (const [room, variants] of Object.entries(IMG_ROOMS)) {
+    const key = "room-" + room; man[key] = man[key] || [];
+    for (let i = 0; i < roomPer; i++) {
+      if (man[key].length >= roomPer) break;
+      const file = `${key}-${Date.now().toString(36)}-${i}.webp`;
+      try {
+        fs.writeFileSync(path.join(IMG_DIR, file), await genOne(`${IMG_ROOM_BASE} Subject: ${variants[(man[key].length + i) % variants.length]}.`));
+        man[key].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; console.log(`IMG ${key} ${man[key].length}/${roomPer}`);
+      } catch (e) { GEN.failed++; GEN.errors.push(String(e.message || e).slice(0, 200)); console.log("IMG fail " + key + " " + String(e.message || e).slice(0, 120)); }
+    }
+  }
+  GEN.running = false; GEN.finishedAt = new Date().toISOString(); console.log(`IMG done ${GEN.done} ok, ${GEN.failed} failed`);
 }
 function serveImg(req, res, url) {
   if (url.pathname === "/img/manifest.json") {
@@ -155,7 +198,7 @@ function serveImg(req, res, url) {
     return send(req, res, 200, "application/json", JSON.stringify(base), { "cache-control": "no-cache" }), true;
   }
   const name = path.basename(url.pathname);
-  if (!/^[a-z]+-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
+  if (!/^[a-z]+(-[a-z]+)?-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
   const f = path.join(IMG_DIR, name);
   if (!fs.existsSync(f)) return false;
   res.writeHead(200, { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff" });
@@ -307,6 +350,7 @@ http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
+    if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
     if (url.pathname === "/admin/gen-images") {
@@ -355,4 +399,6 @@ function logDigest() {
     const drip = () => { out.splice(0, 40).forEach(l => console.log(l)); if (out.length) setTimeout(drip, 200); }; drip();
   } catch (e) { console.log("DG error " + e.message); }
 }
-setTimeout(logDigest, 8000); setInterval(logDigest, 30 * 60e3);
+setTimeout(logDigest, 8000);
+/* photos: with OPENAI_API_KEY set, fill the set on boot (6 exteriors per style, 3 per room); re-runs only for what is missing */
+if (OPENAI_KEY) setTimeout(() => { const m = readImgManifest(), want = Object.keys(IMG_STYLES).length * 6 + Object.keys(IMG_ROOMS).length * 3, have = Object.values(m).reduce((a, v) => a + v.length, 0); console.log(`IMG key set, ${have}/${want} photos on the volume`); if (have < want) genImages(6); }, 15000); setInterval(logDigest, 30 * 60e3);
