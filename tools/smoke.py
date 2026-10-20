@@ -117,7 +117,7 @@ with sync_playwright() as p:
     props[0].update(land=700, value=585e3, paid=560e3)
     props[1].update(loan=150000)
     props[2].update(land=650, value=300e3, paid=290e3)  # duplex candidate  # first card: room for a pool, close to the Family line
-    seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=4, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1, slotsBought=4)
+    seed = dict(days=[yday], cash=500000, props=props, wins=20, rules=4, tour=1, nextId=21, streak=4, lastDay=yday, freezes=1, saved=time.time() * 1000, mktUnlocked=1, slotsBought=1)
     pg = page(b, "light", seed)
     pg.wait_for_timeout(1500)
     print("today's lot tag:", pg.is_visible("#art .daily"))
