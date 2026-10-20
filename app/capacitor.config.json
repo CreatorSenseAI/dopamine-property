@@ -1,6 +1,6 @@
 {
-  "appId": "com.creatorsenseai.eat",
-  "appName": "Empire Auction Tycoon",
+  "appId": "com.creatorsenseai.auctionempires",
+  "appName": "Auction Empires",
   "webDir": "www",
   "server": { "androidScheme": "https", "iosScheme": "capacitor" },
   "plugins": {

@@ -1,4 +1,4 @@
-# Empire Auction Tycoon: native app (V2)
+# Auction Empires: native app (V2)
 
 The app is the same game as the web (`public/index.html`) inside a Capacitor shell, plus a small native bridge (`src/bridge.js`).
 

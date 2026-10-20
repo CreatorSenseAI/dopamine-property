@@ -1,4 +1,4 @@
-// Empire Auction Tycoon (EAT): zero-dependency server for Railway (or any Node 18+ host).
+// Auction Empires: zero-dependency server for Railway (or any Node 18+ host).
 // - serves public/ with gzip and sensible caching, /healthz for the health check
 // - POST /api/play  receives anonymous play logs from the game (random install id, no personal data, no IPs stored)
 // - GET  /admin     play-stats dashboard, protected by the ADMIN_KEY env var (404 when unset)
@@ -213,7 +213,7 @@ async function genImages(perE, perR) {
   const targets = imgTargets(perE, perR), man = readImgManifest();
   const todo = []; for (const [k, n] of Object.entries(targets)) { man[k] = man[k] || []; for (let i = man[k].length; i < n; i++) todo.push({ k, i }); }
   todo.sort((a, b) => a.i - b.i || (a.k < b.k ? -1 : 1));
-  Object.assign(GEN, { running: true, done: 0, failed: 0, total: todo.length, errors: [], startedAt: new Date().toISOString(), finishedAt: null, stop: false });
+  Object.assign(GEN, { running: true, done: 0, failed: 0, total: todo.length, errors: [], startedAt: new Date().toISOString(), finishedAt: null, stop: false, reason: null });
   console.log(`IMG filling ${todo.length} photos into ${Object.keys(targets).length} buckets (${perE}/exterior bucket, ${perR}/room bucket, ${IMG_PARALLEL} at a time)`);
   let streak = 0, seq = 0;
   const worker = async () => {
@@ -226,11 +226,13 @@ async function genImages(perE, perR) {
         man[k].push("img/" + file); writeJSON(imgManifestFile, man); GEN.done++; streak = 0;
         if (GEN.done % 10 === 1 || GEN.done === GEN.total) console.log(`IMG ${GEN.done}/${GEN.total} (${k} ${man[k].length}/${targets[k]}, ${imgCount(man)} on the volume)`);
       } catch (e) {
-        GEN.failed++; streak++; const msg = String(e.message || e).slice(0, 160); GEN.errors.push(msg); if (GEN.errors.length > 20) GEN.errors.shift();
+        GEN.failed++; streak++; const msg = String(e.message || e).replace(/\s+/g, " ").slice(0, 200); GEN.errors.push(msg); if (GEN.errors.length > 20) GEN.errors.shift();
         console.log("IMG fail " + k + " " + msg);
+        if (/no credits|insufficient_quota|billing|exceeded your current quota/i.test(msg)) { if (!GEN.stop) console.log("IMG stopped: the OpenAI account has no credits. Top up at platform.openai.com/settings/organization/billing; photos resume on the next deploy or /admin/gen-images?go=1"); GEN.stop = true; GEN.reason = "no credits"; break; }
+        if (e.status === 401 || e.status === 403) { if (!GEN.stop) console.log("IMG stopped: OpenAI rejected the key (" + e.status + ")"); GEN.stop = true; GEN.reason = "bad key"; break; }
         if (e.status === 429 || (e.status >= 500)) await new Promise(r => setTimeout(r, 20000 * Math.min(6, streak)));
-        if (streak >= 10 && GEN.done === 0) { GEN.stop = true; console.log("IMG stopped: 10 failures in a row (check the key, billing or model name)"); }
-        else if (streak >= 30) { GEN.stop = true; console.log("IMG stopped: 30 failures in a row"); }
+        if (streak >= 10 && GEN.done === 0) { GEN.stop = true; GEN.reason = "10 failures"; console.log("IMG stopped: 10 failures in a row (check the key, billing or model name)"); }
+        else if (streak >= 30) { GEN.stop = true; GEN.reason = "30 failures"; console.log("IMG stopped: 30 failures in a row"); }
       }
     }
   };
@@ -332,7 +334,7 @@ function adminPage(k) {
   const tile = (label, value, note) => `<div class="t"><small>${esc(label)}</small><b>${esc(value ?? "–")}</b>${note ? `<em>${esc(note)}</em>` : ""}</div>`;
   const max = Math.max(1, ...s.dau.map(d => d[1]));
   const tabs = s.tabSec, tabTotal = Math.max(1, tabs[0] + tabs[1] + tabs[2]);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Empire Auction Tycoon stats</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Auction Empires stats</title>
 <style>:root{--bg:#0c1220;--s:#151e31;--ink:#eef2f8;--mu:#97a3b9;--line:#29354f;--g:#3fd08f;--r:#ff4b61;--y:#f2bb45}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,sans-serif;padding:16px;max-width:960px;margin:auto}
 h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:22px 0 8px}
@@ -341,7 +343,7 @@ h1{font-size:20px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.1em;text-tran
 .bars{display:flex;align-items:flex-end;gap:4px;height:120px;background:var(--s);border:1px solid var(--line);border-radius:10px;padding:10px}
 .bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}.bars i{display:block;width:100%;background:var(--y);border-radius:3px 3px 0 0}.bars span{font-size:10px;color:var(--mu)}
 a{color:var(--y)}p{color:var(--mu)}</style></head><body>
-<h1>Empire Auction Tycoon: play stats</h1><p>${s.players} players · ${s.sessions} sessions · refreshed every 30s · <a href="/admin/export.json?key=${encodeURIComponent(k)}">export JSON</a></p>
+<h1>Auction Empires: play stats</h1><p>${s.players} players · ${s.sessions} sessions · refreshed every 30s · <a href="/admin/export.json?key=${encodeURIComponent(k)}">export JSON</a></p>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
@@ -437,7 +439,7 @@ http.createServer(async (req, res) => {
     console.error(e);
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
-}).listen(PORT, () => console.log(`Empire Auction Tycoon on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+}).listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
 
 /* play logs straight into the Railway service log (read with the Railway logs tool, filter "DG"; no admin key needed):
    the last 24h at boot, then new sessions every 30 min */

@@ -1,4 +1,4 @@
-// Empire Auction Tycoon: friends, groups, duels, Auction Night boards and push tokens.
+// Auction Empires: friends, groups, duels, Auction Night boards and push tokens.
 // Plain JSON files under DATA_DIR, no dependencies. Every player is an anonymous install id + a nickname.
 const fs = require("fs");
 const path = require("path");

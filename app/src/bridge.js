@@ -1,4 +1,4 @@
-/* Native bridge for Empire Auction Tycoon.
+/* Native bridge for Auction Empires.
    - window.DPStore: the in-app purchase contract the game expects (see README): available, products, buy, owned, restore.
      Backed by RevenueCat (one SDK for App Store + Google Play). Set your public API keys below.
    - navigator.vibrate → Capacitor Haptics, so the game's haptic patterns work on iOS too.

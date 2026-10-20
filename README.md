@@ -1,4 +1,4 @@
-# Empire Auction Tycoon (EAT)
+# Auction Empires
 
 Formerly "Dopamine Property" (the repo, Railway project and save key keep the old name).
 
