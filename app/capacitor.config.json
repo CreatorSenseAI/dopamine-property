@@ -1,9 +1,0 @@
-{
-  "appId": "com.creatorsenseai.auctionempires",
-  "appName": "Auction Empires",
-  "webDir": "www",
-  "server": { "androidScheme": "https", "iosScheme": "capacitor" },
-  "plugins": {
-    "PushNotifications": { "presentationOptions": ["badge", "sound", "alert"] }
-  }
-}

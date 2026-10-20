@@ -56,7 +56,7 @@ const CONFIG={
 
 The web game sells nothing. Purchases switch on only inside the native iOS/Android app, through Apple's App Store and Google Play billing (no Stripe, no web checkout).
 
-The app wrapper (planned: Capacitor + RevenueCat) must put this object on `window` before the game loads:
+The app wrapper (`app/`, Expo + RevenueCat, built on EAS) puts this object on `window` before the game loads:
 
 ```js
 window.DPStore = {

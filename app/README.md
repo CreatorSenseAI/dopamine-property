@@ -1,31 +1,27 @@
-# Auction Empires: native app (V2)
+# Auction Empires: native app (Expo)
 
-The app is the same game as the web (`public/index.html`) inside a Capacitor shell, plus a small native bridge (`src/bridge.js`).
+One Expo app for iOS and Android. It loads the live game (`extra.gameUrl` in `app.json`, the Railway site) in a WebView and adds what the web can't do: in-app purchases through RevenueCat, push tokens for APNs/FCM, haptics, native share of cards and win clips, the store rating sheet, and deep links. The game itself never ships inside the binary, so game updates never need an app release.
 
-## Build
-Needs Node 20+, Xcode (iOS, on a Mac) and Android Studio.
+## Build in the cloud (no Mac needed)
+Builds run on EAS. Once, on expo.dev: create a project (slug `auction-empires`), link the GitHub repo `CreatorSenseAI/dopamine-property` (base directory `app`), and put the project id into `app.json` → `extra.eas.projectId`. Then:
 
 ```
 cd app
-npm install
-npx cap add ios        # first time only
-npx cap add android    # first time only
-npm run ios            # copies the game into www/, syncs, opens Xcode
-npm run android        # same for Android Studio
+npx expo install --fix          # pins every package to the SDK (run once in a sandbox or locally, commit package.json)
+eas build -p android --profile preview    # APK for your phone, no store account needed
+eas build -p ios --profile preview        # iOS simulator build (EAS cloud simulator can run it)
+eas build -p ios --profile device         # needs the Apple Developer account; EAS makes the certificates
+eas build --profile production            # store builds; eas submit sends them
 ```
 
-`npm run build` copies `../public/index.html` into `www/` and injects, before the game script:
-- `window.EAT_API` = the Railway server (override with `EAT_API=https://… npm run build`), used for play stats, the showdown board, groups and photos;
-- `capacitor.js` and `bridge.js`.
+Claude can trigger the same builds, run them on an EAS cloud simulator, and submit them, from the Expo MCP.
 
-## What the bridge does
-- **In-app purchases** via RevenueCat (`@revenuecat/purchases-capacitor`). Put your public keys in `RC_KEYS` in `src/bridge.js`. Product ids must match the game's `IAP` catalogue (`remove_ads`, `regos_10`, `cash_small`, `cash_large`, `rescue`, `rate_lock`, `finish_works`, plus the cosmetics and season pass listed in the main README). Without keys the shop stays hidden, same as the web.
-- **Haptics**: `navigator.vibrate` is mapped to Capacitor Haptics, so the game's patterns (bid tap, outbid double tap, final-call heartbeat, gavel thud) work on iPhone too.
-- **Push**: asks permission, registers, and POSTs `{installId, token, platform}` to `/api/push`. The server stores tokens; sending needs APNs/FCM credentials (see main README).
-- **Deep links**: `https://<your domain>/join/CODE` and `eat://join/CODE` open the group join sheet. Set up Universal Links (apple-app-site-association) and Android App Links (assetlinks.json) on the domain; the server already serves `/join/CODE` as a web fallback.
+## Keys to add (all optional until you have them)
+- `extra.rcKeys.ios` / `.android` in `app.json`: RevenueCat public keys. Without them the shop stays a preview, same as the web.
+- Android push: a Firebase project's `google-services.json` in `app/` and `"android": {"googleServicesFile": "./google-services.json"}` in `app.json`. iOS push needs only the APNs key on the server (`APNS_*`); EAS sets the push capability.
+- Universal links: `associatedDomains` and the Android `intentFilters` in `app.json` point at the Railway host. When the real domain lands, change them and serve `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` from `server.js` (needs the Apple team id and the Android signing cert fingerprint from EAS credentials).
 
-## Store checklist
-- App Store Connect + Play Console listings, age rating (no real-money gambling; nothing random is sold).
-- Create the IAP products, then the RevenueCat offerings.
-- APNs key + Firebase project for push.
-- Privacy: anonymous install id only; no personal data collected.
+## The contract with the game (see the main README)
+`App.js` injects `window.DPStore` (`available`, `products`, `buy`, `owned`, `restore`, `review`), `window.EAT_API` (the server), replaces `navigator.vibrate` with haptics and `navigator.share` with the native sheet (files included), and posts `{installId, token, platform, tzo}` to `/api/push` after the game reports its install id. `window.EAT_JOIN(code)` is called for `/join/CODE` links and notification taps carrying `{join}`.
+
+Product ids in App Store Connect, Play Console and RevenueCat must match the game's `IAP` catalogue: `remove_ads`, `regos_10`, `slots_10`, `market_5`, `cash_1`…`cash_8`, `season_pass`, `cosmetic_pack`, `city_pass`, `finish_works`, `double_back`.

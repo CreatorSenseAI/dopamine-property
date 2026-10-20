@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Auction Empires",
+    "slug": "auction-empires",
+    "scheme": "auctionempires",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0b1324",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "cover", "backgroundColor": "#0b1324" },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "bundleIdentifier": "com.creatorsenseai.auctionempires",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
+      },
+      "associatedDomains": ["applinks:game-production-ee8e.up.railway.app"]
+    },
+    "android": {
+      "package": "com.creatorsenseai.auctionempires",
+      "versionCode": 1,
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#13203a" },
+      "permissions": ["VIBRATE", "com.android.vending.BILLING"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "game-production-ee8e.up.railway.app", "pathPrefix": "/join" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      ["expo-notifications", { "color": "#f2c14e" }],
+      "expo-web-browser"
+    ],
+    "extra": {
+      "gameUrl": "https://game-production-ee8e.up.railway.app",
+      "rcKeys": { "ios": "", "android": "" },
+      "eas": { "projectId": "" }
+    }
+  }
+}

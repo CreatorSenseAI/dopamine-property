@@ -1,0 +1,192 @@
+/* Auction Empires native app: an Expo shell that loads the live game in a WebView and gives it what the web can't do:
+   in-app purchases (RevenueCat), push tokens (APNs/FCM, sent to /api/push), haptics, native share of cards and clips,
+   the store rating sheet, and deep links (https://<host>/join/CODE, auctionempires://join/CODE).
+   The game talks to this file through window.DPStore and a few hooks; the contract is in the main README. */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, Platform, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { WebView } from 'react-native-webview';
+import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as StoreReview from 'expo-store-review';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Purchases from 'react-native-purchases';
+
+const EXTRA = (Constants.expoConfig && Constants.expoConfig.extra) || {};
+const GAME_URL = EXTRA.gameUrl || 'https://game-production-ee8e.up.railway.app';
+const GAME_HOST = new URL(GAME_URL).host;
+const RC_KEY = (EXTRA.rcKeys || {})[Platform.OS] || '';
+const NON_CONSUMABLE = ['remove_ads', 'cosmetic_pack'];
+
+Notifications.setNotificationHandler({ handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: false, shouldShowBanner: true, shouldShowList: true }) });
+
+/* Runs inside the page before the game script. Everything the game calls resolves through postMessage round trips. */
+const BRIDGE = `(function(){
+ if(window.DPStore)return;
+ var seq=0,pend={};
+ function rpc(k,a){return new Promise(function(res,rej){var id=++seq;pend[id]={res:res,rej:rej};window.ReactNativeWebView.postMessage(JSON.stringify({id:id,k:k,a:a||{}}));setTimeout(function(){if(pend[id]){pend[id].rej(new Error('timeout'));delete pend[id];}},90000);});}
+ function post(k,a){try{window.ReactNativeWebView.postMessage(JSON.stringify({k:k,a:a||{}}));}catch(e){}}
+ window.__dpResolve=function(id,ok,v){var p=pend[id];if(!p)return;delete pend[id];if(ok)p.res(v);else p.rej(new Error(v||'bridge'));};
+ window.EAT_API=${JSON.stringify(GAME_URL)};
+ window.EAT_NATIVE={platform:${JSON.stringify(Platform.OS)}};
+ window.DPStore={available:function(){return rpc('available');},products:function(ids){return rpc('products',{ids:ids});},buy:function(id){return rpc('buy',{id:id});},owned:function(){return rpc('owned');},restore:function(){return rpc('restore');},review:function(){post('review');}};
+ navigator.vibrate=function(p){post('haptic',{p:p});return true;};
+ navigator.canShare=function(){return true;};
+ navigator.share=function(d){d=d||{};var f=d.files&&d.files[0];if(!f)return rpc('share',{text:d.text||'',url:d.url||''});
+  return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){rpc('share',{text:d.text||'',url:d.url||'',name:f.name||'share.png',type:f.type||'image/png',dataUrl:r.result}).then(res,rej);};r.onerror=function(){rej(new Error('read'));};r.readAsDataURL(f);});};
+ function ready(){var id=null;try{id=localStorage.getItem('dp-install');}catch(e){}post('ready',{installId:id,tzo:-new Date().getTimezoneOffset()});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();true;`;
+
+const hapticFor = (p) => {
+  const arr = Array.isArray(p) ? p : [p]; const on = arr.filter((_, i) => i % 2 === 0); const strongest = Math.max(0, ...on);
+  if (on.length >= 4) return Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  if (strongest >= 60) return Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  if (strongest >= 30) return Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  return Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+};
+
+export default function App() {
+  const web = useRef(null);
+  const installId = useRef(null);
+  const rcReady = useRef(null);
+  const [failed, setFailed] = useState(false);
+  const [nonce, setNonce] = useState(0);
+
+  const run = useCallback((js) => { if (web.current) web.current.injectJavaScript(js + ';true;'); }, []);
+  const resolve = useCallback((id, ok, value) => { if (id != null) run(`window.__dpResolve(${id},${ok ? 'true' : 'false'},${JSON.stringify(value === undefined ? null : value)})`); }, [run]);
+
+  const initPurchases = useCallback(async () => {
+    if (rcReady.current) return rcReady.current;
+    rcReady.current = (async () => {
+      if (!RC_KEY) return false;
+      try { Purchases.configure({ apiKey: RC_KEY, appUserID: installId.current || undefined }); return true; } catch (e) { return false; }
+    })();
+    return rcReady.current;
+  }, []);
+
+  const owned = useCallback(async () => {
+    const ci = await Purchases.getCustomerInfo();
+    const ids = new Set(Object.keys((ci.entitlements && ci.entitlements.active) || {}));
+    for (const id of ci.allPurchasedProductIdentifiers || []) if (NON_CONSUMABLE.includes(id)) ids.add(id);
+    return Array.from(ids);
+  }, []);
+
+  const registerPush = useCallback(async () => {
+    try {
+      if (!Device.isDevice) return;
+      let { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted') ({ status } = await Notifications.requestPermissionsAsync());
+      if (status !== 'granted') return;
+      if (Platform.OS === 'android') await Notifications.setNotificationChannelAsync('default', { name: 'Auctions', importance: Notifications.AndroidImportance.DEFAULT, lightColor: '#f2c14e' });
+      const tok = await Notifications.getDevicePushTokenAsync();
+      if (!tok || !tok.data || !installId.current) return;
+      await fetch(GAME_URL + '/api/push', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ installId: installId.current, token: String(tok.data), platform: Platform.OS, tzo: -new Date().getTimezoneOffset() }) });
+    } catch (e) { /* no push, no problem */ }
+  }, []);
+
+  const onMessage = useCallback(async (ev) => {
+    let m; try { m = JSON.parse(ev.nativeEvent.data); } catch (e) { return; }
+    const { id, k, a } = m;
+    try {
+      if (k === 'ready') { installId.current = a.installId || installId.current; registerPush(); return; }
+      if (k === 'haptic') { hapticFor(a.p).catch(() => {}); return; }
+      if (k === 'review') { if (await StoreReview.hasAction()) StoreReview.requestReview(); return; }
+      if (k === 'available') return resolve(id, true, await initPurchases());
+      if (k === 'products') { const list = await Purchases.getProducts(a.ids || []); return resolve(id, true, list.map(p => ({ id: p.identifier, price: p.priceString }))); }
+      if (k === 'buy') {
+        try { const list = await Purchases.getProducts([a.id]); const prod = list[0]; if (!prod) return resolve(id, true, { ok: false });
+          await Purchases.purchaseStoreProduct(prod); return resolve(id, true, { ok: true }); }
+        catch (e) { return resolve(id, true, { ok: false, cancelled: !!(e && e.userCancelled) }); }
+      }
+      if (k === 'owned') return resolve(id, true, await owned());
+      if (k === 'restore') { await Purchases.restorePurchases(); return resolve(id, true, await owned()); }
+      if (k === 'share') {
+        if (a.dataUrl) {
+          const base64 = a.dataUrl.split(',')[1] || '', ext = /mp4|webm/.test(a.type || '') ? (a.type.includes('webm') ? 'webm' : 'mp4') : 'png';
+          const uri = FileSystem.cacheDirectory + 'share-' + Date.now() + '.' + ext;
+          await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+          if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: a.type || 'image/png', dialogTitle: 'Auction Empires', UTI: ext === 'png' ? 'public.png' : 'public.movie' });
+          else await Share.share({ message: [a.text, a.url].filter(Boolean).join(' ') });
+        } else await Share.share({ message: [a.text, a.url].filter(Boolean).join(' '), url: a.url || undefined });
+        return resolve(id, true, true);
+      }
+    } catch (e) { resolve(id, false, String(e && e.message || e)); }
+  }, [initPurchases, owned, registerPush, resolve]);
+
+  /* deep links: https://<host>/join/CODE, auctionempires://join/CODE, and notification taps carrying {join} */
+  const openJoin = useCallback((url) => { const m = /\/join\/([A-Z0-9-]+)/i.exec(url || ''); if (m) run(`window.EAT_JOIN&&window.EAT_JOIN(${JSON.stringify(m[1].toUpperCase())})`); }, [run]);
+  useEffect(() => {
+    Linking.getInitialURL().then(openJoin).catch(() => {});
+    const sub = Linking.addEventListener('url', e => openJoin(e.url));
+    const nsub = Notifications.addNotificationResponseReceivedListener(r => { const d = (r.notification.request.content.data || {}); if (d.join) openJoin('/join/' + d.join); });
+    const asub = AppState.addEventListener('change', s => { if (s === 'active') run('document.dispatchEvent(new Event("visibilitychange"))'); });
+    return () => { sub.remove(); nsub.remove(); asub.remove(); };
+  }, [openJoin, run]);
+
+  const onShouldStart = useCallback((req) => {
+    try { const u = new URL(req.url); if (u.host === GAME_HOST || u.protocol === 'about:' || u.protocol === 'blob:' || u.protocol === 'data:') return true; WebBrowser.openBrowserAsync(req.url).catch(() => Linking.openURL(req.url)); return false; }
+    catch (e) { return true; }
+  }, []);
+
+  if (failed) return (
+    <SafeAreaProvider><SafeAreaView style={styles.err}>
+      <Text style={styles.errH}>Auction Empires</Text>
+      <Text style={styles.errP}>The auction room needs the internet. Check your connection and try again.</Text>
+      <TouchableOpacity style={styles.btn} onPress={() => { setFailed(false); setNonce(n => n + 1); }}><Text style={styles.btnT}>Try again</Text></TouchableOpacity>
+    </SafeAreaView></SafeAreaProvider>
+  );
+
+  return (
+    <SafeAreaProvider>
+      <StatusBar style="light" backgroundColor="#13203a" />
+      <SafeAreaView style={styles.top} edges={['top']} />
+      <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
+        <WebView
+          key={nonce}
+          ref={web}
+          source={{ uri: GAME_URL + '/?app=' + Platform.OS }}
+          style={styles.web}
+          injectedJavaScriptBeforeContentLoaded={BRIDGE}
+          onMessage={onMessage}
+          onShouldStartLoadWithRequest={onShouldStart}
+          onError={() => setFailed(true)}
+          onHttpError={(e) => { if (e.nativeEvent.statusCode >= 500) setFailed(true); }}
+          originWhitelist={['https://*', 'about:*', 'blob:*', 'data:*']}
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          allowsBackForwardNavigationGestures={false}
+          setSupportMultipleWindows={false}
+          bounces={false}
+          overScrollMode="never"
+          textZoom={100}
+          domStorageEnabled
+          javaScriptEnabled
+          sharedCookiesEnabled
+          cacheEnabled
+          pullToRefreshEnabled={false}
+          allowsLinkPreview={false}
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  top: { backgroundColor: '#13203a' },
+  root: { flex: 1, backgroundColor: '#0b1324' },
+  web: { flex: 1, backgroundColor: '#0b1324' },
+  err: { flex: 1, backgroundColor: '#0b1324', alignItems: 'center', justifyContent: 'center', padding: 28 },
+  errH: { color: '#f2c14e', fontSize: 26, fontWeight: '800', marginBottom: 10 },
+  errP: { color: '#c7d0de', fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 22 },
+  btn: { backgroundColor: '#d7263d', paddingVertical: 12, paddingHorizontal: 26, borderRadius: 10 },
+  btnT: { color: '#fff', fontSize: 16, fontWeight: '800' },
+});
