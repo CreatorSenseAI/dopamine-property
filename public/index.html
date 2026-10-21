@@ -1510,7 +1510,7 @@ body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34
 @keyframes d3pop{from{scale:.3;opacity:0}to{scale:1;opacity:1}}
 .d3n{position:absolute;left:0;top:0;font:800 10.5px/1 var(--f-body);color:#fff;background:rgba(27,42,68,.55);padding:3px 6px;border-radius:8px;white-space:nowrap}
 .d3n.you{background:#2fb36f}
-.townbox{position:relative;height:min(58vh,560px);min-height:300px;border-radius:18px;overflow:hidden;background:#bfe0f4;touch-action:none;cursor:grab;margin-bottom:10px}
+.townbox{position:relative;height:clamp(240px,calc(100dvh - 410px),560px);border-radius:18px;overflow:hidden;background:#bfe0f4;touch-action:none;cursor:grab;margin-bottom:10px}
 .townbox:active{cursor:grabbing}
 .townbox .tempty{position:absolute;inset:auto 12px 12px;background:rgba(255,255,255,.9);color:#1b2a44;border-radius:12px;padding:10px 12px;font:700 13px/1.35 var(--f-body);z-index:2}
 .tlab{position:absolute;left:0;top:0;background:rgba(255,255,255,.92);color:#1b2a44;border-radius:10px;padding:4px 8px;text-align:center;box-shadow:0 2px 8px rgba(20,40,70,.18);white-space:nowrap}
