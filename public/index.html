@@ -1825,6 +1825,128 @@ body.d3full .tarp{display:none}
 
 .hood{list-style:none;padding:0;margin:0 0 10px;text-align:left}.hood li{display:flex;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:13px;align-items:baseline}.hood li b{width:16px;flex:none;text-align:center}.hood li.ok b{color:#17804f}.hood li.no{color:var(--muted)}
 .gfx .mr{width:100%;margin-bottom:6px}.gfx .mr.on{box-shadow:0 0 0 2px #f2c14e}
+
+/* v56 Maps: My town as a map in the phone (Google Maps layout, the game's glass and gold) */
+.pbody>#vEmpire.maptown{padding:0!important;overflow:hidden!important}
+#vEmpire.maptown .esel{display:none}
+#vEmpire.maptown .esec[data-s=town]{position:absolute;inset:0;gap:0}
+#vEmpire.maptown .townbox{height:100%;border-radius:0;margin:0;background:var(--msky,#e9eef1)}
+#vEmpire.maptown .townbar,#vEmpire.maptown .tempty{display:none!important}
+#vEmpire.maptown .tcap{top:122px}
+.townbox{--mh:0 0 2px var(--mhalo),0 0 2px var(--mhalo),0 0 3px var(--mhalo),0 0 1px var(--mhalo);--mtext:#5f6368;--mhalo:#fff;--msub:#2f3437;--mpark:#2c8a45;--mwater:#3779b0;--msky:#e9eef1}
+.townbox.m-night{--mtext:#9fabbb;--mhalo:#121a25;--msub:#e3e9f1;--mpark:#7cc596;--mwater:#7aa6d0;--msky:#111a26}
+.townbox.m-sat{--mtext:#fff;--mhalo:rgba(0,0,0,.8);--msub:#fff;--mpark:#d9f5c9;--mwater:#d4ebff;--msky:#a9bccb}
+.tov .ml{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;font-family:var(--f-body);text-shadow:var(--mh);will-change:transform;visibility:hidden}
+.ml.sub{text-align:center}.ml.sub b{display:block;font:800 13px/1.1 var(--f-body);color:var(--msub);letter-spacing:.01em}.ml.sub small{display:block;font:700 10px/1.25 var(--f-body);color:var(--mtext)}.ml.sub small.set{color:#a87a0a}.m-night .ml.sub small.set,.m-sat .ml.sub small.set{color:#f2c14e}
+.ml.st{font:600 10px/1 var(--f-body);color:var(--mtext);letter-spacing:.02em}.ml.st.maj{font-weight:800;color:#7a5a12}.m-night .ml.st.maj{color:#d7b46a}.ml.st.own{font-weight:800;color:var(--msub)}
+.ml.park{font:700 10.5px/1 var(--f-body);color:var(--mpark)}
+.ml.water{font:italic 600 12.5px/1 var(--f-body);color:var(--mwater);letter-spacing:.12em}
+.ml.haz{font:800 9.5px/1 var(--f-body);color:#fff;background:var(--hz);border-radius:9px;padding:4px 7px;text-shadow:none;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.mk{all:unset;position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;pointer-events:auto;cursor:pointer;will-change:transform;visibility:hidden;--rc:#8a94a6;-webkit-tap-highlight-color:transparent}
+.mk>i{width:22px;height:22px;border-radius:50%;background:var(--rc);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 2px #fff,0 2px 6px rgba(0,0,0,.35);flex:none;transition:transform .15s}
+.mk>i svg{width:13px;height:13px}
+.mk>span{display:flex;flex-direction:column;line-height:1.12;text-shadow:var(--mh);pointer-events:none}
+.mk b{font:800 11px var(--f-body);color:var(--msub)}.mk small{font:700 9.5px var(--f-body);color:var(--mtext)}
+.mk.notext>span{visibility:hidden}
+.mk.req>i{background:#e5484d;animation:mkpulse 1.6s ease-out infinite}.mk.wk>i{background:#e8890c}.mk.run>i{filter:saturate(.35) brightness(.9)}.mk.unr>i{background:#6b7686}
+.mk.dim{opacity:.32}.mk.dim>span{visibility:hidden}
+.mk.sel>i{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:translateY(-19px) rotate(-45deg);background:#ea4335;box-shadow:0 0 0 2px #fff,0 4px 10px rgba(0,0,0,.4)}.mk.sel>i svg{transform:rotate(45deg);width:15px;height:15px}
+.mk.sel>span{transform:translateY(-14px)}.mk.sel b{font-size:12px}
+.mk:focus-visible>i{outline:3px solid #1f63c2;outline-offset:2px}
+@keyframes mkpulse{0%{box-shadow:0 0 0 2px #fff,0 0 0 2px rgba(229,72,77,.6)}70%{box-shadow:0 0 0 2px #fff,0 0 0 12px rgba(229,72,77,0)}100%{box-shadow:0 0 0 2px #fff,0 0 0 2px rgba(229,72,77,0)}}
+.mk{z-index:2}.ml{z-index:1}
+.mydot{z-index:0;position:absolute;left:0;top:0;width:14px;height:14px;border-radius:50%;background:#1a73e8;box-shadow:0 0 0 3px #fff,0 1px 4px rgba(0,0,0,.4);pointer-events:none;visibility:hidden}
+.mydot::after{content:"";position:absolute;inset:-12px;border-radius:50%;background:rgba(26,115,232,.2);animation:mydot 2.4s ease-out infinite}
+@keyframes mydot{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.4);opacity:0}}
+.gm{position:absolute;inset:0;z-index:3;pointer-events:none;font-family:var(--f-body);--gg:color-mix(in srgb,var(--surface,#fff) 88%,transparent);--gb:rgba(255,255,255,.65);--gs:0 2px 10px rgba(16,28,48,.18),0 1px 2px rgba(16,28,48,.12)}
+.townbox.m-night .gm{--gg:color-mix(in srgb,#1b2330 90%,transparent);--gb:rgba(255,255,255,.1);--ink:#e8edf3;--muted:#9eaabb;--line:rgba(255,255,255,.12);--sunk:#273141;color:var(--ink)}
+.townbox.m-night .gsearch input{color:#e8edf3}.townbox.m-night .ga{color:#8ab4f8}
+.gm>*{pointer-events:auto}
+.gm button{-webkit-tap-highlight-color:transparent}
+.gm .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.gmtop{position:absolute;left:10px;right:10px;top:10px;pointer-events:none}.gmtop>*{pointer-events:auto}
+.gsearch{display:flex;align-items:center;gap:4px;height:46px;padding:0 5px 0 4px;border-radius:23px;background:var(--gg);backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);box-shadow:var(--gs),inset 0 0 0 1px var(--gb)}
+.gsearch button{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none}
+.gsearch button svg{width:21px;height:21px}
+.gsearch .gq{flex:1;min-width:0}
+.gsearch input{all:unset;width:100%;font:600 15px/1 var(--f-body);color:var(--ink);padding:8px 2px}
+.gsearch input::placeholder{color:var(--muted)}
+.gsearch input::-webkit-search-cancel-button{display:none}
+.gsearch .gav{width:32px;height:32px;margin-left:2px;background:var(--ac,#1f63c2);color:#fff;font:800 14px/32px var(--f-body);text-align:center;box-shadow:0 0 0 2px #f2c14e}
+.gsearch button:focus-visible,.gchip:focus-visible,.gfab:focus-visible,.ga:focus-visible,.gli:focus-visible,.gr:focus-visible{outline:3px solid #1f63c2;outline-offset:2px}
+.gres{margin-top:6px;border-radius:18px;background:var(--gg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--gs),inset 0 0 0 1px var(--gb);padding:6px;max-height:280px;overflow:auto}
+.gr,.gli{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:12px;min-width:0}
+.gr:hover,.gli:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.gr span,.gli span{display:flex;flex-direction:column;min-width:0}.gr b,.gli b{font:800 13.5px/1.2 var(--f-body);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gr small,.gli small{font:600 11.5px/1.3 var(--f-body);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gri{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--rc,#8a94a6) 16%,transparent);color:var(--rc,#8a94a6)}.gri svg{width:18px;height:18px}
+.gri.sub{--rc:#5f6368}.gri.set{--rc:#c9961f}
+.gnone{margin:8px;font:600 13px var(--f-body);color:var(--muted)}
+.gres:not([hidden])+.gchips{display:none}
+.gchips{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 4px}.gchips::-webkit-scrollbar{display:none}
+.gchip{all:unset;cursor:pointer;flex:none;display:flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border-radius:16px;background:var(--gg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--gs),inset 0 0 0 1px var(--gb);font:700 12.5px/1 var(--f-body);color:var(--ink)}
+.gchip i{width:8px;height:8px;border-radius:50%;background:var(--cc)}.gchip b{font:800 11px/1 var(--f-body);background:color-mix(in srgb,var(--cc) 18%,transparent);color:var(--cc);border-radius:8px;padding:3px 6px}
+.gchip.on{background:linear-gradient(180deg,#ffe089,#f2c14e);color:#3a2a00;box-shadow:var(--gs),inset 0 0 0 1px #c9961f}.gchip.on b{background:rgba(58,42,0,.14);color:#3a2a00}
+.gfabs{position:absolute;right:10px;top:142px;display:flex;flex-direction:column;gap:8px}
+.gfab{all:unset;box-sizing:border-box;cursor:pointer;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--gg);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--gs),inset 0 0 0 1px var(--gb);color:var(--ink)}
+.gfab svg{width:21px;height:21px}.gfab[hidden]{display:none}
+.g3d{font:800 13px/1 var(--f-body)}
+.gcmp span{width:26px;height:26px;display:grid;place-items:center}.gcmp i{width:8px;height:26px;background:linear-gradient(180deg,#ea4335 50%,#9aa0a6 50%);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);transition:transform .1s}
+.gloc{position:absolute;right:10px;bottom:150px;width:46px;height:46px;color:#1a73e8}
+.gfoot{position:absolute;left:10px;bottom:150px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none}
+.gscale{display:flex;align-items:center;gap:6px;font:700 10px/1 var(--f-body);color:var(--msub);text-shadow:var(--mh)}.gscale i{display:block;height:5px;border:2px solid var(--msub);border-top:0;box-shadow:0 1px 0 var(--mhalo);min-width:20px}
+.gmark{font:800 10px/1 var(--f-body);letter-spacing:.06em;color:var(--mtext);text-shadow:var(--mh);opacity:.85}
+.glegend{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:var(--gg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--gs);font:700 10.5px/1 var(--f-body);color:var(--ink)}.glegend b{font-weight:800}.glegend span{display:flex;align-items:center;gap:4px}.glegend i{width:14px;height:4px;border-radius:2px;background:var(--c)}.glegend[hidden]{display:none}
+.gsheet{position:absolute;left:0;right:0;bottom:0;border-radius:22px 22px 0 0;background:var(--gg);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 -4px 18px rgba(16,28,48,.18),inset 0 1px 0 var(--gb);max-height:62%;display:flex;flex-direction:column;transition:max-height .28s cubic-bezier(.2,.85,.2,1)}
+.gsheet[data-st=list]{max-height:56%}.gsheet[data-st=place]{max-height:47%}.gsheet[data-st=place].tall{max-height:78%}
+.ghandle{all:unset;cursor:grab;display:grid;place-items:center;height:22px;flex:none;touch-action:none}.ghandle i{width:38px;height:5px;border-radius:3px;background:color-mix(in srgb,var(--ink) 25%,transparent)}
+.gsbody{overflow:auto;padding:0 14px calc(14px + env(safe-area-inset-bottom,0px));min-height:0;overscroll-behavior:contain}
+.gpk{display:flex;align-items:center;gap:10px}.gpk.col{display:block}.gpk.col h3{margin-bottom:2px}.gpkh{flex:1;min-width:0}
+.gsheet h3{font:400 22px/1.05 var(--f-display);margin:0;color:var(--ink);letter-spacing:.01em;text-transform:none}
+.gsub{margin:3px 0 0;font:600 12.5px/1.35 var(--f-body);color:var(--muted)}
+.gfix{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:#e5484d;color:#fff;font:800 13px/1 var(--f-body);box-shadow:0 3px 8px rgba(229,72,77,.35);flex:none}.gfix svg{width:16px;height:16px}
+.gstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.gstats div{border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--ink) 5%,transparent)}.gstats small{display:block;font:700 10.5px/1.2 var(--f-body);color:var(--muted)}.gstats b{font:800 16px/1.2 var(--f-body);color:var(--ink);font-variant-numeric:tabular-nums}.gstats em{font-style:normal;font-weight:700;font-size:12px;color:var(--muted)}
+.gh{margin:14px 0 4px;font:800 12px/1 var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.glist{display:flex;flex-direction:column}
+.gset{font-style:normal;font:800 9.5px/1 var(--f-body);background:#f2c14e;color:#3a2a00;border-radius:6px;padding:2px 5px;margin-left:4px;vertical-align:2px}
+.gph{display:flex;align-items:flex-start;gap:8px}.gph .gt{flex:1;min-width:0}.gph h3{font-size:24px}
+.gx{all:unset;cursor:pointer;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink);flex:none}.gx svg{width:16px;height:16px}
+.grar{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0;align-items:center}.grar .rar{margin:0}
+.gtag,.grar .unr{font:800 10.5px/1 var(--f-body);padding:4px 8px;border-radius:8px;background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}.gtag.gold{background:#f2c14e;color:#3a2a00}
+.gacts{display:flex;gap:8px;margin:12px -14px 0;padding:0 14px 2px;overflow-x:auto;scrollbar-width:none}.gacts::-webkit-scrollbar{display:none}
+.ga{all:unset;cursor:pointer;flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px 0 11px;border-radius:18px;font:800 13px/1 var(--f-body);color:#1f63c2;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#1f63c2 35%,transparent)}
+.ga i{display:grid}.ga svg{width:17px;height:17px}
+.ga.pri{background:linear-gradient(180deg,#ffe089,#f2c14e);color:#3a2a00;box-shadow:0 2px 6px rgba(170,120,0,.3),inset 0 0 0 1px #c9961f}
+.townbox.m-night .ga{color:#8ab4f8;box-shadow:inset 0 0 0 1.5px rgba(138,180,248,.4)}.townbox.m-night .ga.pri{color:#3a2a00}
+.gnote{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,var(--nc) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--nc) 30%,transparent);--nc:#e5484d}
+.gnote.ask{--nc:#1f63c2}.gnote.wk{--nc:#e8890c}.gnote.run{--nc:#8a6d4b}
+.gnote span{flex:1;min-width:0;display:flex;flex-direction:column}.gnote b{font:800 13px/1.2 var(--f-body);color:var(--nc)}.gnote small{font:600 12px/1.3 var(--f-body);color:var(--ink)}
+.gnote button{all:unset;cursor:pointer;flex:none;height:34px;padding:0 13px;border-radius:17px;background:var(--nc);color:#fff;font:800 12.5px/34px var(--f-body)}
+.gpics{display:flex;gap:6px;margin:12px -14px 0;padding:0 14px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory}.gpics::-webkit-scrollbar{display:none}
+.gpic{flex:none;width:44%;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:var(--sunk);scroll-snap-align:start}.gpic:first-child{width:58%}
+.gpic img,.gpic svg{width:100%;height:100%;object-fit:cover;display:block}
+.grows{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;margin:12px 0 0}
+.grows div{padding:8px 0;border-bottom:1px solid var(--line);min-width:0}.grows dt{font:700 11px/1.2 var(--f-body);color:var(--muted)}.grows dd{margin:2px 0 0;font:800 14.5px/1.2 var(--f-body);color:var(--ink);font-variant-numeric:tabular-nums}
+.grows em{font-style:normal;font-size:11.5px}.grows .pos{color:#17804f}.grows .neg{color:#c21f35}
+.glay{position:absolute;left:8px;right:8px;bottom:8px;border-radius:22px;background:var(--gg);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 8px 30px rgba(16,28,48,.3),inset 0 0 0 1px var(--gb);padding:14px 14px 16px;z-index:5}
+.glay[hidden]{display:none}
+.glay h4{margin:0 0 10px;font:800 14px/1 var(--f-body);color:var(--ink)}.glay h4+.gdets,.gtypes+h4{margin-top:14px}
+.glh{display:flex;align-items:center;justify-content:space-between}.glh h4{margin:0}
+.gtypes,.gdets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.gty,.gdet{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font:700 12px/1.2 var(--f-body);color:var(--ink);min-width:0}
+.gty i{display:block;width:100%;aspect-ratio:1.25;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.gty.t-auto i{background:linear-gradient(90deg,transparent 46%,#fff 46% 54%,transparent 54%),linear-gradient(0deg,transparent 46%,#fcd779 46% 54%,transparent 54%),radial-gradient(circle at 75% 25%,#c4e6b1 20%,transparent 21%),#f1eee8}
+.gty.t-sat i{background:linear-gradient(90deg,transparent 47%,#8d8b84 47% 53%,transparent 53%),radial-gradient(circle at 30% 70%,#3d5a2c 22%,transparent 23%),radial-gradient(circle at 70% 30%,#6b7a4e 18%,transparent 19%),#56683f}
+.gty.t-night i{background:linear-gradient(90deg,transparent 46%,#3b4657 46% 54%,transparent 54%),linear-gradient(0deg,transparent 46%,#8a6c37 46% 54%,transparent 54%),radial-gradient(circle at 25% 25%,#ffc46b 4%,transparent 5%),radial-gradient(circle at 72% 70%,#ffc46b 4%,transparent 5%),#1c2531}
+.gty.on i{box-shadow:0 0 0 3px #f2c14e}.gty.on{color:#a87a0a}.townbox.m-night .gty.on{color:#f2c14e}
+.gdet i{width:52px;height:52px;border-radius:16px;background:color-mix(in srgb,var(--ink) 7%,transparent);display:block;position:relative}
+.gdet i::after{content:"";position:absolute;inset:14px;border-radius:4px}
+.gdet.d-rent i::after{background:linear-gradient(90deg,#1e9e4a 33%,#f29900 33% 66%,#d93025 66%);inset:23px 10px;border-radius:3px}
+.gdet.d-haz i::after{background:radial-gradient(circle,rgba(61,142,224,.5) 55%,#3d8ee0 56% 62%,transparent 63%);border-radius:50%;inset:10px}
+.gdet.d-lab i::after{background:linear-gradient(#5f6368,#5f6368) 50% 40%/70% 3px no-repeat,linear-gradient(#5f6368,#5f6368) 50% 65%/45% 3px no-repeat}
+.gdet{width:100%}.gdet b{font-weight:800}.gdet small{max-width:100%;white-space:normal;font:600 10px/1.25 var(--f-body);color:var(--muted)}
+.gdet.on i{background:color-mix(in srgb,#f2c14e 30%,transparent);box-shadow:0 0 0 2px #f2c14e}
+@media (prefers-reduced-motion:reduce){.mk.req>i,.mydot::after{animation:none}.gsheet{transition:none}}
 </style>
 </head>
 <body>
@@ -2109,7 +2231,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['d3off','gfx','av','looks','seenV','pm','pmOff','plv','dyRank','slotsBought','mktExtra','mkt','msn','onb','home','duelPend','duelW','arenaWon','revAt','src','fbDone','fbAsked','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['d3off','gfx','map','av','looks','seenV','pm','pmOff','plv','dyRank','slotsBought','mktExtra','mkt','msn','onb','home','duelPend','duelW','arenaWon','revAt','src','fbDone','fbAsked','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -3362,7 +3484,7 @@ setInterval(arenaPoll,500);setTimeout(wsArenaBoot,2000);
 function arenaUpdate(j){const b=$('#arenaBtn');if(!b)return;const lot=j.lot,on=A&&A.arena===j.id;
  if(j.phase==='lobby'){b.hidden=false;b.className='nightbtn';b.textContent='Live in '+Math.ceil(j.startsIn/1000)+'s';if(!ARN.noted[j.id]&&lot){ARN.noted[j.id]=1;ARN.want=false;sfx('ding');toast(`Live auction in ${Math.ceil(j.startsIn/1000)}s: ${lot.addr}, ${lot.sub}. Everyone online bids on it. Tap to be there when it opens.`,'up',()=>{ARN.want=true;toast('You are in. It swaps onto your screen when bidding opens.','up');});pushNews(`Live auction coming up: ${lot.addr}, ${lot.sub}`);}}
  else if(j.phase==='live'){b.hidden=false;b.className='nightbtn live';b.textContent='LIVE '+money(j.price||lot.open);
-  if(!ARN.noted[j.id+'l']){ARN.noted[j.id+'l']=1;const busy=A&&!A.ended&&!A.arena&&A.st.hand+A.st.auto+A.st.big>0;if(ARN.want||!busy)arenaFocus(j);else toast(`The live auction is open: ${lot.addr}. Tap Live to jump in.`,'up',()=>arenaFocus(ARN.st));}
+  if(!ARN.noted[j.id+'l']){ARN.noted[j.id+'l']=1;const busy=(A&&!A.ended&&!A.arena&&A.st.hand+A.st.auto+A.st.big>0)||view!=='a'||!!document.querySelector('#phone.open');/* v56: never yank someone out of the phone (the map, the shop window) */if(ARN.want||!busy)arenaFocus(j);else toast(`The live auction is open: ${lot.addr}. Tap Live to jump in.`,'up',()=>arenaFocus(ARN.st));}
   if(on)arenaSync(A,j);}
  else{b.hidden=!(j.phase==='none'&&j.nextIn<60e3);if(!b.hidden){b.className='nightbtn';b.textContent='Live '+Math.ceil(j.nextIn/1000)+'s';}
   if(j.phase==='done'){if(on&&!A.ended)arenaSync(A,j);for(const x of LIVE)if(x.arena===j.id&&!x.ended){x.ended=true;x.dead=true;}if(!ARN.noted[j.id+'d']){ARN.noted[j.id+'d']=1;arenaResult(j,on);}}}}
@@ -3473,7 +3595,90 @@ function eSub(k){const se=season();return{town:`${S.props.length} homes on the m
 function eSel(){const name=(ESECS.find(x=>x[0]===eSec)||ESECS[0])[1];$('#eSecName').textContent=name;}
 function eSecSheet(){$('#sheet').innerHTML=`<div class="shop esecs"><h3>Empire</h3>${EGRP.map(([g,ks])=>`<div class="shcat"><h4>${g}</h4><div class="mgrid">${ks.map(k=>`<button class="mt${k===eSec?' on':''}" data-sec="${k}">${mico(k)}<b>${esc(ESECS.find(x=>x[0]===k)[1])}</b><small>${esc(eSub(k))}</small></button>`).join('')}</div></div>`).join('')}</div>`;$('#modal').hidden=false;
  $('#sheet').querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;eGo(b.dataset.sec);});}
-function eGo(k,quiet){try{D3.townOn(k==='town');}catch(e){}if(k==='town')setTimeout(drawTownBar,0);if(k==='rich')richSync(true);if(k==='alb')setTimeout(renderAlbum,0);if(k==='sea')setTimeout(renderSeason,0);if(k==='tro')setTimeout(renderTrophies,0);if(k==='world')setTimeout(()=>{$('#worldBox').innerHTML=worldRows(false);},0);if(k==='fr')setTimeout(()=>renderFriends(),0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov'||k==='town');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+function eGo(k,quiet){try{D3.townOn(k==='town');}catch(e){}$('#vEmpire').classList.toggle('maptown',k==='town'&&inMapPhone());if(k==='town')setTimeout(()=>{drawTownBar();mapUI();},0);if(k==='rich')richSync(true);if(k==='alb')setTimeout(renderAlbum,0);if(k==='sea')setTimeout(renderSeason,0);if(k==='tro')setTimeout(renderTrophies,0);if(k==='world')setTimeout(()=>{$('#worldBox').innerHTML=worldRows(false);},0);if(k==='fr')setTimeout(()=>renderFriends(),0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov'||k==='town');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+/* ---------- v56 Maps: My town laid out like Google Maps in the game's glass and gold. Search, category chips, layers, compass, 2D/3D,
+   a bottom sheet that peeks with your numbers, lists your suburbs and becomes the place card for a home ---------- */
+function mapCfg(){if(!S.map||typeof S.map!=='object')S.map={type:'auto',tilt:1,rent:0,haz:0,lab:1};return S.map;}
+const GMI={grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+ search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg>',
+ layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
+ loc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+ card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 15h7M8.5 18h4"/><path d="m9 10 3-3 3 3"/></svg>',
+ tour:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7h4l2-3h6l2 3h4v13H3z"/><circle cx="12" cy="13" r="4"/></svg>',
+ up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5 11l7-7 7 7"/></svg>',
+ sell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>',
+ share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg>',
+ fix:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>',
+ pin:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>',
+ sub:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 21V10l5-3 5 3v11M13 21V6l4-2 4 2v15M3 21h18"/></svg>'};
+let GM={st:'peek',sel:null,chip:null,q:''};
+const GCH=[['req','Repairs',p=>p.req&&!p.req.ask,'#e5484d'],['ask','Tenant asks',p=>p.req&&p.req.ask,'#1f63c2'],['works','Works',p=>!!(p.works||p.build),'#e8890c'],['sets','Sets',p=>(sets().sub[p.sub]||0)>=SET_N,'#c9961f'],['rare','Epic and up',p=>(p.rarity||0)>=3,'#8b45d6'],['run','Run down',p=>p.left||(p.rd||0)>.02,'#8a6d4b']];
+function inMapPhone(){const v=$('#vEmpire');return !!(v&&v.parentNode&&v.parentNode.id==='phBody');}
+function mapUI(){const box=$('#townBox');if(!box)return;$('#vEmpire').classList.toggle('maptown',inMapPhone());if(!inMapPhone())return;let g=$('#gm');
+ if(!g){g=document.createElement('div');g.className='gm';g.id='gm';
+  g.innerHTML=`<div class="gmtop" id="gmTop"><div class="gsearch"><button class="gsec" id="gmSec" aria-label="Empire sections">${GMI.grid}</button><label class="gq"><span class="sr">Search your homes</span><input id="gmQ" type="search" enterkeyhint="search" placeholder="Search your homes" autocomplete="off"></label><button class="gclr" id="gmClr" aria-label="Clear search" hidden>${GMI.x}</button><button class="gav" id="gmAv" aria-label="Your look"></button></div><div class="gres" id="gmRes" hidden role="listbox" aria-label="Search results"></div><div class="gchips" id="gmChips"></div></div>
+   <div class="gfabs" id="gmFabs"><button class="gfab" id="gmLay" aria-label="Map layers">${GMI.layers}</button><button class="gfab gcmp" id="gmCmp" aria-label="Face north" hidden><span><i></i></span></button><button class="gfab g3d" id="gm3d" aria-label="Switch 2D and 3D"></button></div>
+   <button class="gfab gloc" id="gmLoc" aria-label="Show all your homes">${GMI.loc}</button>
+   <div class="gfoot" id="gmFoot"><div class="glegend" id="gmLeg" hidden><b>Rent flow</b><span><i style="--c:#1e9e4a"></i>Strong</span><span><i style="--c:#f29900"></i>OK</span><span><i style="--c:#d93025"></i>Weak</span></div><div class="gscale" id="gmScale"><i></i><span>50 m</span></div><span class="gmark">AE Maps</span></div>
+   <div class="gsheet" id="gmSheet" data-st="peek"><button class="ghandle" id="gmHandle" aria-label="Show more"><i></i></button><div class="gsbody" id="gmBody"></div></div>
+   <div class="glay" id="gmLayers" hidden role="dialog" aria-label="Map layers"></div>`;
+  box.appendChild(g);
+  g.querySelectorAll('.gmtop,.gfabs,.gloc,.gsheet,.glay,.gfoot').forEach(el=>{['pointerdown','wheel','touchstart'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));});
+  $('#gmSec').onclick=()=>eSecSheet();$('#gmAv').onclick=()=>lookSheet('map');
+  const q=$('#gmQ');q.addEventListener('input',()=>{GM.q=q.value;mapSearch();});q.addEventListener('focus',()=>{if(q.value)mapSearch();});q.addEventListener('keydown',e=>{if(e.key==='Enter'){const f=$('#gmRes [data-i]');if(f)f.click();}if(e.key==='Escape'){q.value='';GM.q='';mapSearch();q.blur();}});
+  $('#gmClr').onclick=()=>{q.value='';GM.q='';mapSearch();q.focus();};
+  $('#gmLay').onclick=()=>mapLayers(true);$('#gmCmp').onclick=()=>{sfx('tick');try{D3.map.north();}catch(e){}};$('#gm3d').onclick=()=>{const c=mapCfg();c.tilt=c.tilt?0:1;save();sfx('tick');try{D3.map.tilt(!!c.tilt);}catch(e){}mapFabs();tlog('map_tilt',{on:c.tilt});};
+  $('#gmLoc').onclick=()=>{sfx('tick');GM.chip=null;try{D3.map.filter(null);D3.map.fit(null);}catch(e){}mapChips();};
+  const hd=$('#gmHandle');let y0=null;hd.onclick=e=>{if(e.detail!==0)return;const sh=$('#gmSheet');if(GM.st==='place')sh.classList.toggle('tall');else mapSheet(GM.st==='peek'?'list':'peek');setTimeout(mapSync,300);};hd.addEventListener('pointerdown',e=>{y0=e.clientY;try{hd.setPointerCapture(e.pointerId);}catch(x){}});hd.addEventListener('pointerup',e=>{const dy=y0==null?0:e.clientY-y0;y0=null;const sh=$('#gmSheet');if(GM.st==='place'){if(Math.abs(dy)<8||dy<-24){if(Math.abs(dy)<8&&sh.classList.contains('tall'))sh.classList.remove('tall');else sh.classList.add('tall');}else if(dy>24){if(sh.classList.contains('tall'))sh.classList.remove('tall');else mapPick(null);}setTimeout(mapSync,300);return;}if(Math.abs(dy)<8){mapSheet(GM.st==='peek'?'list':'peek');return;}if(dy<-24)mapSheet('list');else if(dy>24)mapSheet('peek');});
+  T.c.mapOpens=(T.c.mapOpens||0)+1;}
+ const a=av?av():null,ini=(myNick()||'?').trim()[0]||'?';$('#gmAv').textContent=ini.toUpperCase();$('#gmAv').style.setProperty('--ac',a&&LK_CASE?LK_CASE[a.cc]||'#1f63c2':'#1f63c2');
+ if(!GM.fit){GM.fit=1;const go=(n)=>{let ok=false;try{ok=D3.st==='ready'&&D3.map.ready();}catch(e){}if(ok)D3.map.fit(null);else if(n<40)setTimeout(()=>go(n+1),150);};setTimeout(()=>go(0),80);}
+ mapChips();mapFabs();mapSheet(GM.st==='place'&&GM.sel&&S.props.includes(GM.sel)?'place':GM.st==='list'?'list':'peek');}
+function mapFabs(){const c=mapCfg(),b=$('#gm3d');if(b){b.textContent=c.tilt?'2D':'3D';b.setAttribute('aria-label',c.tilt?'Flat 2D map':'Tilted 3D map');}const l=$('#gmLeg');if(l)l.hidden=!c.rent;}
+function mapChips(){const el=$('#gmChips');if(!el)return;const rows=GCH.map(([k,n,f,col])=>[k,n,S.props.filter(f).length,col]).filter(r=>r[2]||GM.chip===r[0]);
+ el.innerHTML=rows.length?rows.map(([k,n,c,col])=>`<button class="gchip${GM.chip===k?' on':''}" data-ch="${k}" aria-pressed="${GM.chip===k}" style="--cc:${col}"><i></i>${esc(n)}<b>${c}</b></button>`).join(''):'';
+ el.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{const k=b.dataset.ch;sfx('tick');GM.chip=GM.chip===k?null:k;const f=GM.chip?GCH.find(r=>r[0]===GM.chip)[2]:null;try{D3.map.filter(f);D3.map.fit(f?S.props.filter(f):null);}catch(e){}mapChips();if(GM.chip){T.c.mapChips=(T.c.mapChips||0)+1;if(GM.st!=='place')mapSheet('list');}else mapSheet(GM.st==='list'?'peek':GM.st);});}
+function mapSearch(){const box=$('#gmRes'),q=GM.q.trim().toLowerCase();$('#gmClr').hidden=!GM.q;if(!q){box.hidden=true;box.innerHTML='';return;}
+ const hit=s=>String(s||'').toLowerCase().includes(q),homes=S.props.filter(p=>hit(p.addr)||hit(p.sub)||hit(streetOf(p))||hit(RAR[p.rarity||0][0])||hit(TIERS[p.ti]&&TIERS[p.ti].name)).slice(0,6),subs=[...new Set(S.props.filter(p=>hit(p.sub)).map(p=>p.sub))].slice(0,2);
+ const R=[...subs.map(s=>({s})),...homes.map(p=>({p}))];GM.res=R;
+ box.innerHTML=R.length?R.map((r,i)=>r.s?`<button class="gr" data-i="${i}" role="option"><i class="gri sub">${GMI.sub}</i><span><b>${esc(r.s)}</b><small>${S.props.filter(p=>p.sub===r.s).length} homes · suburb</small></span></button>`:`<button class="gr" data-i="${i}" role="option"><i class="gri" style="--rc:${RAR[r.p.rarity||0][1]}">${GMI.pin}</i><span><b>${esc(r.p.addr)}</b><small>${esc(r.p.sub)} · ${esc(TIERS[r.p.ti].name)} · ${money(rentOf(r.p))}/mo</small></span></button>`).join(''):`<p class="gnone">No homes match “${esc(GM.q)}”.</p>`;box.hidden=false;
+ box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{const r=GM.res[+b.dataset.i];$('#gmQ').blur();box.hidden=true;if(r.s){$('#gmQ').value=r.s;try{D3.map.fit(S.props.filter(p=>p.sub===r.s));}catch(e){}mapSheet('peek');}else{$('#gmQ').value=r.p.addr;mapPick(r.p);}T.c.mapSearch=(T.c.mapSearch||0)+1;});}
+function mapPick(p){if(!inMapPhone()){if(p)cardSheet(p);return;}const r=$('#gmRes');if(r)r.hidden=true;if(!p){if(GM.st==='place'){GM.sel=null;try{D3.map.select(null);}catch(e){}mapSheet('peek');}return;}
+ GM.sel=p;try{D3.map.select(p);}catch(e){}mapSheet('place');tlog('map_pick',{r:p.rarity||0});}
+function mapSheet(st){const sh=$('#gmSheet');if(!sh)return;if(st!=='place'||GM.st!=='place')sh.classList.remove('tall');GM.st=st;sh.dataset.st=st;const b=$('#gmBody');
+ if(st!=='place'&&GM.sel){GM.sel=null;try{D3.map.select(null);}catch(e){}}
+ if(st==='place'&&GM.sel)b.innerHTML=placeHTML(GM.sel);else b.innerHTML=peekHTML()+(st==='list'?listHTML():'');
+ $('#gmHandle').setAttribute('aria-label',st==='peek'?'Show your suburbs':'Show less');wireSheet();requestAnimationFrame(mapSync);setTimeout(mapSync,320);}
+function mapSync(){const box=$('#townBox'),top=$('#gmTop'),sh=$('#gmSheet');if(!box||!top||!sh)return;const bh=box.clientHeight,tb=top.offsetTop+top.offsetHeight,shh=sh.offsetHeight;try{D3.map.offset(Math.max(0,shh-tb-(GM.st==='place'?56:0)),tb,shh);}catch(e){}
+ const f=$('#gmFoot'),l=$('#gmLoc');if(f)f.style.bottom=(shh+8)+'px';if(l)l.style.bottom=(shh+10)+'px';}
+function peekHTML(){const rq=S.props.filter(p=>p.req&&!p.req.ask).length,c=sets(),nsets=Object.values(c.sub).filter(n=>n>=SET_N).length,rent=S.props.reduce((a,p)=>a+rentOf(p),0),subs=new Set(S.props.map(p=>p.sub)).size;
+ if(!S.props.length)return `<div class="gpk col"><h3>Your town</h3><p class="gsub">Win a home at auction and it appears here on its street. Your first suburb is waiting.</p></div>`;
+ return `<div class="gpk"><div class="gpkh"><h3>Your empire</h3><p class="gsub">${S.props.length} home${S.props.length===1?'':'s'} in ${subs} suburb${subs===1?'':'s'} · ${money(rent)} a month</p></div>${rq?`<button class="gfix" id="gmFix">${GMI.fix}Fix ${rq}</button>`:''}</div>
+  <div class="gstats"><div><small>Homes</small><b>${S.props.length}<em> / ${slotsOf()}</em></b></div><div><small>Rent a month</small><b>${money(rent)}</b></div><div><small>Suburb sets</small><b>${nsets}</b></div></div>`;}
+function listHTML(){const by={};S.props.forEach(p=>{(by[p.sub]=by[p.sub]||[]).push(p);});const f=GM.chip?GCH.find(r=>r[0]===GM.chip)[2]:null;
+ const rows=Object.entries(by).map(([s,ps])=>({s,ps,n:f?ps.filter(f).length:ps.length,rent:ps.reduce((a,p)=>a+rentOf(p),0),reg:WM_OF(ps[0])})).filter(r=>r.n).sort((a,b)=>b.rent-a.rent);
+ if(f){const hs=S.props.filter(f);return `<h4 class="gh">${esc(GCH.find(r=>r[0]===GM.chip)[1])} · ${hs.length}</h4><div class="glist">${hs.map(p=>`<button class="gli" data-p="${p.id}"><i class="gri" style="--rc:${RAR[p.rarity||0][1]}">${GMI.pin}</i><span><b>${esc(p.addr)}</b><small>${esc(p.sub)} · ${p.req?esc(p.req.txt):p.works||p.build?'Works under way':money(rentOf(p))+'/mo'}</small></span></button>`).join('')}</div>`;}
+ return `<h4 class="gh">Your suburbs</h4><div class="glist">${rows.map(r=>{const set=r.ps.length>=SET_N;return `<button class="gli" data-s="${esc(r.s)}"><i class="gri sub${set?' set':''}">${GMI.sub}</i><span><b>${esc(r.s)}${set?' <em class="gset">Set</em>':''}</b><small>${r.ps.length} home${r.ps.length===1?'':'s'} · ${money(r.rent)}/mo${r.reg.k!=='au'?' · '+esc(r.reg.name):''}${!set&&r.ps.length===SET_N-1?' · 1 more for a set':''}</small></span></button>`;}).join('')}</div>`;}
+function placeHTML(p){const r=p.rarity||0,req=p.req,net=rentOf(p)-propCost(p,bills().landRate)-(p.loan||0)*rate(),gain=p.paid?p.value/p.paid-1:0,eq=p.value-(p.loan||0),works=p.works||p.build,run=p.left||(p.rd||0)>.02;
+ const acts=[['card','Card','gmA-card',true],['tour','Tour','gmA-tour',true],['up','Upgrade','gmA-up',!works&&!p.listed&&S.props.length>=3],['sell','Sell','gmA-sell',!works&&!p.listed],['share','Share','gmA-share',r>=3]].filter(a=>a[3]);
+ const st=req?`<div class="gnote ${req.ask?'ask':'req'}"><span><b>${req.ask?'Tenant asks':'Repair needed'}</b><small>${esc(req.txt)}</small></span><button id="gmA-fix">${req.ask?'Do it':'Fix'} ${money(reqCost(p))}</button></div>`:works?`<div class="gnote wk"><span><b>Works under way</b><small>${esc((p.works&&p.works.label)||(p.build&&p.build.label)||'Builders on site')}</small></span></div>`:run?`<div class="gnote run"><span><b>${p.left?'Tenant left':'Running down'}</b><small>${p.left?'No rent until it is fixed and re-let.':'Value is slipping. Fix requests to stop it.'}</small></span></div>`:'';
+ return `<div class="gplace"><div class="gph"><div class="gt"><h3>${esc(p.addr)}</h3><p class="gsub">${esc(p.sub)}${p.st?', '+esc(p.st):''} · ${esc(TIERS[p.ti].name)}${p.dwell?' · '+esc(DWELL_N[p.dwell]||p.dwell):''}</p><p class="grar">${p.src?'<span class="unr">Unranked</span>':`<i class="rar r${r}">${gem(r)}${RAR[r][0]}</i>`}${p.feat?'<span class="gtag">Featured</span>':''}${p.arena?'<span class="gtag">Live arena</span>':''}${(sets().sub[p.sub]||0)>=SET_N?'<span class="gtag gold">Set +10%</span>':''}</p></div><button class="gx" id="gmA-x" aria-label="Close">${GMI.x}</button></div>
+  <div class="gacts">${acts.map(([i,n,id],k)=>`<button class="ga${k===0?' pri':''}" id="${id}"><i>${GMI[i]}</i>${n}</button>`).join('')}</div>
+  ${st}
+  <div class="gpics">${[artOf(p),roomArt(p,'living',0),roomArt(p,'kitchen',1),roomArt(p,p.style==='unit'||p.style==='tower'?'view':'yard',2)].map(h=>`<div class="gpic">${h}</div>`).join('')}</div>
+  <dl class="grows"><div><dt>Rent a month</dt><dd>${money(rentOf(p))}</dd></div><div><dt>After costs</dt><dd class="${net>=0?'pos':'neg'}">${net>=0?'+':''}${money(net)}</dd></div><div><dt>Value</dt><dd>${money(p.value)} <em class="${gain>=0?'pos':'neg'}">${gain>=0?'+':''}${Math.round(gain*100)}%</em></dd></div><div><dt>Your equity</dt><dd>${money(eq)}</dd></div>${p.land?`<div><dt>Land</dt><dd>${Math.round(p.land).toLocaleString()} m²</dd></div>`:''}${p.beds?`<div><dt>Bedrooms</dt><dd>${p.beds}</dd></div>`:''}</dl></div>`;}
+function wireSheet(){const on=(id,f)=>{const b=document.getElementById(id);if(b)b.onclick=f;},p=GM.sel;
+ on('gmFix',()=>reqSheet());on('gmA-x',()=>mapPick(null));
+ if(p){on('gmA-card',()=>cardSheet(p));on('gmA-tour',()=>houseTour(p));on('gmA-up',()=>upgradeSheet(p));on('gmA-sell',()=>sellSheet(p));on('gmA-share',()=>shareCard(p));
+  on('gmA-fix',()=>{if(fixReq(p)){sfx('cash');toast((p.req?'':'Done: ')+'Fixed at '+p.addr);mapSheet('place');mapChips();drawTownBar();}else reqSheet();});}
+ document.querySelectorAll('#gmBody [data-s]').forEach(b=>b.onclick=()=>{sfx('tick');try{D3.map.fit(S.props.filter(p=>p.sub===b.dataset.s));}catch(e){}mapSheet('peek');});
+ document.querySelectorAll('#gmBody [data-p]').forEach(b=>b.onclick=()=>{const p=S.props.find(x=>x.id===+b.dataset.p);if(p){sfx('tick');mapPick(p);}});}
+function mapLayers(open){const el=$('#gmLayers');if(!el)return;if(!open){el.hidden=true;return;}const c=mapCfg();sfx('open');
+ const types=[['auto','Default'],['sat','Satellite'],['night','Night']],dets=[['rent','Rent flow','Yield, like traffic'],['haz','Hazards','Flood, fire, storm'],['lab','Street names','Road labels']];
+ el.innerHTML=`<div class="glh"><h4>Map type</h4><button class="gx" id="glX" aria-label="Close layers">${GMI.x}</button></div><div class="gtypes">${types.map(([k,n])=>`<button class="gty t-${k}${c.type===k||(k==='auto'&&c.type==='day')?' on':''}" data-ty="${k}" aria-pressed="${c.type===k}"><i></i>${n}</button>`).join('')}</div><h4>Map details</h4><div class="gdets">${dets.map(([k,n,d])=>`<button class="gdet d-${k}${c[k]?' on':''}" data-dt="${k}" aria-pressed="${!!c[k]}"><i></i><b>${n}</b><small>${d}</small></button>`).join('')}</div>`;el.hidden=false;
+ $('#glX').onclick=()=>mapLayers(false);el.querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{c.type=b.dataset.ty;save();sfx('tick');try{D3.map.restyle();}catch(e){}mapLayers(true);tlog('map_type',{t:c.type});});
+ el.querySelectorAll('[data-dt]').forEach(b=>b.onclick=()=>{const k=b.dataset.dt;c[k]=c[k]?0:1;save();sfx('tick');try{D3.map.restyle();}catch(e){}mapFabs();mapLayers(true);tlog('map_layer',{k,on:c[k]});});}
 function drawTownBar(){const b=$('#townBar');if(!b)return;const rq=S.props.filter(p=>p.req&&!p.req.ask).length,c=sets(),nsets=Object.values(c.sub).filter(n=>n>=SET_N).length,rent=S.props.reduce((a,p)=>a+rentOf(p),0);
  b.innerHTML=`<div><small>Homes</small><b>${S.props.length} / ${slotsOf()}</b></div><div><small>Rent a month</small><b>${money(rent)}</b></div><div><small>Suburb sets</small><b>${nsets}</b></div>${rq?`<button id="townFix">Fix ${rq}</button>`:`<div><small>Requests</small><b>0</b></div>`}`;const f=$('#townFix');if(f)f.onclick=()=>reqSheet();
  const e=$('#townEmpty');let st='ready';try{st=D3.st;}catch(x){}if(e){const msg=!S.props.length?'Your town is empty. Win a home at auction and it appears here, on its street.':(st==='off'||st==='fail')?'The 3D map is off on this device. Turn on 3D street in the menu, or see your homes in Portfolio.':'';e.hidden=!msg;e.textContent=msg;}}
@@ -4100,8 +4305,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=55;
+const APPV=56;
 const PATCH=[
+ {v:56,d:'22 Oct 2026',t:'My town is a map',items:['My town opens like a maps app: your homes on real streets, a highway, parks, the harbour and the rest of the city around them.','Search your homes by address, suburb, street or rarity.','Chips for repairs, tenant asks, works, sets, Epic finds and run-down homes light up just those homes.','Tap a home for its place card: rent, value, equity, photos, and Card, Tour, Upgrade, Sell, Share and Fix right there.','Layers: Default, Satellite or Night, plus Rent flow (streets coloured like traffic) and Hazard zones.','2D or tilted 3D, a compass when you turn the map, and a button that shows every home at once.','The live arena no longer pulls you out of your phone; a toast tells you it is open.']},
  {v:55,d:'22 Oct 2026',t:'Sharper, louder, smoother',items:['Softer, richer 3D: ambient occlusion, bloom and anti-aliasing, tuned to your phone\'s graphics chip.','My town has real suburban houses with coloured roofs, and suburb names on the roads.','Fire trucks, police cars, removal trucks and excavators in the live scenes, with animated locals.','Real sounds: poker chips for bids, a wooden gavel, card flips and clicks.','iPhone haptics on the main buttons.','Smoother My town camera: pan, pinch and zoom to where you point.','A 3D SOLD sign on the board, confetti bursts and new level-up animations.','Settings → Graphics: pick Low to Ultra yourself. Settings → Under the hood shows what is running, with a button to see the scene without effects.']},
  {v:54,d:'22 Oct 2026',t:'The street comes alive',items:['Auctions happen on a 3D street: bidders raise their paddles out the front and the auctioneer calls it.','Your phone holds everything else: My town, Portfolio, Market, Season, Friends and more.','My town: fly over every home you own, with repairs, builds and sets on the map.','Events play out live: floods rise, fires spread, tornadoes tear through, sharks jump. Over 80 scenes, on your actual home.','Upgrades, knock-downs and new builds animate, and neglected homes visibly fall apart.','Two new builds: Townhouses (three homes from one block) and Apartment blocks.','Dress your bidder: hats, outfits and extras. Pick your phone, case and wallpaper.','The agency window shows six picks with longer timers and how each one fits your portfolio.','New events: tornadoes, sinkholes, meteorites, whales, crocs in the pool, koalas and more.','Mystery lots show the real ad, smeared like Vaseline on the lens.']},
  {v:53,d:'21 Oct 2026',t:'Cash floor and your first cash-out',items:['New players keep a deposit in hand: the bank lends the rest.','Your first time past $100M explains exactly what cashing out gives you.']},
@@ -4146,7 +4352,7 @@ const TOUR=[
  {h:'Is it a good deal?',b:()=>DEMO+`<p>The <b>estimate</b> is roughly what the home is really worth. Win it under that and you're richer the moment the hammer falls.</p><p>Green is good. Past the <b>walk-away</b> line you're overpaying. Early on, most rooms go quiet under the guide: take them.</p>`},
  {h:'Look closer',b:()=>d3m()?`<p>You're standing out the front with the other bidders. Every paddle that goes up is a bid; the auctioneer calls <b>Going once</b> as the clock runs down. <b>Drag the street</b> to look around.</p><p><b>Tap the address plaque</b> to flip to the numbers: cash today, rent minus costs each month, and your net worth if you win.</p>`:`<p><b>Swipe the photo</b> to walk through the rooms. Glowing spots are clues: some move your walk-away line, some hint at a find.</p><p><b>Tap the address</b> to flip the card: cash today, rent minus costs each month, and your net worth if you win. Tap again to flip back.</p>`},
  {h:'The four buttons',b:()=>`<p><b>Bid</b> raises one step. <b>Go big</b> jumps ahead and can scare rivals off. <b>Auto-bid</b> carries you to the final call, then hands you the paddle. <b>Next</b> skips the lot.</p><p>Short on cash? The button reads <b>Need $…</b>: borrow against your homes, sell one, or top up in the app.</p>`},
- {h:'After the hammer',b:()=>`<p>The <b>inspector</b> reports: sometimes a find, now and then a jackpot. Every win becomes a card with a rarity, Common to Legendary.</p>`+(d3m()?`<p>Open your phone, then <b>My town</b>: every home you own on one map, with repairs, builds and sets. Upgrade, or knock down and build a <b>duplex, townhouses, an apartment block or a mansion</b>. Own <b>3 in one suburb</b> for +10% rent.</p>`:`<p>In <b>Empire</b> you can upgrade, rebuild into a duplex, townhouses, an apartment block or a mansion, or sell at auction with a reserve. Own <b>3 in one suburb</b> for +10% rent; five unlocks a <b>takeover</b>.</p>`)},
+ {h:'After the hammer',b:()=>`<p>The <b>inspector</b> reports: sometimes a find, now and then a jackpot. Every win becomes a card with a rarity, Common to Legendary.</p>`+(d3m()?`<p>Open your phone, then <b>My town</b>: a map of every home you own. Search it, tap a chip to see repairs or sets, tap a home for its card, and switch on <b>Rent flow</b> or <b>Hazards</b> in layers. Upgrade, or knock down and build a <b>duplex, townhouses, an apartment block or a mansion</b>. Own <b>3 in one suburb</b> for +10% rent.</p>`:`<p>In <b>Empire</b> you can upgrade, rebuild into a duplex, townhouses, an apartment block or a mansion, or sell at auction with a reserve. Own <b>3 in one suburb</b> for +10% rent; five unlocks a <b>takeover</b>.</p>`)},
  {h:'Levels and room to grow',b:()=>`<p>Every lot you join, win or tour earns XP twice: your <b>player level</b> (top left, permanent, a reward every five) and the <b>season track</b> (${d3m()?'the Season app':'Empire → Season'}: 100 tiers a month with a free home every 10, reset on the 1st).</p><p>Your portfolio has <b>${slotsOf()} slots</b> right now; every second level and every dynasty mark add more. The Market meter holds <b>${mktMax()} buys</b> and refills one every 2 minutes; auctions never run out.</p>`},
  {h:'Watch it happen',b:()=>`<p>Floods, fires, tornadoes, sharks, booms, possums in the roof and tenants who leave for Bali all hit your homes, and you'll see it happen live on the home itself. Ignore repairs and a home visibly falls apart. Disaster cover is in <b>Money and bank</b>; every disaster is followed by a rebuild boom.</p><p>Missed something? The <b>bell</b> keeps every notification.</p>`},
  {h:'Stars and dynasties',b:()=>`<p>Past <b>$100M</b> you can <b>cash out</b> for stars: start again with more cash and more rent, and a new title. Stars double in price each step.</p><p>At <b>50 stars</b> prestige the dynasty for the <b>Gold</b> mark: +25% rent for good, then Diamond, Adamantium and beyond. Tap the <b>stars</b> at the top any time.</p>`},
@@ -4498,39 +4704,133 @@ function liteHouse(p){let kh=null;const r=seeded(p.seed||p.id||1),g=new THREE.Gr
  if(p.works){const sc=new THREE.Group();const sm=M('#d9a520',{metalness:.3,roughness:.5});for(const x of[-1.7,1.7])for(const z of[-1.5,1.6])at(capsule(.05,3.2,sm,6),x,1.6,z,sc);for(const y of[1,2.2])for(const z of[-1.5,1.6])at(rbox(3.4,.08,.08,.02,sm),0,y,z,sc);g.add(sc);if(p.works.redev){const cr=new THREE.Group();at(rbox(.25,6,.25,.04,sm),2.6,3,-1.6,cr);at(rbox(4,.22,.22,.04,sm),1.2,6,-1.6,cr);g.add(cr);}}
  decayLite(g,p);const lawn=new THREE.Mesh(new THREE.PlaneGeometry(4.6,4.6),M(run?'#8a8a4a':'#6aab3c',{roughness:1}));lawn.rotation.x=-Math.PI/2;lawn.position.set(0,.02,.6);lawn.receiveShadow=true;g.add(lawn);
  g.scale.setScalar(1.7);g.userData.p=p;return g;}
+/* ---------- v56 My town as a map (Matt, 22 Oct: "make it look like Google Maps in our style"): map palette ground, a real road grid with casings and a yellow highway,
+   a context city (instanced buildings, parks, a harbour), traffic-style rent flow and hazard layers, HTML labels and pins with collision ---------- */
+const MAPS={day:{land:'#f1eee8',block:'#e9e5dd',park:'#c4e6b1',tree:['#8fcf78','#7fc46a','#9ad384'],water:'#9dd3f2',sand:'#efe4c6',road:'#ffffff',cas:'#d6d1c7',maj:'#fcd779',majC:'#e2ab3c',bld:'#e4dfd6',tower:'#dfe4ea',sky:'#e9eef1',hemi:['#ffffff','#d6cfbf',.62],sun:1.25,exp:.95},
+ night:{land:'#1c2531',block:'#212b38',park:'#1d3830',tree:['#23493b','#2a5444','#1f4135'],water:'#0d1a2a',sand:'#2f3330',road:'#3b4657',cas:'#283240',maj:'#8a6c37',majC:'#5c4824',bld:'#2c3747',tower:'#33415a',sky:'#111a26',hemi:['#9fb4d8','#161d29',.5],sun:.55,exp:.9},
+ sat:{land:'#56683f',block:'#4f603a',park:'#3d5a2c',tree:['#2f4a22','#3a5a2a','#2a4220'],water:'#1d4a5f',sand:'#c9b98d',road:'#8d8b84',cas:'#5f5d57',maj:'#a39b86',majC:'#6e695c',bld:'#b8b1a5',tower:'#9aa3ad',sky:'#a9bccb',hemi:['#eef3ff','#3c4a2b',.62],sun:1.5,exp:1}};
+const HZC={flood:'#3d8ee0',storm:'#7e57c2',hail:'#7e57c2',tornado:'#8e24aa',fire:'#f4511e',heat:'#e53935',sinkhole:'#8d6e63',coast:'#00897b',erosion:'#00897b',cyclone:'#3949ab',quake:'#6d4c41'};
+function mapStyle(){const t=mapCfg().type;if(t==='sat'||t==='night'||t==='day')return t;const th=document.documentElement.dataset.theme;return th==='dark'||(th!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day';}
+let SATX=null;function satTex(){if(SATX)return SATX;const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d'),r=mulberry(77);g.fillStyle='#55673f';g.fillRect(0,0,512,512);
+ for(let i=0;i<1100;i++){const x=r()*512,y=r()*512,s=4+r()*28;g.fillStyle=['#4b5e37','#61744a','#6b7a4e','#5a6b44','#7a7f58','#3f5232','#8a8a66','#6f6a4f'][Math.floor(r()*8)];g.globalAlpha=.3+r()*.45;g.beginPath();g.ellipse(x,y,s,s*(.4+r()*.8),r()*3,0,7);g.fill();}
+ g.globalAlpha=.18;g.strokeStyle='#2e3b22';for(let i=0;i<40;i++){g.lineWidth=1+r()*2;g.beginPath();g.moveTo(r()*512,r()*512);g.lineTo(r()*512,r()*512);g.stroke();}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(12,12);t.encoding=THREE.sRGBEncoding;t.anisotropy=4;SATX=t;return t;}
+let MW={labels:[],homes:[],blocks:[],bounds:null},tBlocks=[],tSel=null,tSelP=null,MAPF=null,MAPOFF={cur:0,goal:0},MAPUI={top:0,bot:0},tSty='';
 function townLayout(){const by={};for(const p of S.props){const k=WM_OF(p).k+'|'+p.sub;(by[k]=by[k]||{k,sub:p.sub,reg:WM_OF(p),ti:9,ps:[]}).ps.push(p);}
  const blocks=Object.values(by);blocks.forEach(b=>{b.ti=Math.min(...b.ps.map(p=>p.ti0!=null?p.ti0:p.ti));});blocks.sort((a,b)=>(a.reg.k==='au'?0:1)-(b.reg.k==='au'?0:1)||a.ti-b.ti||a.sub.localeCompare(b.sub));return blocks;}
-function buildTown(){const sig=(MODELS.ready?'K':'')+(MODELS.tx?'T':'')+S.props.map(p=>p.id+':'+(p.style)+':'+(p.dwell||'')+':'+(p.left?'L':'')+Math.round((p.rd||0)*20)+':'+':'+(p.works||p.build?1:0)+':'+(p.up&&p.up.pool?1:0)).join(',');if(sig===tSig&&tG)return false;tSig=sig;
- if(!townS){cv2=document.createElement('canvas');cv2.className='d3cv tcv';R2=new THREE.WebGLRenderer({canvas:cv2,antialias:!isLow(),powerPreference:'low-power'});R2.setPixelRatio(Math.min(devicePixelRatio||1,1.5));R2.outputEncoding=THREE.sRGBEncoding;R2.toneMapping=THREE.ACESFilmicToneMapping;R2.toneMappingExposure=.9;R2.shadowMap.enabled=true;R2.shadowMap.type=THREE.PCFSoftShadowMap;townS=new THREE.Scene();townS.background=C('#bfe0f4');townS.fog=new THREE.Fog(C('#bfe0f4'),90,240);townS.add(new THREE.HemisphereLight(C('#d6ecff'),C('#5d7f3a'),.4));const s2=new THREE.DirectionalLight(C('#ffeccc'),1.6);s2.position.set(-30,50,30);s2.castShadow=true;s2.shadow.mapSize.set(isLow()?1024:2048,isLow()?1024:2048);Object.assign(s2.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:1,far:200});s2.shadow.bias=-.0005;townS.add(s2,s2.target);townS.userData.sun=s2;
-  const gr=new THREE.Mesh(new THREE.PlaneGeometry(600,600),M('#7cb64a',{roughness:1}));gr.rotation.x=-Math.PI/2;gr.receiveShadow=true;townS.add(gr);townCam=new THREE.PerspectiveCamera(40,1,.5,900);ray=new THREE.Raycaster();}
- dispose(tG);tG=new THREE.Group();tHomes=[];const blocks=townLayout(),cols=2,BD=24;let maxZ=0;const BW=Math.max(20,Math.min(6,Math.max(...blocks.map(b=>Math.ceil(b.ps.length/2)),1))*6.4+6);
- blocks.forEach((b,i)=>{const c=i%cols,rw=Math.floor(i/cols),bx=(c-(cols-1)/2)*(BW+7),bz=-rw*(BD+7);maxZ=Math.max(maxZ,rw);const bg=new THREE.Group();
-  const own=b.ps.length,set=own>=SET_N;at(rbox(BW,.3,BD,.3,M(b.ti>=4?'#cfd6dd':b.ti>=3?'#a8c98a':'#86bf55',{roughness:1})),0,.15,0,bg);
-  const road=new THREE.Mesh(new THREE.PlaneGeometry(BW,2.6),M('#5d6168',{roughness:.95}));road.rotation.x=-Math.PI/2;at(road,0,.32,0,bg);
+function plane(w,d,c,x,y,z,g,o){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),c.isMaterial?c:new THREE.MeshStandardMaterial(Object.assign({color:C(c),roughness:.95},o||{})));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;g.add(m);return m;}
+function roadName(r){return STREETS[Math.floor(r()*STREETS.length)]+' '+STYPES[Math.floor(r()*STYPES.length)];}
+function blockYield(b){let rent=0,val=0,bad=false;for(const p of b.ps){rent+=rentOf(p);val+=p.value;if(p.left||(p.rd||0)>.02)bad=true;}return{y:val?rent*12/val:0,bad};}
+function buildTown(){const sty=mapStyle(),cfg=mapCfg(),P=MAPS[sty];
+ const sig=sty+'|'+(cfg.rent?1:0)+(cfg.haz?1:0)+'|'+(MODELS.ready?'K':'')+S.props.map(p=>p.id+':'+(p.style)+':'+(p.dwell||'')+':'+(p.left?'L':'')+Math.round((p.rd||0)*20)+':'+(p.works||p.build?1:0)+':'+(p.up&&p.up.pool?1:0)+':'+(cfg.rent?Math.round(rentOf(p)/Math.max(1,p.value)*1e4):'')).join(',');if(sig===tSig&&tG)return false;tSig=sig;
+ if(!townS){cv2=document.createElement('canvas');cv2.className='d3cv tcv';R2=new THREE.WebGLRenderer({canvas:cv2,antialias:!isLow(),powerPreference:'low-power'});R2.setPixelRatio(Math.min(devicePixelRatio||1,1.75));R2.outputEncoding=THREE.sRGBEncoding;R2.toneMapping=THREE.ACESFilmicToneMapping;R2.toneMappingExposure=.95;R2.shadowMap.enabled=true;R2.shadowMap.type=THREE.PCFSoftShadowMap;townS=new THREE.Scene();
+  const hm=new THREE.HemisphereLight(C('#ffffff'),C('#d6cfbf'),.6);townS.add(hm);townS.userData.hemi=hm;const s2=new THREE.DirectionalLight(C('#fff1d8'),1.3);s2.position.set(-30,60,30);s2.castShadow=true;s2.shadow.mapSize.set(isLow()?1024:2048,isLow()?1024:2048);Object.assign(s2.shadow.camera,{left:-80,right:80,top:80,bottom:-80,near:1,far:220});s2.shadow.bias=-.0005;townS.add(s2,s2.target);townS.userData.sun=s2;
+  const gr=new THREE.Mesh(new THREE.PlaneGeometry(1600,1600),new THREE.MeshStandardMaterial({color:C('#f1eee8'),roughness:1}));gr.rotation.x=-Math.PI/2;gr.receiveShadow=true;townS.add(gr);townS.userData.gr=gr;townCam=new THREE.PerspectiveCamera(40,1,.5,1200);ray=new THREE.Raycaster();}
+ /* palette */
+ townS.background=C(P.sky);townS.fog=new THREE.Fog(C(P.sky),140,380);const hm=townS.userData.hemi;hm.color=C(P.hemi[0]);hm.groundColor=C(P.hemi[1]);hm.intensity=P.hemi[2];townS.userData.sun.intensity=P.sun;townS.userData.sun.color=C(sty==='night'?'#b8c8ff':'#fff1d8');R2.toneMappingExposure=P.exp;
+ const gm=townS.userData.gr.material;gm.color=C(sty==='sat'?'#ffffff':P.land);gm.map=sty==='sat'?satTex():null;gm.needsUpdate=true;if(townBox){townBox.classList.remove('m-day','m-night','m-sat');townBox.classList.add('m-'+sty);}tSty=sty;
+ dispose(tG);tG=new THREE.Group();tHomes=[];tBlocks=[];tSel=null;const blocks=townLayout(),BD=24,GAP=8;const BW=Math.max(20,Math.min(6,Math.max(...blocks.map(b=>Math.ceil(b.ps.length/2)),1))*6.4+6),SX=BW+GAP,SZ=BD+GAP,R=Math.max(1,Math.ceil(blocks.length/2));
+ const mRoad=M(P.road,{roughness:.9}),mCas=M(P.cas,{roughness:.95}),mMaj=M(P.maj,{roughness:.9}),mMajC=M(P.majC,{roughness:.95}),mBlock=M(P.block,{roughness:1}),mPark=M(P.park,{roughness:1}),L=[];
+ const K0=-3,K1=3,J0=-3,J1=R+2,zN=-(J1+.5)*SZ-6,zS=-(J0-.5)*SZ+6,xW=K0*SX,xE=(K1+.5)*SX+BW/2+GAP;
+ /* water, beach, esplanade on the west */
+ const shoreX=z=>xW-GAP/2-2.2-2.6*(1+Math.sin(z*.045))-1.8*(1+Math.sin(z*.012+1.3));
+ plane(16,zS-zN+80,M(P.sand,{roughness:1}),xW-GAP/2-8,.012,(zN+zS)/2,tG);
+ {const sh=new THREE.Shape();sh.moveTo(-900,-(zS+60));for(let z=zS+60;z>=zN-60;z-=4)sh.lineTo(shoreX(z),-z);sh.lineTo(-900,-(zN-60));sh.lineTo(-900,-(zS+60));const wm=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshStandardMaterial({color:C(P.water),roughness:.25,metalness:.1}));wm.rotation.x=-Math.PI/2;wm.position.y=.022;wm.receiveShadow=true;tG.add(wm);}
+ L.push({k:'water',t:'Empire Harbour',x:xW-46,z:-(R-1)*SZ/2});
+ /* roads: casing under a lighter top, the highway in yellow */
+ const vRoad=(x,maj,name)=>{plane(maj?5.2:4.1,zS-zN,maj?mMajC:mCas,x,.04,(zN+zS)/2,tG);plane(maj?4.4:3.4,zS-zN,maj?mMaj:mRoad,x,maj?.064:.06,(zN+zS)/2,tG);for(let j=-1;j<=R;j++)L.push({k:'st',t:name,x,z:-j*SZ,dir:'v',maj});};
+ const hRoad=(z,maj,name)=>{plane(xE-xW+40,maj?5.2:4.1,maj?mMajC:mCas,(xW+xE)/2+10,.042,z,tG);plane(xE-xW+40,maj?4.4:3.4,maj?mMaj:mRoad,(xW+xE)/2+10,maj?.066:.062,z,tG);for(let k=-2;k<=1;k++)L.push({k:'st',t:name,x:(k+.5)*SX,z,dir:'h',maj});};
+ const rn=mulberry(4242);for(let m=K0;m<=K1;m++){const x=m*SX;if(m===K0)vRoad(x,false,'The Esplanade');else vRoad(x,m===0,m===0?'Empire Highway':roadName(rn));}
+ for(let j=J0;j<=J1;j++){const z=-(j+.5)*SZ;hRoad(z,j===-1,j===-1?'Gavel Parade':roadName(rn));}
+ /* owned blocks: your homes on their street */
+ MW.avgY=(()=>{let r=0,v=0;for(const p of S.props){r+=rentOf(p);v+=p.value;}return v?r*12/v:0;})();
+ const own=new Set();blocks.forEach((b,i)=>{const k=i%2-1,j=Math.floor(i/2);own.add(k+','+j);const bx=(k+.5)*SX,bz=-j*SZ,bg=new THREE.Group();
+  const set=b.ps.length>=SET_N;at(rbox(BW,.3,BD,.3,mBlock),0,.15,0,bg);
+  const stc={};b.ps.forEach(p=>{const s=streetOf(p);stc[s]=(stc[s]||0)+1;});const stn=Object.keys(stc).sort((a,c)=>stc[c]-stc[a])[0]||'';
+  plane(BW,3.1,mCas,0,.31,0,bg);plane(BW,2.6,mRoad,0,.322,0,bg);
+  if(cfg.rent&&b.ps.length){const yb=blockYield(b),avg=MW.avgY||yb.y,ratio=yb.y/Math.max(1e-9,avg),col=yb.bad?'#d93025':ratio>=1?'#1e9e4a':ratio>=.85?'#f29900':'#d93025';plane(BW-1,1.1,new THREE.MeshBasicMaterial({color:C(col)}),0,.335,0,bg);b.flow=yb.bad?'Weak':ratio>=1?'Strong':ratio>=.85?'OK':'Weak';}
   if(set)at(rbox(BW+1.4,.22,BD+1.4,.3,new THREE.MeshStandardMaterial({color:C('#f2c14e'),emissive:C('#f2c14e'),emissiveIntensity:.25,roughness:.5})),0,.08,0,bg);
-  b.ps.slice(0,12).forEach((p,j)=>{const side=j%2?1:-1,slot=Math.floor(j/2),h=liteHouse(p);h.position.set(-BW/2+6+slot*6.4,.3,side*6.2);h.rotation.y=side>0?Math.PI:0;bg.add(h);tHomes.push(h);});
-  for(let k=0;k<4;k++)tree(bg,(k%2?1:-1)*(BW/2-1.2),(k<2?1:-1)*(BD/2-1.4),.45);
-  if(MODELS.tx){const tt=text3d(b.sub.toUpperCase(),{size:1.15,color:0xffffff,opacity:.8,ls:.12});if(tt){tt.rotation.x=-Math.PI/2;tt.anchorX='right';tt.position.set(BW/2-1.2,.35,.05);bg.add(tt);}}
-  bg.position.set(bx,0,bz);bg.userData.block=b;tG.add(bg);});if(!MODELS.tx)troika().then(TT=>{if(TT){MODELS.tx=1;tSig='';}});
- if(!blocks.length){at(rbox(22,.3,20,.3,M('#86bf55')),0,.15,0,tG);}
- shade(tG);townS.add(tG);const rows=maxZ+1,vr=Math.min(rows,2);tcam.x=0;tcam.z=-(vr-1)*(BD+7)/2;tcam.d=Math.max(46,Math.min(150,(vr*(BD+7)+14)*1.15));townS.userData.blocks=blocks;return true;}
-let tLabels=[];
+  b.ps.slice(0,12).forEach((p,q)=>{const side=q%2?1:-1,slot=Math.floor(q/2),h=liteHouse(p);h.position.set(-BW/2+6+slot*6.4,.3,side*6.2);h.rotation.y=side>0?Math.PI:0;bg.add(h);tHomes.push(h);});
+  for(let q=0;q<4;q++)tree(bg,(q%2?1:-1)*(BW/2-1.2),(q<2?1:-1)*(BD/2-1.4),.45);
+  if(cfg.haz){const hz=(HAZ[b.sub]||[]).slice(0,3);if(hz.length){const col=HZC[hz[0]]||'#e53935',disc=new THREE.Mesh(new THREE.CircleGeometry(1,48),new THREE.MeshBasicMaterial({color:C(col),transparent:true,opacity:.22,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.scale.set(BW*.5+1,BD*.5+1,1);disc.position.y=.36;disc.renderOrder=2;bg.add(disc);const ring=new THREE.Mesh(new THREE.RingGeometry(.97,1,64),new THREE.MeshBasicMaterial({color:C(col),transparent:true,opacity:.75,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.scale.copy(disc.scale);ring.position.y=.37;ring.renderOrder=3;bg.add(ring);L.push({k:'haz',t:hz.map(h=>h[0].toUpperCase()+h.slice(1)).join(' · ')+' zone',x:bx-BW/2+4,z:bz+BD/2-2.5,c:col});}}
+  bg.position.set(bx,0,bz);bg.userData.block=b;b.street=stn;tG.add(bg);tBlocks.push(bg);
+  L.push({k:'sub',b,x:bx,z:bz});if(stn){L.push({k:'st',t:stn,x:bx-BW/2+5,z:bz,dir:'h',own:1});L.push({k:'st',t:stn,x:bx+BW/2-5,z:bz,dir:'h',own:1});}});
+ /* the rest of the city: parks, suburbs, towers on the far side */
+ const box=new THREE.BoxGeometry(1,1,1);box.translate(0,.5,0);const can=new THREE.IcosahedronGeometry(1,1);can.translate(0,1,0);const BI=[],TI=[],parks=['Gavel Park','Centennial Park','Jacaranda Reserve','Waratah Gardens','Harbour Green','Bellbird Reserve','Lyrebird Oval','Paperbark Commons'];let pk=0;
+ for(let k=K0;k<=K1;k++)for(let j=J0;j<=J1;j++){if(own.has(k+','+j))continue;const r=mulberry((k+11)*977+(j+11)*131),bx=(k+.5)*SX,bz=-j*SZ,far=j>=R+1,mid=j===R;
+  const park=(k===1&&j===0)||(k===-2&&j===R)||(!far&&r()<.16);plane(BW,BD,park?mPark:mBlock,bx,.05,bz,tG);
+  if(park){for(let i=0;i<14;i++)TI.push([bx+(r()-.5)*(BW-4),bz+(r()-.5)*(BD-4),.9+r()*1.1,Math.floor(r()*3)]);plane(BW*.9,1.1,M(sty==='night'?'#33463d':sty==='sat'?'#8d8a76':'#e9f3dc',{roughness:1}),bx,.07,bz,tG).rotation.z=.5;L.push({k:'park',t:parks[pk++%parks.length],x:bx,z:bz});continue;}
+  plane(BW,1.8,mRoad,bx,.07,bz,tG);
+  for(const side of[-1,1]){let x=-BW/2+1.4;while(x<BW/2-3){const w=far?5+r()*3:mid?4+r()*2.4:3.2+r()*2.2,d=far?6+r()*4:mid?5+r()*3:4+r()*3,h=far?8+r()*20:mid?3+r()*6:1.4+r()*2.2;if(x+w>BW/2-1.2)break;BI.push([bx+x+w/2,bz+side*(BD/2-1.2-d/2),w,d,h,far||mid]);x+=w+(far?1.4:.9);}}}
+ if(BI.length){const im=new THREE.InstancedMesh(box,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.8}),BI.length),mt=new THREE.Matrix4(),q=new THREE.Quaternion(),cl=new THREE.Color(),rr2=mulberry(9);
+  BI.forEach((b,i)=>{mt.compose(V3(b[0],.05,b[1]),q,V3(b[2],b[4],b[3]));im.setMatrixAt(i,mt);if(sty==='sat')cl.copy(C(['#b8b1a5','#a55a3c','#9a9488','#c9c2b4','#7f7a72','#b46a48'][Math.floor(rr2()*6)]));else{cl.copy(C(b[5]?P.tower:P.bld));cl.offsetHSL(0,0,(rr2()-.5)*.05);}im.setColorAt(i,cl);});
+  im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.castShadow=true;im.receiveShadow=true;tG.add(im);}
+ if(TI.length){const im=new THREE.InstancedMesh(can,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),TI.length),mt=new THREE.Matrix4(),q=new THREE.Quaternion();TI.forEach((t,i)=>{const s=t[2];mt.compose(V3(t[0],.05,t[1]),q,V3(s,s*1.1,s));im.setMatrixAt(i,mt);im.setColorAt(i,C(P.tree[t[3]]));});im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;im.castShadow=true;tG.add(im);}
+
+ if(!blocks.length)L.push({k:'sub',b:{sub:'Your first suburb',ps:[]},x:-.5*SX,z:0});
+ shade(tG);tG.traverse(o=>{if(o.isMesh&&o.geometry&&/Plane|Shape|Circle|Ring/.test(o.geometry.type))o.castShadow=false;});
+ tSel=new THREE.Mesh(new THREE.RingGeometry(.82,1,48),new THREE.MeshBasicMaterial({color:C('#f2c14e'),transparent:true,opacity:.9,depthWrite:false}));tSel.rotation.x=-Math.PI/2;tSel.visible=false;tSel.renderOrder=4;tG.add(tSel);
+ townS.add(tG);MW.labels=L;MW.SX=SX;MW.SZ=SZ;MW.R=R;MW.bounds={x0:-SX,x1:SX,z0:-(R-1)*SZ-BD/2,z1:BD/2};
+ const vr=Math.min(R,2);tcam.x=0;tcam.z=-(vr-1)*SZ/2;tcam.d=Math.max(46,Math.min(150,(vr*SZ+14)*1.2));townS.userData.blocks=blocks;if(tSelP)mapSelect(tSelP,true);return true;}
+/* ---------- labels and pins: HTML over the canvas, culled by zoom and collision, street names turned to their road ---------- */
+let ML=[];const MKI={home:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2 2.8 11h2.7v9h5v-5.6h3V20h5v-9h2.7z"/></svg>',req:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>',works:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6v18M12 7h8M18 7v5M4 13h8M4 17h8"/></svg>'};
+function shortAddr(a){return String(a).replace(/\b(Street)\b/,'St').replace(/\b(Avenue)\b/,'Ave').replace(/\b(Road)\b/,'Rd').replace(/\b(Crescent)\b/,'Cres').replace(/\b(Parade)\b/,'Pde').replace(/\b(Terrace)\b/,'Tce').replace(/\b(Close)\b/,'Cl').replace(/\b(Lane)\b/,'Ln');}
+function mapLabels(){tov.innerHTML='';ML=[];const mk=(o,html,cls,btn)=>{const el=document.createElement(btn?'button':'div');el.className=cls;el.innerHTML=html;if(btn){el.type='button';el.addEventListener('pointerdown',e=>e.stopPropagation());}tov.appendChild(el);o.el=el;o.tf='';o.vis=null;ML.push(o);return el;};
+ const pri={sub:0,haz:1,mk:2,me:3,water:4,park:5,st:6};
+ MW.labels.forEach(l=>{if(l.k==='sub'){const n=l.b.ps.length,set=n>=SET_N;mk(l,`<b>${esc(l.b.sub)}</b>${n?`<small class="${set?'set':''}">${set?'★ Set · +10% rent':n+' home'+(n===1?'':'s')+(l.b.reg&&l.b.reg.k!=='au'?' · '+esc(l.b.reg.name):'')}${l.b.flow?' · rent '+l.b.flow.toLowerCase():''}</small>`:''}`,'ml sub');}
+  else if(l.k==='st'){if(!mapCfg().lab)return;mk(l,esc(l.t),'ml st'+(l.maj?' maj':'')+(l.own?' own':''));}
+  else if(l.k==='park')mk(l,esc(l.t),'ml park');else if(l.k==='water')mk(l,esc(l.t),'ml water');else if(l.k==='haz'){const el=mk(l,esc(l.t),'ml haz');el.style.setProperty('--hz',l.c);}});
+ tHomes.forEach(hm=>{const p=hm.userData.p,o={k:'mk',hm,p};const el=mk(o,'','mk',true);el.onclick=e=>{e.stopPropagation();sfx('tick');mapPick(p);};});
+ const nw=tHomes.find(h=>h.userData.p===S.props[0]);if(nw)mk({k:'me',hm:nw},'','mydot');
+ ML.sort((a,b)=>pri[a.k]-pri[b.k]);ML.forEach(o=>{if(o.k==='mk')mkPaint(o);});ML.forEach(o=>{o.w=o.el.offsetWidth;o.h=o.el.offsetHeight;});}
+function mkPaint(o){const p=o.p,r=p.rarity||0,req=p.req&&!p.req.ask,wk=!!(p.works||p.build),sel=p===tSelP,dim=MAPF&&!MAPF(p),run=p.left||(p.rd||0)>.02;
+ const cls='mk r'+r+(req?' req':wk?' wk':'')+(sel?' sel':'')+(dim?' dim':'')+(run?' run':'')+(p.src?' unr':''),key=cls+'|'+Math.round(rentOf(p));if(o.key===key)return;o.key=key;o.el.className=cls;o.el.style.setProperty('--rc',RAR[r][1]);
+ o.el.setAttribute('aria-label',p.addr+', '+p.sub+(req?', tenant request':''));o.el.innerHTML=`<i>${req?MKI.req:wk?MKI.works:MKI.home}</i><span><b>${esc(shortAddr(p.addr))}</b><small>${run?(p.left?'Vacant':'Run down'):money(rentOf(p))+'/mo'}</small></span>`;o.w=0;}
+let PV=null;
+function mapOverlay(){const W=cv2.clientWidth,H=cv2.clientHeight;if(!W)return;PV=PV||new THREE.Vector3();const d=TCC?TCC.distance:tcam.d,top=MAPUI.top||0,bot=H-(MAPUI.bot||0),placed=[];
+ const scr=(x,y,z)=>{PV.set(x,y,z).project(townCam);return{x:(PV.x+1)/2*W,y:(1-PV.y)/2*H,z:PV.z};};
+ const free=(x0,y0,x1,y1)=>{for(const q of placed)if(x0<q[2]&&x1>q[0]&&y0<q[3]&&y1>q[1])return false;placed.push([x0,y0,x1,y1]);return true;};
+ const put=(o,tf,vis)=>{if(vis!==o.vis){o.el.style.visibility=vis?'visible':'hidden';o.vis=vis;}if(vis&&tf!==o.tf){o.el.style.transform=tf;o.tf=tf;}};
+ for(const o of ML){if(!o.w){o.w=o.el.offsetWidth;o.h=o.el.offsetHeight;if(!o.w)continue;}
+  if(o.k==='mk'||o.k==='me'){if(o.k==='mk')mkPaint(o);const v=new THREE.Vector3(0,o.k==='me'?.4:3.7,o.k==='me'?3.4:0);o.hm.localToWorld(v);v.project(townCam);const x=(v.x+1)/2*W,y=(1-v.y)/2*H,on=v.z<1&&x>-30&&x<W+30&&y>top-20&&y<bot+30;
+   if(o.k==='me'){put(o,`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`,on);continue;}
+   const sel=o.p===tSelP,txt=on&&(sel||d<120)&&free(x+12,y-o.h/2,x+o.w-8,y+o.h/2);if(on)placed.push([x-11,y-11,x+11,y+11]);o.el.classList.toggle('notext',!txt);put(o,`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-11px,-50%)`,on);continue;}
+  const s=scr(o.x,.4,o.z);let on=s.z<1&&s.x>-60&&s.x<W+60&&s.y>top&&s.y<bot;if(o.k==='st'&&d>(o.maj?230:150))on=false;if(o.k==='park'&&d>200)on=false;
+  let rot='';if(o.k==='st'&&on){const a=o.dir==='v'?scr(o.x,.4,o.z-4):scr(o.x-4,.4,o.z),b=o.dir==='v'?scr(o.x,.4,o.z+4):scr(o.x+4,.4,o.z);let ang=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;rot=` rotate(${ang.toFixed(1)}deg)`;
+   const len=Math.hypot(b.x-a.x,b.y-a.y)/8;if(len*14<o.w*.5)on=false;}
+  if(on){const hw=o.k==='st'?Math.max(o.w,o.h)/2:o.w/2,hh=o.k==='st'?Math.min(o.w,o.h)/2+2:o.h/2;on=free(s.x-hw,s.y-hh,s.x+hw,s.y+hh);}
+  put(o,`translate(${s.x.toFixed(1)}px,${s.y.toFixed(1)}px) translate(-50%,-50%)${rot}`,on);}
+ /* scale bar and compass */
+ const sb=document.getElementById('gmScale'),cp=document.getElementById('gmCmp');if(sb){const tg=TCC?TCC.getTarget(new THREE.Vector3()):V3(tcam.x,0,tcam.z),a=scr(tg.x-5,0,tg.z),b=scr(tg.x+5,0,tg.z),ppu=Math.max(.01,Math.hypot(b.x-a.x,b.y-a.y)/10),mpu=2.5;let best=10;for(const m of[10,20,50,100,200,500,1000,2000])if(m/mpu*ppu<=86)best=m;const px=Math.round(best/mpu*ppu),lab=best>=1000?best/1000+' km':best+' m';if(sb.dataset.v!==px+lab){sb.dataset.v=px+lab;sb.querySelector('i').style.width=px+'px';sb.querySelector('span').textContent=lab;}}
+ if(cp){const az=TCC?TCC.azimuthAngle:0,pol=TCC?TCC.polarAngle:.7,a2=((az%(Math.PI*2))+Math.PI*3)%(Math.PI*2)-Math.PI,show=Math.abs(a2)>.04;cp.hidden=!show;if(show)cp.firstElementChild.style.transform=`rotateX(${Math.min(55,pol*57).toFixed(0)}deg) rotate(${(a2*180/Math.PI).toFixed(1)}deg)`;}}
 function townFrame(dt,now){townBox=$('#townBox');if(!townBox||!townBox.clientWidth)return;wireTown();const rb=buildTown();if(cv2.parentNode!==townBox){townBox.prepend(tov);townBox.prepend(cv2);}
  const w=townBox.clientWidth,h=townBox.clientHeight;if(!w||!h)return;if(cv2.width!==Math.round(w*R2.getPixelRatio())||cv2.height!==Math.round(h*R2.getPixelRatio()))R2.setSize(w,h,false);
- if(rb){tov.innerHTML='';tLabels=[];}townCam.aspect=w/h;townCam.fov=46;townControls();lateComposers();if(TCC){const tg=TCC.getTarget(new THREE.Vector3());tcam.x=tg.x;tcam.z=tg.z;}const tx=tcam.x,tz=tcam.z;if(!TCC){townCam.position.set(tx+Math.sin(tcam.yaw)*tcam.d*.38,tcam.d*.92,tz+Math.cos(tcam.yaw)*tcam.d*.5);townCam.lookAt(tx,0,tz);}townCam.updateProjectionMatrix();
- const s2=townS.userData.sun;s2.target.position.set(tx,0,tz);s2.position.set(tx-30,50,tz+30);
- townFx(dt);if(TCC)TCC.update(dt);draw('town',R2,townS,townCam,w,h,dt);
- /* labels: suburb names, request pins, rent coins */
- const blocks=townS.userData.blocks||[];if(tLabels.length!==blocks.length){tov.innerHTML='';tLabels=blocks.map(b=>{const el=document.createElement('div');el.className='tlab'+(b.ps.length>=SET_N?' set':'');el.innerHTML=`<b>${esc(b.sub)}</b><small>${b.ps.length} home${b.ps.length===1?'':'s'}${b.ps.length>=SET_N?' · set +10%':b.reg.k!=='au'?' · '+esc(b.reg.name):''}</small>`;tov.appendChild(el);return el;});}
- tG.children.forEach((bg,i)=>{const el=tLabels[i];if(!el)return;const s=proj(bg,1.2,townCam,cv2);el.style.transform=`translate(${s.x.toFixed(0)}px,${s.y.toFixed(0)}px) translate(-50%,-50%)`;el.style.visibility=s.z>1?'hidden':'visible';});
- for(const hm of tHomes){const p=hm.userData.p;let pin=hm.userData.pin;if(pin&&!pin.isConnected){hm.userData.pin=pin=null;}const need=p.req&&!p.req.ask;if(need&&!pin){pin=document.createElement('button');pin.className='tpin';pin.setAttribute('aria-label','Tenant request at '+p.addr);pin.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>';pin.onclick=e=>{e.stopPropagation();reqSheet();};tov.appendChild(pin);hm.userData.pin=pin;}else if(!need&&pin){pin.remove();hm.userData.pin=null;pin=null;}
-  if(pin){const s=proj(hm,3.6,townCam,cv2);pin.style.transform=`translate(${s.x.toFixed(0)}px,${s.y.toFixed(0)}px) translate(-50%,-100%)`;}}
- coinT-=dt;if(coinT<=0&&tHomes.length&&!reduceMo){coinT=1.6+Math.random()*1.4;const hm=tHomes[Math.floor(Math.random()*tHomes.length)],p=hm.userData.p;const rent=rentOf(p);if(rent>0){const s=proj(hm,3,townCam,cv2);const el=document.createElement('div');el.className='tcoin';el.textContent='+'+money(rent);el.style.left=s.x+'px';el.style.top=s.y+'px';tov.appendChild(el);setTimeout(()=>el.remove(),1800);}}}
-function townOn(on){if(st==='idle')load();if(on&&tov){tLabels=[];tov.innerHTML='';tHomes.forEach(h=>h.userData.pin=null);}else if(!on&&cv2&&cv2.parentNode){cv2.remove();if(tov)tov.remove();}}
+ if(rb||!ML.length||ML[0].el.parentNode!==tov)mapLabels();townCam.aspect=w/h;townCam.fov=40;townControls();lateComposers();if(TCC){const tg=TCC.getTarget(new THREE.Vector3());tcam.x=tg.x;tcam.z=tg.z;}const tx=tcam.x,tz=tcam.z;if(!TCC){townCam.position.set(tx,tcam.d*.92,tz+tcam.d*.5);townCam.lookAt(tx,0,tz);}
+ MAPOFF.cur+=(MAPOFF.goal-MAPOFF.cur)*Math.min(1,dt*7);if(MAPOFF.cur>1)townCam.setViewOffset(w,h+MAPOFF.cur,0,MAPOFF.cur,w,h);else if(townCam.view&&townCam.view.enabled)townCam.clearViewOffset();townCam.updateProjectionMatrix();
+ const s2=townS.userData.sun;s2.target.position.set(tx,0,tz);s2.position.set(tx-30,60,tz+30);const dd=TCC?TCC.distance:tcam.d;townS.fog.near=dd*1.6;townS.fog.far=dd*4.2+60;
+ if(tSel&&tSel.visible){const k=1+Math.sin(now/260)*.06;tSel.scale.set(tSel.userData.s*k,tSel.userData.s*k,1);}
+ townFx(dt);if(TCC)TCC.update(dt);
+ const night=tSty==='night'&&GLASS;let ge,gi;if(night){ge=GLASS.emissive.clone();gi=GLASS.emissiveIntensity;GLASS.emissive.set('#ffc46b');GLASS.emissiveIntensity=.85;}
+ draw('town',R2,townS,townCam,w,h,dt);if(night){GLASS.emissive.copy(ge);GLASS.emissiveIntensity=gi;}
+ mapOverlay();
+ coinT-=dt;if(coinT<=0&&tHomes.length&&!reduceMo){coinT=1.8+Math.random()*1.6;const hm=tHomes[Math.floor(Math.random()*tHomes.length)],p=hm.userData.p;const rent=rentOf(p);if(rent>0&&(!MAPF||MAPF(p))){const s=proj(hm,3,townCam,cv2);if(s.z<1&&s.y>MAPUI.top+20&&s.y<h-MAPUI.bot){const el=document.createElement('div');el.className='tcoin';el.textContent='+'+money(rent);el.style.left=s.x+'px';el.style.top=s.y+'px';tov.appendChild(el);setTimeout(()=>el.remove(),1800);}}}}
+/* map API for the Maps UI */
+function homeOf(p){return tHomes.find(h=>h.userData.p===p)||tHomes.find(h=>p&&h.userData.p&&h.userData.p.id===p.id);}
+function mapFly(x,z,dist){if(TCC){TCC.moveTo(x,0,z,true);if(dist)TCC.dollyTo(dist,true);}else{tcamGoal={x,z,d:dist||tcam.d};}}
+function mapSelect(p,quiet){tSelP=p||null;if(!tSel)return;const hm=p&&homeOf(p);if(!hm){tSel.visible=false;return;}const b=new THREE.Box3().setFromObject(hm),c=b.getCenter(new THREE.Vector3()),s=Math.max(b.max.x-b.min.x,b.max.z-b.min.z)*.62;tSel.position.set(c.x,.4,c.z);tSel.userData.s=s;tSel.scale.set(s,s,1);tSel.visible=true;if(!quiet)mapFly(c.x,c.z,Math.max(40,Math.min(TCC?TCC.distance:56,56)));}
+/* fit a box in the band between the search bar and the sheet: the phone is narrow, so width usually decides */
+function fitDist(wd,dp){const vf=townCam.fov*Math.PI/360,as=Math.max(.3,townCam.aspect||.55),hf=Math.atan(Math.tan(vf)*as),H=(cv2&&cv2.clientHeight)||600,band=Math.max(.35,1-((MAPUI.top||0)+(MAPUI.bot||0))/H);return Math.max(30,Math.min(250,Math.max(wd/2/Math.tan(hf),dp/2/Math.tan(vf)/band*.8)*1.12+6));}
+function mapFit(list){const hs=(list||S.props).map(homeOf).filter(Boolean);if(!hs.length){if(MW.bounds){const B=MW.bounds;mapFly((B.x0+B.x1)/2,(B.z0+B.z1)/2,fitDist(B.x1-B.x0+8,B.z1-B.z0+8));}return;}const b=new THREE.Box3();hs.forEach(h=>b.expandByObject(h));const c=b.getCenter(new THREE.Vector3());mapFly(c.x,c.z,fitDist(Math.max(28,b.max.x-b.min.x+8),Math.max(24,b.max.z-b.min.z+8)));}
+function mapTilt(on){if(!TCC)return;TCC.maxPolarAngle=on?1.12:.001;TCC.rotatePolarTo(on?.74:.001,true);}
+function mapNorth(){if(TCC)TCC.rotateAzimuthTo(0,true);}
+function mapFilter(fn){MAPF=fn||null;}
+function mapOffset(px,top,bot){MAPOFF.goal=Math.max(0,px||0);MAPUI.top=top||0;MAPUI.bot=bot||0;}
+function mapRestyle(){tSig='';}
+function townOn(on){if(st==='idle')load();if(on&&tov){ML=[];tov.innerHTML='';}else if(!on&&cv2&&cv2.parentNode){cv2.remove();if(tov)tov.remove();}}
 function wireTown(){if(!tov){tov=document.createElement('div');tov.className='d3ov tov';}
   if(!townBox.dataset.wired){townBox.dataset.wired=1;townBox.addEventListener('pointerdown',e=>{tdrag={x:e.clientX,y:e.clientY,cx:tcam.x,cz:tcam.z,moved:0};});
    townBox.addEventListener('pointermove',e=>{if(!tdrag)return;if(TCC){tdrag.moved=Math.max(tdrag.moved,Math.abs(e.clientX-tdrag.x)+Math.abs(e.clientY-tdrag.y));return;}const dx=e.clientX-tdrag.x,dy=e.clientY-tdrag.y;tdrag.moved=Math.max(tdrag.moved,Math.abs(dx)+Math.abs(dy));const k=tcam.d/townBox.clientWidth*1.2;tcam.x=tdrag.cx-dx*k;tcam.z=tdrag.cz-dy*k*1.4;});
-   townBox.addEventListener('pointerup',e=>{const d=tdrag;tdrag=null;if(!d||d.moved>8||st!=='ready')return;const r=townBox.getBoundingClientRect();const m=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(m,townCam);const hit=ray.intersectObjects(tHomes,true)[0];if(hit){let o=hit.object;while(o&&!o.userData.p)o=o.parent;if(o){sfx('tick');cardSheet(o.userData.p);}}});
+   townBox.addEventListener('pointerup',e=>{const d=tdrag;tdrag=null;if(!d||d.moved>8||st!=='ready')return;const r=townBox.getBoundingClientRect();const m=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(m,townCam);const hit=ray.intersectObjects(tHomes,true)[0];let o=hit&&hit.object;while(o&&!o.userData.p)o=o.parent;if(o){sfx('tick');mapPick(o.userData.p);}else mapPick(null);});
    townBox.addEventListener('wheel',e=>{if(TCC)return;e.preventDefault();tcam.d=Math.max(18,Math.min(160,tcam.d*(1+e.deltaY*.001)));},{passive:false});
    townBox.addEventListener('touchstart',e=>{if(TCC)return;if(e.touches.length===2){tdrag=null;tpinch={d:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),z:tcam.d};}},{passive:true});
    townBox.addEventListener('touchmove',e=>{if(TCC)return;if(tpinch&&e.touches.length===2){e.preventDefault();const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);tcam.d=Math.max(18,Math.min(160,tpinch.z*tpinch.d/d));}else if(e.cancelable&&tdrag)e.preventDefault();},{passive:false});
@@ -4976,9 +5276,9 @@ function ualChar(ctx,anim,col){const o=mclone('ual/ual');if(!o)return null;const
 const KMODE={walk:'walk',run:'sprint',panic:'sprint',cheer:'emote-yes',dance:'emote-yes',snap:'interact-right'};
 /* ---------- camera-controls on My town: damped pan, pinch-zoom and dolly-to-cursor ---------- */
 let TCC=null;
-function townControls(){if(TCC||!townBox||!townCam)return;if(!window.CameraControls){lib('cc').then(()=>townControls()).catch(()=>{});return;}try{CameraControls.install({THREE});TCC=new CameraControls(townCam,townBox);const A2=CameraControls.ACTION;TCC.mouseButtons.left=A2.TRUCK;TCC.mouseButtons.right=A2.ROTATE;TCC.mouseButtons.wheel=A2.DOLLY;TCC.touches.one=A2.TOUCH_TRUCK;TCC.touches.two=A2.TOUCH_DOLLY_TRUCK;TCC.touches.three=A2.TOUCH_ROTATE;
-  TCC.verticalDragToForward=true;TCC.dollyToCursor=true;TCC.minDistance=16;TCC.maxDistance=180;TCC.minPolarAngle=.3;TCC.maxPolarAngle=1.05;TCC.dampingFactor=.08;TCC.draggingDampingFactor=.2;
-  TCC.setLookAt(tcam.x+Math.sin(tcam.yaw)*tcam.d*.38,tcam.d*.92,tcam.z+Math.cos(tcam.yaw)*tcam.d*.5,tcam.x,0,tcam.z,false);T.c.townCC=1;}catch(e){D3err='cc '+e.message;TCC=null;}}
+function townControls(){if(TCC||!townBox||!townCam)return;if(!window.CameraControls){lib('cc').then(()=>townControls()).catch(()=>{});return;}try{CameraControls.install({THREE});TCC=new CameraControls(townCam,townBox);const A2=CameraControls.ACTION;TCC.mouseButtons.left=A2.TRUCK;TCC.mouseButtons.right=A2.ROTATE;TCC.mouseButtons.wheel=A2.DOLLY;TCC.touches.one=A2.TOUCH_TRUCK;TCC.touches.two=A2.TOUCH_DOLLY_ROTATE;TCC.touches.three=A2.TOUCH_ROTATE;
+  TCC.verticalDragToForward=true;TCC.dollyToCursor=true;TCC.minDistance=14;TCC.maxDistance=260;TCC.minPolarAngle=0;TCC.maxPolarAngle=mapCfg().tilt?1.12:.001;TCC.dampingFactor=.08;TCC.draggingDampingFactor=.2;
+  {const pol=mapCfg().tilt?.74:.001;TCC.setLookAt(tcam.x,tcam.d*Math.cos(pol),tcam.z+tcam.d*Math.sin(pol),tcam.x,0,tcam.z,false);}T.c.townCC=1;}catch(e){D3err='cc '+e.message;TCC=null;}}
 /* ---------- troika-three-text: crisp 3D lettering (SOLD rider on the auction board, suburb names painted on My town's roads) ---------- */
 let TROIKA=null;function troika(){if(!TROIKA)TROIKA=lib('troika').then(()=>window.troika_three_text).catch(()=>null);return TROIKA;}
 function text3d(str,o){const TT=window.troika_three_text;if(!TT)return null;const t=new TT.Text();t.text=str;t.font=CDN.font;t.fontSize=o.size||1;t.color=o.color||0xffffff;t.anchorX='center';t.anchorY='middle';t.outlineWidth=o.outline||0;t.outlineColor=o.outlineColor||0x000000;t.letterSpacing=o.ls||0;if(o.opacity!=null){t.fillOpacity=o.opacity;}t.sync();return t;}
@@ -4996,7 +5296,7 @@ function tune(){lib('gui').then(()=>{const gui=new lil.GUI({title:'Auction Empir
  const P2=gui.addFolder('Post');P2.add(TUNE,'bloom',0,2,.01).onChange(v=>{for(const k in PPX)if(PPX[k].bloom)PPX[k].bloom.intensity=v;sv();});P2.add(TUNE,'ssao',0,4,.05).onChange(v=>{for(const k in PPX)if(PPX[k].ssao)PPX[k].ssao.blendMode.opacity.value=Math.min(1,v/2);sv();});P2.add(TUNE,'vig',0,1,.01).onChange(v=>{for(const k in PPX)if(PPX[k].vig)PPX[k].vig.darkness=v;sv();});P2.add(TUNE,'bth',.5,1,.01).name('bloom threshold').onChange(v=>{for(const k in PPX)if(PPX[k].bloom)PPX[k].bloom.luminanceMaterial.threshold=v;sv();});P2.add(TUNE,'sat',-.5,.6,.01).name('saturation').onChange(v=>{for(const k in PPX)if(PPX[k].sat)PPX[k].sat.saturation=v;sv();});P2.add(TUNE,'con',-.3,.5,.01).name('contrast').onChange(v=>{for(const k in PPX)if(PPX[k].bc)PPX[k].bc.contrast=v;sv();});P2.add(TUNE,'bri',-.3,.3,.01).name('brightness').onChange(v=>{for(const k in PPX)if(PPX[k].bc)PPX[k].bc.brightness=v;sv();});
  const q={tier:Q.tier,post:!Q.off};gui.add(q,'tier',[0,1,2,3]).onChange(v=>{Q.tier=+v;postOff();applyQuality();});gui.add(q,'post').onChange(v=>{Q.off=!v;postOff();applyQuality();});gui.add({reload:()=>{cur=null;tSig='';}},'reload').name('Rebuild scene');}).catch(()=>{});}
 function off(){S.d3off=1;save();location.reload();}
-return {load,townOn,off,setTier,status,compare,get Q(){return Q;},get models(){return MODELS.ready?Object.keys(MODELS.g).length:0;},get M(){return MODELS;},kHouse,boost,refreshYou,preview,cut,cutSeek,has:k=>!!EFX[k],fxList:()=>Object.keys(EFX),get busy(){return !!CUR;},get st(){return st;},get err(){return D3err;},rebuild(){cur=null;},debugBuild(){if(A)build(A);}};})();
+return {load,townOn,off,setTier,status,compare,map:{ready:()=>!!(TCC&&tHomes.length+1&&tG),select:mapSelect,fit:mapFit,tilt:mapTilt,north:mapNorth,filter:mapFilter,offset:mapOffset,restyle:mapRestyle},get Q(){return Q;},get models(){return MODELS.ready?Object.keys(MODELS.g).length:0;},get M(){return MODELS;},kHouse,boost,refreshYou,preview,cut,cutSeek,has:k=>!!EFX[k],fxList:()=>Object.keys(EFX),get busy(){return !!CUR;},get st(){return st;},get err(){return D3err;},rebuild(){cur=null;},debugBuild(){if(A)build(A);}};})();
 {const go=()=>setTimeout(()=>{if(!/[?&]3d=0/.test(location.search))D3.load();},500);if(document.readyState==='complete')go();else addEventListener('load',go,{once:true});}
 
 if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={ws:()=>({url:wsArenaURL(),on:arenaOn(),live:WSARENA.live,ps:!!WSARENA.PS,soc:SOC(),api:typeof API!=='undefined'?API:null}),lotBurst,hsfx,lookSheet,whatsNew,startRedev,startWorks,finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o),passIn,passTake,passWalk,reqNew,reqTick,fixAll,reqSheet,awayReqs,cashOutIntro,postLot,loanFor,keepCash,payFor,d3:D3};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
