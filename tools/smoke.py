@@ -19,7 +19,8 @@ def page(b, scheme, seed=None, q="?mkt=0&debug=1"):
     pg.on("console", lambda m: m.type == "error" and not any(s in m.text for s in IGNORE) and errors.append(f"{scheme} console: {m.text}"))
     if seed:
         pg.add_init_script("if(!sessionStorage.getItem('seeded')){localStorage.setItem('dopamine-property-v1',%s);sessionStorage.setItem('seeded','1')}" % json.dumps(json.dumps(seed)))
-    pg.set_default_timeout(10000); pg.goto(url + q); pg.wait_for_timeout(700)
+    u = url + q; u += ("&" if "?" in u else "?") + "3d=0"  # logic checks run with the 3D street off (tested separately)
+    pg.set_default_timeout(10000); pg.goto(u); pg.wait_for_timeout(700)
     return pg
 
 
