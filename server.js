@@ -86,10 +86,27 @@ function dayOk(d) { if (!DAY.test(d)) return false; const diff = Math.abs(Date.p
 const RICH_FILE = path.join(DATA, "rich.json");
 let RICH = (() => { try { return JSON.parse(fs.readFileSync(RICH_FILE, "utf8")); } catch { return {}; } })(), richDirty = false;
 setInterval(() => { if (richDirty) { richDirty = false; try { writeJSON(RICH_FILE, RICH); } catch (e) { console.log("RICH write " + e.message); } } }, 15000);
-function richTop(id) {
-  const cut = Date.now() - 14 * 864e5, all = Object.entries(RICH).filter(([, e]) => Date.parse(e.at) > cut).map(([k, e]) => ({ k, ...e })).sort((a, b) => b.worth - a.worth);
-  const i = all.findIndex(e => e.k === id);
-  return { top: all.slice(0, 50).map(e => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, me: e.k === id })), rank: i < 0 ? null : i + 1, total: all.length };
+/* v57 leaderboards: one entry per install, several boards over it. Week = Monday 00:00 UTC; gain is worth now minus worth when first seen that week.
+   Season = calendar month (UTC), Season 1 = October 2026, the same sum the client does. */
+const WEEK0 = Date.UTC(2026, 0, 5), WEEKMS = 7 * 864e5;
+const weekNo = (t = Date.now()) => Math.floor((t - WEEK0) / WEEKMS);
+const seasonNo = (t = Date.now()) => { const d = new Date(t); return Math.max(0, (d.getUTCFullYear() - 2026) * 12 + (d.getUTCMonth() - 9)) + 1; };
+const BOARDS = {
+  worth: e => e.worth,
+  week: e => e.wk === weekNo() ? e.worth - (e.w0 || 0) : null,
+  level: e => (e.pr || 0) * 100 + (e.lv || 0),
+  stars: e => e.stars || 0,
+  season: e => e.sid === seasonNo() ? (e.sx || 0) : null,
+  arena: e => e.aw || 0,
+  wins: e => e.wins || 0,
+};
+function richTop(id, board) {
+  const b = BOARDS[board] ? board : "worth", f = BOARDS[b], cut = Date.now() - 14 * 864e5;
+  const all = Object.entries(RICH).filter(([, e]) => Date.parse(e.at) > cut).map(([k, e]) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
+  const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, score: e.score, rank: r, me: e.k === id });
+  const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
+  const wkEnds = WEEK0 + (weekNo() + 1) * WEEKMS, sNow = new Date(), sEnds = Date.UTC(sNow.getUTCFullYear(), sNow.getUTCMonth() + 1, 1);
+  return { board: b, top: all.slice(0, 50).map((e, j) => pub(e, j + 1)), near, rank: i < 0 ? null : i + 1, total: all.length, weekEnds: wkEnds, seasonEnds: sEnds, season: seasonNo() };
 }
 async function richPost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
@@ -98,9 +115,11 @@ async function richPost(req, res) {
   if (!b || !ID.test(String(b.installId))) return send(req, res, 400, "text/plain", "bad entry");
   const nick = String(b.nick || "").trim(), worth = Number(b.worth);
   if (!NICK.test(nick) || !isFinite(worth) || worth < 0 || worth > 1e15) return send(req, res, 400, "text/plain", "bad entry");
-  RICH[b.installId] = { nick, worth: Math.round(worth), stars: Math.max(0, Math.min(9999, b.stars | 0)), homes: Math.max(0, Math.min(999, b.homes | 0)), at: new Date().toISOString() };
+  const old = RICH[b.installId] || {}, wk = weekNo(), n = (v, hi) => Math.max(0, Math.min(hi, Math.floor(Number(v) || 0)));
+  RICH[b.installId] = { nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15),
+    wk, w0: old.wk === wk && old.w0 != null ? old.w0 : Math.round(worth), at: new Date().toISOString() };
   richDirty = true;
-  return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId)), { "cache-control": "no-store" });
+  return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId, String(b.board || "worth"))), { "cache-control": "no-store" });
 }
 async function boardPost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
@@ -505,7 +524,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
-    if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""))), { "cache-control": "no-store" });
+    if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""), String(url.searchParams.get("b") || "worth"))), { "cache-control": "no-store" });
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
