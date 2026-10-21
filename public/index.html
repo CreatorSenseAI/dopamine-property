@@ -1428,6 +1428,9 @@ body::before{content:"";position:fixed;inset:0;background:var(--noise);opacity:.
 .wvbar button.sec{background:rgba(255,255,255,.15);color:#fff}.wvbar button.wvx{flex:0 0 32px;font-size:16px;padding:0}
 /* v41: live arena, level-up event */
 .ev-level .evbg{background:radial-gradient(circle at 50% 45%,rgba(255,211,77,.5),transparent 62%);animation:evbg 2.6s ease}.ev-level i{top:auto;bottom:-10%;animation-name:evrise}
+.ev-dynasty .evbg{background:radial-gradient(circle at 50% 45%,rgba(255,211,77,.62),rgba(120,70,0,.25) 50%,transparent 72%);animation:evbg 2.6s ease}.ev-dynasty i{top:auto;bottom:-10%;animation-name:evrise;color:var(--gold)}
+.cokept{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.cokept>div{border:1px solid var(--gold-hair,var(--gold));border-radius:12px;padding:8px 10px;text-align:left;background:var(--panel)}.cokept b{display:block;font-size:12.5px;color:var(--gold);margin-bottom:2px}.cokept small{display:block;font-size:12px;line-height:1.35;opacity:.9}
+.coin .cobig{display:block;font:800 40px/1.1 var(--mono,monospace);color:var(--gold);text-align:center;margin:6px 0}.coin button{width:100%;margin-top:8px}
 /* v42: season pass track */
 .pass .ptop{display:flex;align-items:center;gap:12px}.pass .ptop h2{font-family:var(--f-display);font-weight:400;font-size:30px;letter-spacing:.04em;white-space:nowrap}.pass .ptop h2 span{font-size:16px;color:var(--muted)}.pass .ptop .sealv{flex:1}
 .pass p,.pass .upnote{text-transform:none;letter-spacing:0;font-family:var(--f-body)}.pass .pon{color:var(--green);font-weight:700}
@@ -1811,7 +1814,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v52-web';
+const VERSION='v53-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1863,10 +1866,12 @@ const holdings=()=>S.props.reduce((a,p)=>a+p.value,0);
 const debt=()=>S.props.reduce((a,p)=>a+(p.loan||0),0);
 const worth=()=>S.cash+holdings()-debt();
 /* paying for a house: cash if you have it all, otherwise a 20% deposit plus duty and the bank lends the rest */
-const needsLoan=(n,ti)=>S.cash<n*(1+DUTY[ti]);
 const depositFor=(n,ti)=>n*(1-LVR+DUTY[ti]);
+/* v53 cash floor: in the honeymoon the bank keeps a deposit for your next home in your hand (it lends more) so a beginner never spends down to $0 */
+function keepCash(ti){try{if(!honeymoon())return 0;return depositFor(typicalWin(ti||0),ti||0);}catch(e){return 0;}}
+const needsLoan=(n,ti)=>S.cash-keepCash(ti)<n*(1+DUTY[ti]);
 const canPay=(n,ti)=>S.cash>=n*(1+DUTY[ti])||(S.cash>=depositFor(n,ti)&&debt()+n*LVR<=LVR*(holdings()+n)+1);
-const loanFor=(n,ti)=>{const full=n*(1+DUTY[ti]);return S.cash>=full?0:Math.min(n*LVR,full-Math.max(0,S.cash));};
+const loanFor=(n,ti)=>{const full=n*(1+DUTY[ti]),c=Math.max(0,S.cash-keepCash(ti));if(c>=full)return 0;const room=Math.max(0,LVR*(holdings()+n)-debt());return Math.max(full-Math.max(0,S.cash),Math.min(n*LVR,room,full-c));};
 function payFor(n,ti){const duty=(S.dutyFree||0)>0?0:n*DUTY[ti],loan=loanFor(n,ti);return{out:n+duty-loan,loan,duty};}
 function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=p.value;council+=p.value*COUNCIL;upkeep+=p.value*UPKEEP;if(isStrata(p))strata+=p.value*STRATA;}
   const land=landTax(h),interest=debt()*rate(),od=S.cash<0?-S.cash*0.005:0,ins=S.ins?h*INS_RATE:0;return{council,strata,upkeep,land,interest,od,ins,total:council+strata+upkeep+land+interest+od+ins,landRate:h?land/h:0};}
@@ -2297,7 +2302,7 @@ function endAuction(){if(A.sell){endSell();return;}if(!A.bg&&!A.passin&&!A.walke
    res.className='result bad';res.textContent=near?`So close. ${A.leader.name} paid ${money(A.bid)}, still under your walk-away of ${money(waOf(A.est))}. One more bid would have taken it.`:youBidAny?`Outbid. ${A.leader.name} took it for ${money(A.bid)}. ${rm(A.leader).short} is your nemesis now.`:`${A.leader.name} took it for ${money(A.bid)}. Valued at ${money(L.value)}.`;sfx(near?'near':'lose');if(near)buzz([60,40,60]);}
   else if(youBidAny)toast(`${near?'Pipped by '+(one?'one bid':'two bids'):'Outbid'} in ${L.sub}. ${rm(A.leader).short} paid ${money(A.bid)}.`,'down');
  }else if(ui){stp.className='stamp gone';stp.innerHTML='<div class="stamp-in"><b>Passed in</b><small>No bids</small></div>';res.className='result';res.textContent='Nobody bid. Next lot coming up.';}
- if(ui){res.hidden=false;$('#art').appendChild(stp);const rl=stp.querySelector('[data-roll]');if(rl)rollTo(rl,+rl.dataset.roll,v=>(v>=0?'+':'')+money(v)+' equity');updAuction();SESS.focusLots++;if(SESS.focusLots%10===0)setTimeout(()=>{if($('#modal').hidden)recap(true);},2200);}
+ if(ui){res.hidden=false;$('#art').appendChild(stp);const rl=stp.querySelector('[data-roll]');if(rl)rollTo(rl,+rl.dataset.roll,v=>(v>=0?'+':'')+money(v)+' equity');updAuction();SESS.focusLots++;if(SESS.focusLots%10===0)setTimeout(()=>{if($('#modal').hidden)recap(true);},2200);setTimeout(postLot,2300);}
  save();soonFlush();}
 /* ---------- game feel: gavel, keys, combo meter ---------- */
 function gavel(){if(reduce)return;const app=$('#app');app.classList.remove('slam');void app.offsetWidth;app.classList.add('slam');const art=$('#art');if(art){const k=document.createElement('div');k.className='keys';k.textContent='🔑';art.appendChild(k);setTimeout(()=>k.remove(),1800);}}
@@ -2660,9 +2665,9 @@ function sealedSheet(){const L=A.lot,base=A.bid||L.open,lead=A.leader==='you',st
   else if(top){A.leader=top.r;A.bid=Math.max(top.v,base);toast(`Sealed bids opened: ${rm(top.r).short} wrote ${money(top.v)}${mine?`, yours was ${money(mine)}`:''}.`,'down');}
   tlog('sealed',{mine,top:top?top.v:0,won:A.leader==='you'});A.clock=0;endAuction();updAuction();});}
 /* ---------- event animations: a 2.5-second scene over the whole screen for every disaster, windfall and shock ---------- */
-const FXP={level:['⭐',16],flood:['💧',14],fire:['🔥',16],storm:['',0],hail:['⚪',36],cyclone:['🌀',1],quake:['',0],erosion:['🌊',6],heat:['☀️',3],good:['✨',22],station:['🚆',1],film:['🎬',6],celeb:['⭐',18],school:['🎓',10],refund:['💸',16],grant:['🏛️',5],lease:['🤝',6],rezone:['🏗️',5],games:['🏅',10],
+const FXP={level:['⭐',16],dynasty:['★',26],flood:['💧',14],fire:['🔥',16],storm:['',0],hail:['⚪',36],cyclone:['🌀',1],quake:['',0],erosion:['🌊',6],heat:['☀️',3],good:['✨',22],station:['🚆',1],film:['🎬',6],celeb:['⭐',18],school:['🎓',10],refund:['💸',16],grant:['🏛️',5],lease:['🤝',6],rezone:['🏗️',5],games:['🏅',10],
  rebuild:['🏗️',8],pandemic:['🦠',22],recession:['📉',8],war:['🛢️',8],crypto:['🪙',26],scandal:['📸',12],crash:['📉',10],cut:['📈',10],shark:['🦈',1],arrest:['🚨',4],tenant:['📦',6],prize:['🏆',14]};
-const FXCAP={level:'Level up',station:'New metro station',rezone:'Rezoned!',film:'Lights, camera, cash',celeb:'Celebrity neighbour',grant:'Heritage grant',lease:'Five-year lease',school:'New school zone',refund:'Tax refund',games:'Olympic boom',good:'Good news',rebuild:'Rebuild boom',pandemic:'Pandemic',recession:'Recession',war:'Oil shock',crypto:'Crypto crash',scandal:'Duty holiday',crash:'Market correction',cut:'Rate cut',shark:'Shark!',arrest:'Busted',tenant:'Tenant gone',prize:'Prize unlocked'};
+const FXCAP={level:'Level up',dynasty:'',station:'New metro station',rezone:'Rezoned!',film:'Lights, camera, cash',celeb:'Celebrity neighbour',grant:'Heritage grant',lease:'Five-year lease',school:'New school zone',refund:'Tax refund',games:'Olympic boom',good:'Good news',rebuild:'Rebuild boom',pandemic:'Pandemic',recession:'Recession',war:'Oil shock',crypto:'Crypto crash',scandal:'Duty holiday',crash:'Market correction',cut:'Rate cut',shark:'Shark!',arrest:'Busted',tenant:'Tenant gone',prize:'Prize unlocked'};
 function eventFX(k,cap){cap=cap||FXCAP[k]||(DIS[k]&&DIS[k].n)||'';if(reduce||document.hidden)return;let el=$('#evfx');if(!el){el=document.createElement('div');el.id='evfx';el.setAttribute('aria-hidden','true');document.body.appendChild(el);}
  const [ch,n]=FXP[k]||FXP.good,bits=[];for(let i=0;i<n;i++)bits.push(`<i style="left:${(Math.random()*96).toFixed(1)}%;animation-delay:${(Math.random()*0.9).toFixed(2)}s;font-size:${(18+Math.random()*22).toFixed(0)}px;--dx:${(Math.random()*60-30).toFixed(0)}px">${ch}</i>`);
  el.className='evfx';void el.offsetWidth;el.innerHTML=`<div class="evbg"></div>${bits.join('')}${cap?`<b class="evcap${cap.length>26?' long':cap.length>16?' mid':''}">${esc(cap)}</b>`:''}`;el.className='evfx ev-'+k;if(k==='quake'){document.body.classList.remove('shake');void document.body.offsetWidth;document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),1300);}
@@ -3245,9 +3250,26 @@ $('#dynX').onclick=()=>{$('#modal').hidden=true;};{const b=$('#dyPrBtn');if(b)b.
 function cashOut(w,pts){T.c.prestiges++;tlog('prestige',{worth:Math.round(w),stars:pts,props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const r0=rankOf(S.legacy||0).i;
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:Math.max(S.bestWorth,w),muted:S.muted,tour:S.tour,rules:S.rules,legacy:(S.legacy||0)+pts,dynasties:(S.dynasties||0)+1,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
  S=Object.assign(fresh(),keep,carry());drawTabs();S.cash=startCash(S.legacy);clearMarket();buildChips();buildEmpire();startAuction();show('a');drawStars();rankBadges();save();
- const r=rankOf(S.legacy),up=r.i>r0;groupEvent('cashout',`cashed out at ${money(w)} for +${pts}★ (${r.t})`);
- modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}<p>${S.legacy} stars now. Every house you buy pays ${S.legacy*10}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});}
-$('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=450000+(S.legacy||0)*100000;clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. $450K cash.','up');save();}
+ const r=rankOf(S.legacy),up=r.i>r0,rb=Math.round((rentBonus()-1)*100);groupEvent('cashout',`cashed out at ${money(w)} for +${pts}★ (${r.t})`);
+ if(S.dynasties===1){/* v53: the first cash-out gets a proper moment and says what carried over */
+  T.c.firstCashOut=(T.c.firstCashOut||0)+1;eventFX('dynasty');sfx('rare');confetti(true);
+  modal(`<h3>Your first dynasty</h3><p>You sold the empire for ${money(w)} and banked it as stars.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}
+  <div class="cokept"><div><b>Now, forever</b><small>+${rb}% rent on every home you buy</small><small>${money(S.cash)} starting cash (was $450K)</small></div><div><b>You kept</b><small>Level ${plvState().lv}, badges, cards and album</small><small>Season pass, streak, friends, nemesis</small></div></div>
+  <p>Round two goes faster. Stars double in price: ${money(starAt(2))} for 2★, ${money(starAt(3))} for 3★.</p>`,'Build dynasty 2',()=>{sfx('rare');});return;}
+ modal(`<h3>Dynasty ${S.dynasties+1}</h3><p>You sold the empire at ${money(w)}.</p><span class="big">+${pts}★</span>${up?`<p class="rankup">New title: <b>${r.t}</b></p>`:''}<p>${S.legacy} stars now. Every house you buy pays ${rb}% more rent, and you start with ${money(S.cash)}.</p>`,'Start again',()=>{sfx('rare');confetti(true);});}
+/* v53: the first time an empire passes $100M, explain the cash-out once (between lots), then it lives in the goal chip and the star */
+function cashOutIntro(){const w=worth(),pts=starsFor(w);S.coIntro=1;T.c.coIntro=(T.c.coIntro||0)+1;tlog('cashout_intro',{worth:Math.round(w),stars:pts});save();eventFX('dynasty');sfx('rare');
+ $('#sheet').innerHTML=`<div class="upg coin"><h3>Cash out unlocked</h3><p>Your empire is worth <b>${money(w)}</b>. You can sell the lot and bank it as stars.</p><span class="cobig">+${pts}★</span>
+ <div class="cokept"><div><b>Each star, forever</b><small>+10% rent on every home</small><small>+$100K starting cash</small></div><div><b>You keep</b><small>Level, badges, cards, album</small><small>Season pass, streak, friends</small></div></div>
+ <p class="hint">Or keep growing: ${money(starAt(pts+1))} makes it +${pts+1}★. The star in the header cashes out any time.</p>
+ <button id="coGo">Cash out +${pts}★</button><button class="sec" id="coKeep">Keep building</button></div>`;$('#modal').hidden=false;
+ $('#coKeep').onclick=()=>{$('#modal').hidden=true;tlog('cashout_intro',{step:'keep'});toast('Cash out any time from the ★ in the header.','up');};
+ $('#coGo').onclick=e=>{const b=e.currentTarget;if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Sell everything for +'+starsFor(worth())+'★?';b.classList.add('armed');return;}const w2=worth();if(w2<CASH_AT){$('#modal').hidden=true;return;}$('#modal').hidden=true;tlog('cashout_intro',{step:'go'});cashOut(w2,starsFor(w2));};}
+/* runs 2.3s after every focused lot */
+function postLot(){if(!$('#modal').hidden||document.hidden)return;
+ if(!S.coIntro&&!(S.dynasties||0)&&worth()>=CASH_AT&&!(A&&!A.ended&&A.leader==='you')){cashOutIntro();return;}
+ if(honeymoon()&&S.props.length&&S.cash<keepCash(0)){let av=0;try{av=borrowable();}catch(e){}if(av>=2e4)coach('borrow',`Low on cash? Your homes back a loan of up to ${money(av)}. Tap Need on any lot to borrow.`);}}
+$('#resetBtn').onclick=e=>{const b=e.currentTarget;if(resetArmed){T.c.resets++;tlog('reset',{worthBefore:Math.round(worth()),cash:Math.round(S.cash),props:S.props.length,maxTier:S.maxTier,sessionPlaySec:T.playSec});const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets+1,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,legacy:S.legacy||0,dynasties:S.dynasties||0,h2h:S.h2h||{},nemesis:S.nemesis||null};try{localStorage.removeItem(KEY);}catch(x){}S=Object.assign(fresh(),keep,carry());drawTabs();S.rules=4;S.cash=startCash(S.legacy);clearMarket();resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';buildChips();buildEmpire();startAuction();toast('Fresh start. '+money(S.cash)+' cash.','up');save();}
  else{resetArmed=true;b.classList.add('armed');b.textContent='Tap again to wipe everything';setTimeout(()=>{resetArmed=false;b.classList.remove('armed');b.textContent='Start a new empire';},3500);}};
 
 /* ---------- instant market: fixed-price listings you swipe through, plus buyer offers on your houses ---------- */
@@ -3663,7 +3685,7 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(WEB_STATS&&!inApp()&&'serviceWorker' in navigator&&location.protocol==='https:')setTimeout(()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});},3000);{const sm=/[?&]src=([a-z0-9_-]{1,24})/i.exec(location.search);if(sm){const src=sm[1].toLowerCase();if(src==='pwa')T.c.pwaOpens=(T.c.pwaOpens||0)+1;else{T.c['src_'+src]=(T.c['src_'+src]||0)+1;if(!S.src){S.src=src;tlog('source',{src});}}}}if(/[?&]app=(ios|android)/.test(location.search))T.c.appOpens=(T.c.appOpens||0)+1;if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o),passIn,passTake,passWalk,reqNew,reqTick,fixAll,reqSheet,awayReqs};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(WEB_STATS&&!inApp()&&'serviceWorker' in navigator&&location.protocol==='https:')setTimeout(()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});},3000);{const sm=/[?&]src=([a-z0-9_-]{1,24})/i.exec(location.search);if(sm){const src=sm[1].toLowerCase();if(src==='pwa')T.c.pwaOpens=(T.c.pwaOpens||0)+1;else{T.c['src_'+src]=(T.c['src_'+src]||0)+1;if(!S.src){S.src=src;tlog('source',{src});}}}}if(/[?&]app=(ios|android)/.test(location.search))T.c.appOpens=(T.c.appOpens||0)+1;if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o),passIn,passTake,passWalk,reqNew,reqTick,fixAll,reqSheet,awayReqs,cashOutIntro,postLot,loanFor,keepCash,payFor};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 if(/[?&]debug=1/.test(location.search))window.__eat={get S(){return S;},get A(){return A;},pullCard,cardSheet,houseTour:(p,f)=>houseTour(p,f),eGo,show,startAuction,award};
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
