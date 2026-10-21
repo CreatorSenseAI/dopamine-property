@@ -197,3 +197,8 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - Reddit's Android in-app browser joins the webview bar (`WVAPP` 'Reddit'); the iOS Reddit app uses Safari's view, which cannot be told apart.
 - Arena polling backs off with the crowd (`crowd` factor: ×1 to 60 online, up to ×4 at 300) so a spike does not become hundreds of requests a second.
 - Clip for posts: scratchpad `clip.py` records a seeded auction with Playwright video (crop 390×844 from the 780×1688 recording), `auction-empires-clip.mp4` (540 wide) and `.gif`.
+
+## Reddit day 1 (v48, 21 Oct)
+- Posted to r/playmygame, r/AusProperty, r/IndieGaming (r/IndieDev removed: needs 20 comment karma). First 2 hours: ~19 new players, 4 played 20+ min, comments hostile in AusProperty (wrong room), "looks awful" and "AI post" in playmygame, one real note: the clock is too fast to read the estimate.
+- `clockFor(feat,bg)`: 15s on the clock until the second win (honeymoon), then 10s; featured 12s. Replaces the inline `feat?12:10`.
+- Clip: scratchpad `clip.py` records against the local server (`DATA_DIR/img` holding ~30 of the live photos pulled through the browser pane, since the container can't reach the Railway host), zooms the page 2× so the 780×1688 video is full frame, skips to a photo lot with 3+ rivals, caps those rivals under the walk-away so the player wins, and writes cut points to `clip/cut.txt`.

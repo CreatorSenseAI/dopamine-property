@@ -1672,7 +1672,7 @@ const startCash=n=>{n=n||0;return 450000+100000*Math.min(n,20)+25000*Math.max(n-
 /* v35 hook curve. Honeymoon (first 8 wins of a first dynasty): 10s clocks, 2.5s between lots, most Starter rooms quiet, beginner's luck on inspections,
    no disasters, a level every win for the first four levels, first featured lot at 90s. Stretch (Prestige unlocked or $5M worth): quiet rooms gone,
    rivals scale, slots and Market caps bite, land tax climbs; cash packs and agents are the way to get ahead, never the way to win a lot. */
-const honeymoon=()=>!(S.legacy||0)&&(S.wins||0)<8;
+const honeymoon=()=>!(S.legacy||0)&&(S.wins||0)<8;const clockFor=(feat,bg)=>feat?12:(!bg&&honeymoon()&&(S.wins||0)<2?15:10);/* v48: 15s on the clock until your second win (Reddit: 'too fast to do any analysis') */
 const stretch=()=>(S.maxTier||0)>=2||worth()>=5e6;
 const phase=()=>honeymoon()?'honeymoon':stretch()?'stretch':'climb';
 /* v38 (Aaron: "fast pace, not a waiting game"): slots start at 20 and grow +1 every 2 levels, +5 per dynasty mark, +10 per Property manager.
@@ -1773,7 +1773,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v47-web';
+const VERSION='v48-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2106,7 +2106,7 @@ function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{plac
  {const w=WM_OF(L);L.fmt=w.fmt;if(w.rivals&&!SD_BUILD&&rivals.length>1&&Math.random()<0.6){const r=rivals[rivals.length-1];if(!r.boss&&!r.friend&&r.name!==S.nemesis){r.name=pick(w.rivals);r.local=true;}}}
  let boss=null;if(!bg&&!first&&!daily&&S.bossDue&&!SD_BUILD){boss=S.bossDue;S.bossDue=null;let br=rivals.find(r=>r.name===boss);if(!br){const nr=RIVALS.find(r=>r.name===boss);if(nr){br={name:nr.name,style:nr.style,cool:rnd(0.3,1.2),bids:0,out:false,think:0,counterNext:false,max:0};rivals[rivals.length-1]=br;}}if(br){br.max=L.value*rnd(1.08,1.16);br.boss=true;L.rare=true;}else boss=null;}
  L.sky=skyAt(L.st);const find0=bg||SD_BUILD?undefined:inspect(feat);
- const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):L.quiet?Math.round(rnd(3,6)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:feat?12:10,total:feat?12:10,rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
+ const X={find0,boss,rankBefore:0,lot:L,bg:!!bg,auto:bg?false:!!S.autoOn,first,daily:!!daily,joined:!!daily,featured:!!feat,crowd:feat?Math.round(rnd(140,260)):L.quiet?Math.round(rnd(3,6)):Math.round(rnd(...[[6,14],[18,40],[45,90],[120,220],[600,1400]][ti])),bid:0,leader:null,clock:clockFor(feat,bg),total:clockFor(feat,bg),rivals,feed:[],ended:false,stage:0,nextIn:0,autoMax:Math.min(maxBid(L),roundTo(L.guide*1.08,L.inc)),autoWarned:false,war:null,warUsed:false,warOk:Math.random()<0.33,say:null,lastSec:null,
   st:{thinks:0,outs:0,counters:0,hand:0,auto:0,big:0,folds:0,snipes:0,firstClock:null,lastClock:null,maxYou:0,rivalBids:0,t0:Date.now(),cashAt:Math.round(S.cash),couldAfford:canPay(L.open,L.ti),cashOnly:!needsLoan(L.open,L.ti)}};
  {const c=L.value*rnd(0.95,1.05);X.est={lo:roundTo(c*0.92,L.inc),hi:roundTo(c*1.08,L.inc),mid:c,wa:roundTo(c,L.inc)};if(!bg&&!first&&!daily&&!feat&&!SD_BUILD&&S.props.length>=2&&Math.random()<1/12){L.mystery=true;X.est.lo=roundTo(c*0.85,L.inc);X.est.hi=roundTo(c*1.15,L.inc);}X.autoMax=Math.max(L.open,Math.min(maxBid(L),X.est.wa));}
  if(feat){X.clock=X.total=18;}X.rankBefore=richRank();X.worthBefore=worth();
