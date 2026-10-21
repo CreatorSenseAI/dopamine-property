@@ -1,0 +1,22 @@
+Auction Empires — third-party credits
+
+Code (loaded from public CDNs or used on the server)
+- three.js r128 (MIT)
+- pmndrs/postprocessing 6.29.3 (Zlib)
+- pmndrs/detect-gpu 5.0.70 (MIT)
+- yomotsu/camera-controls 2.7.4 (MIT)
+- protectwise/troika-three-text 0.52.5 (MIT)
+- creativelifeform/three-nebula 13.3.0 (MIT)
+- goldfire/howler.js 2.2.4 (MIT)
+- georgealways/lil-gui 0.21.0 (MIT)
+- airbnb/lottie-web 5.12.2 (MIT)
+- tijnjh/ios-haptics 3.2.0 (MIT)
+- zeux/meshoptimizer: gltfpack (offline) and meshopt decoder (MIT)
+- websockets/ws (MIT), partykit/partysocket (MIT)
+- lovell/sharp (Apache-2.0)
+- GoogleChrome/workbox (MIT)
+
+Assets
+- Kenney (www.kenney.nl): City Kit Suburban, Car Kit, Mini Characters, Impact Sounds, Casino Audio, Interface Sounds — CC0 1.0
+- Quaternius (quaternius.com): Universal Animation Library — CC0 1.0
+- Barlow Condensed via Fontsource — SIL Open Font License 1.1

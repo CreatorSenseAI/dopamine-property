@@ -14,7 +14,9 @@ const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".glb": "model/gltf-binary", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".wasm": "application/wasm", ".bin": "application/octet-stream" };
+/* binary game assets (3D models, sounds, wasm): never gzipped (the regex below skips them), cached for 30 days */
+const LONG = /^(model\/|audio\/|application\/(wasm|octet-stream))/;
 const ID = /^[a-z0-9]{6,32}$/i;
 
 for (const d of ["sessions", "players", "boards", "saves"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
@@ -169,6 +171,11 @@ function boardGet(req, res, url) {
 // GET /admin/gen-images?key=ADMIN_KEY            → progress
 // GET /admin/gen-images?key=ADMIN_KEY&go=1&per=24&rooms=10 → fill every bucket to that many (default IMG_PER / IMG_ROOM_PER); &stop=1 halts. Saved to DATA_DIR/img, served at /img/*
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+/* v55 sharp (optional): photos are re-encoded to WebP q78 when generated, and /img/x.webp?w=480|768|1080 serves a resized copy cached in DATA/img/_w<width>/.
+   Without sharp (no prebuilt binary on the host) everything is served as stored and "SHARP off" is logged once. */
+let sharp = null;
+try { sharp = require("sharp"); sharp.cache(false); sharp.concurrency(1); console.log("SHARP on " + ((sharp.versions && sharp.versions.sharp) || "")); } catch (e) { console.log("SHARP off (" + (e.code || String(e.message).split("\n")[0]) + ")"); }
+const IMG_WIDTHS = [480, 768, 1080], IMG_Q = 78;
 const IMG_DIR = path.join(DATA, "img");
 fs.mkdirSync(IMG_DIR, { recursive: true });
 const IMG_BASE = "Photorealistic real-estate listing photo, exterior, shot from the street at eye level, wide angle, soft natural light, invented house that does not exist, no people, no cars in focus, no text, no signage, no logos, no watermarks.";
@@ -238,11 +245,14 @@ const readImgManifest = () => { try { return JSON.parse(fs.readFileSync(imgManif
 const imgCount = m => Object.values(m).reduce((a, v) => a + v.length, 0);
 async function genOne(prompt) {
   const r = await fetch("https://api.openai.com/v1/images/generations", { method: "POST", headers: { authorization: "Bearer " + OPENAI_KEY, "content-type": "application/json" },
-    body: JSON.stringify({ model: process.env.IMAGE_MODEL || "gpt-image-1", prompt, size: "1536x1024", quality: process.env.IMAGE_QUALITY || "medium", n: 1, output_format: "webp", output_compression: 80 }) });
+    body: JSON.stringify({ model: process.env.IMAGE_MODEL || "gpt-image-1", prompt, size: "1536x1024", quality: process.env.IMAGE_QUALITY || "medium", n: 1, ...(sharp ? { output_format: "png" } : { output_format: "webp", output_compression: 80 }) }) });
   if (!r.ok) { const e = new Error(r.status + " " + (await r.text()).slice(0, 200)); e.status = r.status; throw e; }
   const j = await r.json(), b64 = j.data && j.data[0] && j.data[0].b64_json;
   if (!b64) throw new Error("no image in response");
-  return Buffer.from(b64, "base64");
+  const raw = Buffer.from(b64, "base64");
+  /* with sharp the API returns a lossless PNG and this is the only lossy encode; without it the API's own WebP (q80) is stored */
+  if (sharp) { try { return await sharp(raw).webp({ quality: IMG_Q, effort: 5 }).toBuffer(); } catch (e) { console.log("SHARP encode failed, storing as-is: " + e.message); } }
+  return raw;
 }
 /* Fills every bucket up to its target, IMG_PARALLEL at a time, round-robin so early buckets get a few photos each before any is full.
    429/5xx back off; 10 failures in a row with nothing done stops the run (bad key, no billing). */
@@ -284,7 +294,16 @@ function imgStatus() {
   const want = Object.values(targets).reduce((a, b) => a + b, 0), have = Object.keys(targets).reduce((a, k) => a + Math.min(targets[k], (man[k] || []).length), 0);
   return { ...GEN, have, want, onVolume: imgCount(man), perExterior: IMG_PER, perRoom: IMG_ROOM_PER, parallel: IMG_PARALLEL, quality: process.env.IMAGE_QUALITY || "medium", buckets };
 }
-function serveImg(req, res, url) {
+const IMG_NAME = /^[a-z]+(-[a-z0-9]+){0,3}-[a-z0-9]+-\d+\.webp$/, resizing = new Map();
+function imgSized(f, name, w) { // → path of the cached resized copy, made once (concurrent requests share the work)
+  const out = path.join(IMG_DIR, "_w" + w, name);
+  if (fs.existsSync(out)) return Promise.resolve(out);
+  if (resizing.has(out)) return resizing.get(out);
+  const p = (async () => { fs.mkdirSync(path.dirname(out), { recursive: true }); const buf = await sharp(f).resize({ width: w, withoutEnlargement: true }).webp({ quality: IMG_Q, effort: 4 }).toBuffer();
+    const tmp = out + "." + crypto.randomBytes(4).toString("hex"); fs.writeFileSync(tmp, buf); fs.renameSync(tmp, out); return out; })().finally(() => resizing.delete(out));
+  resizing.set(out, p); return p;
+}
+async function serveImg(req, res, url) {
   if (url.pathname === "/img/manifest.json") {
     const vol = readImgManifest(), pub = files.get("/img/manifest.json");
     let base = {}; try { base = pub ? JSON.parse(pub.body.toString()) : {}; } catch { }
@@ -292,9 +311,11 @@ function serveImg(req, res, url) {
     return send(req, res, 200, "application/json", JSON.stringify(base), { "cache-control": "no-cache" }), true;
   }
   const name = path.basename(url.pathname);
-  if (!/^[a-z]+(-[a-z0-9]+){0,3}-[a-z0-9]+-\d+\.webp$/.test(name)) return false;
-  const f = path.join(IMG_DIR, name);
-  if (!fs.existsSync(f)) return false;
+  if (!IMG_NAME.test(name)) return false;
+  let f = path.join(IMG_DIR, name);
+  if (!fs.existsSync(f)) { const pub = path.join(ROOT, "img", name); if (!files.has("/img/" + name) || !fs.existsSync(pub)) return false; f = pub; } // photos shipped in public/img resize too
+  const w = +url.searchParams.get("w") || 0;
+  if (w && sharp && IMG_WIDTHS.includes(w)) { try { f = await imgSized(f, name, w); } catch (e) { console.log("SHARP resize " + name + " w" + w + ": " + e.message); } }
   res.writeHead(200, { "content-type": "image/webp", "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff" });
   res.end(req.method === "HEAD" ? undefined : fs.readFileSync(f));
   return true;
@@ -422,7 +443,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <h2>Rarity, sharing, showdown</h2><div class="g">${tile("Wins by rarity", ["Common", "Sought-after", "Prime", "Epic", "Legendary"].map((n, i) => n + " " + s.rar[i]).join(" · "))}${tile("Share", s.shareDone + " shared/saved/copied", s.shareOpens + " cards opened · " + s.shareOffers + " Epic+ wins")}${tile("Daily showdown", s.sdPlays + " played", s.sdWins + " won · " + s.sdToday + " on today's board")}</div>
 <h2>Dynasty and layout (v25)</h2><div class="g">${tile("Dynasty sheet opens", s.dynOpens, s.prestiges + " cash-outs")}${tile("Goal chip taps", s.goalTaps)}${tile("If-you-win opens", s.ifwinOpens)}${tile("Empire sections", s.esec)}</div>
 <h2>Events, world, seasons (v29)</h2><div class="g">${tile("Disasters", s.disasters, s.recoveries + " rebuild booms")}${tile("Good news", s.goodEvents)}${tile("R18+ shocks", s.shocks, s.r18On + " turned R18+ on")}${tile("Insurance toggles", s.insToggles)}${tile("Prizes", s.prizes)}${tile("World sheet", s.worldViews, s.sealed + " sealed rounds · " + s.boardNo + " board rejections")}${tile("Takeovers", s.takeovers, s.turfWon + " won")}${tile("Season levels", s.seasonLevels)}${tile("Mystery lots", s.mystery)}${tile("Event animations", s.fx)}${tile("Rarity explainer", s.rarityInfo)}</div>
-<h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Where players came from", Object.entries(s.sources || {}).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + " " + v).join(" · ") || "no ?src= yet", "first visit per install, from ?src=reddit etc.")}${tile("Push", (s.soc.pushTokens || 0) + " tokens", "iOS " + pusher.status().ios + " · Android " + pusher.status().android + " · " + pusher.status().lastSent + " sent in 2 days")}${tile("Live arena", (s.soc.arenaOnline || 0) + " online now", (s.arenaBids || 0) + " player bids · " + (s.arenaWins || 0) + " player wins · " + (s.soc.arenaRuns || 0) + " runs kept")}${tile("Duel prizes", s.duelW || 0, "duel wins paid")}</div>
+<h2>Cards, tours, friends (v27–v28)</h2><div class="g">${tile("Card flips", s.cardViews, s.pulls + " pulls after a win")}${tile("House tours", s.tours, s.tourClues + " clues found")}${tile("Boss lots won", s.bossWins)}${tile("Groups", (s.soc.groups || 0) + " groups", (s.soc.groupMembers || 0) + " members · " + s.groupCreates + " made · " + s.groupJoins + " joins · " + s.invites + " invites")}${tile("Duels", s.duelRuns + " played", (s.soc.duels || 0) + " created")}${tile("Auction Night", s.nightRuns + " runs")}${tile("Feed", (s.soc.feedPosts || 0) + " posts")}${tile("Clips", s.clips + " made", s.clipShares + " shared")}${tile("Where players came from", Object.entries(s.sources || {}).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => k + " " + v).join(" · ") || "no ?src= yet", "first visit per install, from ?src=reddit etc.")}${tile("Push", (s.soc.pushTokens || 0) + " tokens", "iOS " + pusher.status().ios + " · Android " + pusher.status().android + " · " + pusher.status().lastSent + " sent in 2 days")}${tile("Live arena", (s.soc.arenaOnline || 0) + " online now", (s.arenaBids || 0) + " player bids · " + (s.arenaWins || 0) + " player wins · " + (s.soc.arenaRuns || 0) + " runs kept · " + (wsArena ? wsArena.stats().open + " on push" : "push off"))}${tile("Duel prizes", s.duelW || 0, "duel wins paid")}</div>
 <h2>Cash and balance (v26)</h2><div class="g">${tile("Equity loans", s.equityLoans, "$" + Math.round((s.equityBorrowed || 0) / 1e6 * 10) / 10 + "M borrowed")}${tile("Out of reach taps", s.cashSheets, "opened the cash sheet")}${tile("Spend warnings", s.spendWarns, "upgrade or build would block bidding")}${tile("Offer comebacks", s.offerComebacks)}</div>
 <h2>Economy</h2><div class="g">${Object.entries(s.unlockMin).map(([t, m]) => tile("Unlock " + (TIER[t] || t), m + " min", "median play time")).join("")}${tile("Overdrafts", s.overdrafts)}${tile("Repossessions", s.foreclosures)}${tile("Bankruptcies", s.bankruptcies)}${tile("Sales", s.sells)}${tile("Upgrades started", s.upgrades, s.upgradeViews + " sheets opened")}${tile("Upgrades finished", s.upgradesDone, s.reclassed + " moved up a category")}${tile("Spent on upgrades", "$" + Math.round((s.upgradeSpend || 0) / 1000) + "K")}${tile("Redevelopments", s.redevs, s.redevDone + " finished · $" + Math.round((s.redevSpend || 0) / 1e6 * 10) / 10 + "M spent")}${tile("Build problems", s.blowouts + " blowouts", s.buildDelays + " delays")}${tile("Mansion tax paid", "$" + Math.round((s.mansionTax || 0) / 1000) + "K")}</div>
 <h2>A/B: auctions first (Market removed)</h2><div class="g">${s.abm.map(a => tile(a.v ? "Market kept" : "Auctions first", a.auctionTime + " time in auctions", `${a.players} players · D1 ${a.d1} · ${a.medMin} min/session · join ${a.join} · ${a.winsPerSession} wins/session · ${a.mktBuys} market buys · ${a.sellAuctions} sold at auction`)).join("")}${tile("Rich-list climbs", s.rankUps, "after beating rivals")}</div>
@@ -471,10 +492,11 @@ function authed(url, req) {
 // ---------- routes ----------
 const social = require("./social")({ DATA, send, readBody, writeJSON, limited, ID, NICK });
 const pusher = require("./push")({ DATA, writeJSON });
-http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   try {
     if (url.pathname === "/healthz") return send(req, res, 200, "text/plain", "ok");
+    if (url.pathname === "/ws") return send(req, res, wsArena ? 426 : 404, "text/plain", wsArena ? "upgrade required" : "push off");
     /* the native app (capacitor://localhost, https://localhost) calls the API and loads photos cross-origin */
     if (/^\/(api|img)\//.test(url.pathname)) {
       const o = req.headers.origin || "";
@@ -487,7 +509,7 @@ http.createServer(async (req, res) => {
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
-    if (url.pathname.startsWith("/img/") && serveImg(req, res, url)) return;
+    if (url.pathname.startsWith("/img/") && await serveImg(req, res, url)) return;
     if (url.pathname === "/admin/backup") { if (!authed(url, req)) return send(req, res, 401, "text/plain", "admin key?"); await backupNow("manual"); return send(req, res, 302, "text/plain", "", { location: "/admin" }); }
     if (url.pathname === "/admin/logout") return send(req, res, 200, "text/html", "<p>Logged out. <a href=\"/\">Game</a></p>", { "set-cookie": "ak=; Path=/admin; Max-Age=0" });
     if (url.pathname === "/admin/gen-images") {
@@ -508,11 +530,14 @@ http.createServer(async (req, res) => {
       const all = loadAll();
       return send(req, res, 200, "application/json", JSON.stringify({ sessions: all.sessions, players: all.players }), { "cache-control": "no-store" });
     }
-    const f = files.get(url.pathname === "/" ? "/index.html" : url.pathname) || files.get("/index.html");
+    let f = files.get(url.pathname === "/" ? "/index.html" : url.pathname);
+    /* a missing asset is a 404, not the game page (the service worker caches /img, /models, /sfx and /icons cache-first, so a fallback page would stick) */
+    if (!f && (/^\/(img|models|sfx|icons)\//.test(url.pathname) || LONG.test(TYPES[path.extname(url.pathname)] || ""))) return send(req, res, 404, "text/plain", "not found");
+    f = f || files.get("/index.html");
     const gzip = !!f.gz && /\bgzip\b/.test(req.headers["accept-encoding"] || "");
     res.writeHead(200, {
       "content-type": f.type,
-      "cache-control": f.type.startsWith("text/html") || f.type === "application/json" ? "no-cache" : "public, max-age=604800",
+      "cache-control": f.type.startsWith("text/html") || f.type === "application/json" ? "no-cache" : LONG.test(f.type) ? "public, max-age=2592000" : "public, max-age=604800",
       "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", vary: "accept-encoding",
       ...(gzip ? { "content-encoding": "gzip" } : {}),
     });
@@ -521,7 +546,10 @@ http.createServer(async (req, res) => {
     console.error(e);
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
-}).listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+});
+server.listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
+/* v55 live arena push over WebSocket at /ws (arena-ws.js); logs "WS off" and keeps polling only when the ws package is missing */
+const wsArena = require("./arena-ws")(server, social);
 
 
 /* ---------- backups (v46): a gzipped JSON bundle of everything in DATA except photos, nightly at 03:10 UTC and on boot when today's is missing; 7 kept. Optional copy to any S3-compatible bucket (Cloudflare R2, S3) with S3_ENDPOINT, S3_BUCKET, S3_KEY, S3_SECRET, S3_REGION. ---------- */

@@ -10,5 +10,9 @@
     "smoke": "PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH:-} python3 tools/smoke.py",
     "railway:function": "python3 tools/make_function.py"
   },
+  "dependencies": {
+    "sharp": "^0.34.4",
+    "ws": "^8.18.3"
+  },
   "engines": { "node": ">=18" }
 }

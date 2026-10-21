@@ -49,13 +49,15 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   }
 
   // ---------- arena state (in memory; the last results are kept in DATA/arena.json) ----------
-  const ARENA_EVERY = 4 * 60e3, AR_LOBBY = 40e3, AR_LIVE = 45e3, AR_NAMES = ["Harbour Capital", "Doug from Dural", "Wren Family Trust", "Kestrel Holdings", "The Nguyens", "Pemberton & Co", "Marchetti Family Office", "Aurelian Sovereign Fund"];
-  const arena = { online: {}, hist: read(path.join(DATA, "arena.json")) || [], nextAt: Date.now() + 25e3 };
+  /* timings can be shortened for local tests: ARENA_FIRST_MS, ARENA_LOBBY_MS, ARENA_LIVE_MS (production leaves them unset) */
+  const envMs = (k, d) => Math.max(1000, +process.env[k] || d);
+  const ARENA_EVERY = 4 * 60e3, AR_LOBBY = envMs("ARENA_LOBBY_MS", 40e3), AR_LIVE = envMs("ARENA_LIVE_MS", 45e3), AR_NAMES = ["Harbour Capital", "Doug from Dural", "Wren Family Trust", "Kestrel Holdings", "The Nguyens", "Pemberton & Co", "Marchetti Family Office", "Aurelian Sovereign Fund"];
+  const arena = { online: {}, hist: read(path.join(DATA, "arena.json")) || [], nextAt: Date.now() + envMs("ARENA_FIRST_MS", 25e3) };
   let AR = null;
   const onlineNow = () => Object.entries(arena.online).filter(([, o]) => Date.now() - o.at < 150e3);
   function arenaRivals() { const v = AR.lot.value, n = 3 + (Math.random() < 0.5 ? 1 : 0), names = AR_NAMES.slice().sort(() => Math.random() - 0.5).slice(0, n);
     AR.rivals = names.map((name, i) => ({ name, max: Math.round(v * (i === 0 ? 1.04 + Math.random() * 0.11 : 0.9 + Math.random() * 0.14)), nextAt: Date.now() + 1500 + Math.random() * 3000, bids: 0 })); }
-  function arenaTick() { const now = Date.now();
+  function arenaTick0() { const now = Date.now();
     for (const [id, o] of Object.entries(arena.online)) if (now - o.at > 10 * 60e3) delete arena.online[id];
     if (!AR && now >= arena.nextAt) { const on = onlineNow(); if (!on.length) { arena.nextAt = now + 30e3; return; } const tiers = on.map(([, o]) => o.tier).sort((a, b) => a - b), med = tiers[Math.floor(tiers.length / 2)] || 0, tier = Math.max(1, Math.min(4, med));
       AR = { id: crypto.randomBytes(5).toString("hex"), phase: "lobby", tier, seed: crypto.randomInt(1, 2 ** 31 - 1), lobbyAt: now, startAt: now + AR_LOBBY, endAt: now + AR_LOBBY + AR_LIVE, lot: null, price: 0, leader: null, bids: [], bidders: {}, rivals: [], winner: null }; }
@@ -70,6 +72,17 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
         if (w && !w.ai) for (const code of myGroups(w.id)) { const g = read(gFile(code)); if (!g) continue; post(g, w.id, "arena", `won the live auction for ${AR.lot.addr}, ${AR.lot.sub} at $${(AR.price / 1e6).toFixed(2)}M against ${n - 1} bidders`); writeJSON(gFile(code), g); }
         arena.nextAt = now + ARENA_EVERY - AR_LOBBY; } }
     if (AR.phase === "done" && now - AR.doneAt > 45e3) AR = null; }
+  function arenaTick() { arenaTick0(); arenaChanged(); }
+  /* v55 push: listeners (the /ws server) hear about every arena state change. The signature covers phase, lot, price, leader, bid count and the clock,
+     so a rival bid, a player bid, an anti-snipe extension, lobby open and done each fire exactly once. */
+  const arenaSubs = new Set(); let arenaSig = "";
+  function arenaChanged(force) { const sig = AR ? [AR.id, AR.phase, AR.lot ? 1 : 0, AR.price, AR.leader ? AR.leader.nick : "", AR.bids.length, AR.endAt].join("|") : "none";
+    if (!force && sig === arenaSig) return; arenaSig = sig; for (const fn of arenaSubs) { try { fn(); } catch (e) { console.log("AR emit " + e.message); } } }
+  /* presence + optional lot post, shared by POST /api/arena and the socket's hello/ping */
+  function arenaPresence(b) { const nick = clean(b.nick).slice(0, 16) || "Bidder"; arena.online[b.installId] = { nick, at: Date.now(), tier: Math.round(num(b.tier, 0, 4)) }; arenaTick();
+    if (b.lot && typeof b.lot === "object" && AR && AR.phase === "lobby" && !AR.lot) { const L = b.lot, v = num(L.value, 1e5, 1e12); if (v > 0 && Math.round(num(L.ti, 0, 4)) === AR.tier) { AR.lot = { addr: clean(L.addr).slice(0, 40), sub: clean(L.sub).slice(0, 30), st: clean(L.st).slice(0, 6), value: Math.round(v), guide: Math.round(num(L.guide, 1e4, 1e12)), open: Math.round(num(L.open, 1e4, 1e12)), inc: Math.round(num(L.inc, 1e3, 1e9)), style: clean(L.style).slice(0, 12), beds: Math.round(num(L.beds, 1, 12)), land: Math.round(num(L.land, 0, 1e6)), seed: Math.round(num(L.seed, 0, 2 ** 31)), rare: true, ti: AR.tier, feats: Array.isArray(L.feats) ? L.feats.slice(0, 4).map(x => clean(x).slice(0, 30)) : [] }; AR.price = AR.lot.open; arenaRivals(); arenaChanged(); } } }
+  /* ids whose view differs from everyone else's (bids[].me, leader.me, winner.me, bid): only people who bid in the current lot */
+  const arenaInvolved = () => AR ? new Set(Object.keys(AR.bidders)) : new Set();
   function arenaView(me) { const on = onlineNow().length, next = AR ? null : Math.max(0, arena.nextAt - Date.now()); if (!AR) return { phase: "none", nextIn: next, online: on, last: arena.hist[0] || null };
     return { id: AR.id, phase: AR.phase, tier: AR.tier, seed: AR.seed, lot: AR.lot, price: AR.price, leader: AR.leader ? { nick: AR.leader.nick, ai: AR.leader.ai, me: AR.leader.id === me } : null, bids: AR.bids.slice(-6).map(b => ({ nick: b.nick, amt: b.amt, ai: !!b.ai, me: b.me === me })), startsIn: Math.max(0, AR.startAt - Date.now()), endsIn: Math.max(0, AR.endAt - Date.now()), online: on, players: Object.keys(AR.bidders).length, rivals: AR.rivals.map(r => r.name), winner: AR.winner ? { nick: AR.winner.nick, ai: AR.winner.ai, me: AR.winner.id === me } : null, bid: AR.bidders[me] ? true : false, players_n: Object.values(AR.bidders).slice(0, 12), last: arena.hist[0] || null }; }
   setInterval(arenaTick, 400);
@@ -147,19 +160,20 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       all.sort((a, b) => b.score - a.score || a.at.localeCompare(b.at)); const rank = all.findIndex(e => e.id === me) + 1;
       ok(req, res, { week: w, count: all.length, rank: rank || null, top: all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, wins: e.wins, stars: e.stars, me: e.id === me })) }); },
     // ---------- live arena (v41): one shared lot for everyone online, every few minutes, AI rivals plus every player who taps Bid ----------
-    async "POST /api/arena"(req, res) { const b = await body(req, res, 4096, true); if (!b) return; const nick = clean(b.nick).slice(0, 16) || "Bidder"; arena.online[b.installId] = { nick, at: Date.now(), tier: Math.round(num(b.tier, 0, 4)) }; arenaTick();
-      if (b.lot && AR && AR.phase === "lobby" && !AR.lot) { const L = b.lot, v = num(L.value, 1e5, 1e12); if (v > 0 && Math.round(num(L.ti, 0, 4)) === AR.tier) { AR.lot = { addr: clean(L.addr).slice(0, 40), sub: clean(L.sub).slice(0, 30), st: clean(L.st).slice(0, 6), value: Math.round(v), guide: Math.round(num(L.guide, 1e4, 1e12)), open: Math.round(num(L.open, 1e4, 1e12)), inc: Math.round(num(L.inc, 1e3, 1e9)), style: clean(L.style).slice(0, 12), beds: Math.round(num(L.beds, 1, 12)), land: Math.round(num(L.land, 0, 1e6)), seed: Math.round(num(L.seed, 0, 2 ** 31)), rare: true, ti: AR.tier, feats: Array.isArray(L.feats) ? L.feats.slice(0, 4).map(x => clean(x).slice(0, 30)) : [] }; AR.price = AR.lot.open; arenaRivals(); } }
+    async "POST /api/arena"(req, res) { const b = await body(req, res, 4096, true); if (!b) return; arenaPresence(b);
       ok(req, res, arenaView(b.installId)); },
     async "POST /api/arena/bid"(req, res) { const b = await body(req, res, 8192, true); if (!b) return; arenaTick(); if (!AR || AR.phase !== "live" || !AR.lot) return bad(req, res, "Not live", 409);
       const nick = clean(b.nick).slice(0, 16) || "Bidder", min = AR.leader ? AR.price + AR.lot.inc : AR.lot.open, amt = Math.round(num(b.amt, 0, 1e13)); if (amt < min) return ok(req, res, Object.assign({ late: true }, arenaView(b.installId))); if (amt > Math.max(min * 1.5, AR.price + AR.lot.inc * 12)) return bad(req, res, "Too big a jump", 400);
       if (AR.leader && AR.leader.id === b.installId) return ok(req, res, arenaView(b.installId));
       AR.price = amt; AR.leader = { id: b.installId, nick, ai: false }; console.log(`AR bid ${nick} ${amt}${b.auto ? " auto" : ""} ${Math.round((AR.endAt - Date.now()) / 1000)}s left`); AR.bids.push({ nick, amt, at: Date.now(), me: b.installId }); if (AR.bids.length > 40) AR.bids = AR.bids.slice(-40); AR.bidders[b.installId] = nick; for (const r of AR.rivals) r.nextAt = Date.now() + 900 + Math.random() * 2200; if (AR.endAt - Date.now() < 8000 && AR.endAt - AR.startAt < 90e3) AR.endAt = Date.now() + 8000;
-      ok(req, res, arenaView(b.installId)); },
+      arenaChanged(); ok(req, res, arenaView(b.installId)); },
     // ---------- push tokens (sending needs APNs/FCM credentials) ----------
     async "POST /api/push"(req, res) { const b = await body(req, res, 2048); if (!b) return; const t = String(b.token || "").slice(0, 300); if (!t) return bad(req, res, "no token");
       writeJSON(path.join(DATA, "push", b.installId + ".json"), { token: t, platform: b.platform === "ios" ? "ios" : "android", tzo: Math.round(num(b.tzo, -840, 840)), at: new Date().toISOString() }); ok(req, res); }
   };
   return {
+    /* for ws.js: view(me) is exactly what POST /api/arena returns; "" gives the view of anyone who has not bid in this lot */
+    arena: { view: arenaView, presence: arenaPresence, involved: arenaInvolved, live: () => !!AR && AR.phase !== "done", soon: () => !AR && arena.nextAt - Date.now() < 70e3, on(fn) { arenaSubs.add(fn); return () => arenaSubs.delete(fn); } },
     async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; await r(req, res, url); return true; },
     stats() { const count = d => { try { return fs.readdirSync(path.join(DATA, d)).filter(f => f.endsWith(".json")).length; } catch { return 0; } };
       let members = 0, feed = 0; for (const f of fs.readdirSync(path.join(DATA, "groups"))) { const g = read(path.join(DATA, "groups", f)); if (g) { members += Object.keys(g.members).length; feed += g.feed.length; } }

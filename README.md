@@ -4,13 +4,14 @@ Formerly "Dopamine Property" (the repo, Railway project and save key keep the ol
 
 A fast property-auction browser game. Bid against rival investors, collect rent, dodge the bills, unlock bigger markets and climb the rich list.
 
-Single page, no build step, no dependencies. Game state lives in the player's `localStorage`.
+Single page, no build step. The game has no dependencies; the server has two optional ones (`ws`, `sharp`) and runs without either. Game state lives in the player's `localStorage`.
 
 Live: https://game-production-ee8e.up.railway.app (Railway project "Dopamine Property", service `game`, volume `play-logs` at `/data`).
 
 ## Run locally
 
 ```bash
+npm install          # optional: ws (live arena push) and sharp (photo resizing)
 npm start            # http://localhost:3000
 ```
 
@@ -24,7 +25,10 @@ The Railway service is connected to this repo, so **every push to `main` deploys
 | Path | What it is |
 | --- | --- |
 | `public/index.html` | The whole game: markup, styles and script. **Edit this.** |
-| `server.js` | Zero-dependency Node static server (gzip, caching, `/healthz`). |
+| `server.js` | Node static server (gzip, caching, `/healthz`), APIs, admin, photo generation. |
+| `social.js` | Groups, duels, Auction Night, the live arena. |
+| `arena-ws.js` | WebSocket push for the live arena at `/ws` (needs `ws`; logs `WS off` and clients keep polling without it). |
+| `public/sw.js` | Service worker: Workbox 7.3 from jsDelivr, hand-written fallback. |
 | `railway.json` | Railway deploy config. |
 | `tools/smoke.py` | Headless phone-size smoke test + screenshots into `shots/`. |
 | `tools/make_function.py` | Packs the game into a single-file Railway Function (repo-less fallback). |
@@ -104,6 +108,12 @@ OPENAI_API_KEY=sk-... PER_STYLE=12 node tools/gen_images.mjs
 ```
 
 Writes `public/img/*.webp` and `public/img/manifest.json`. The game picks them up automatically and falls back to the drawn houses when the manifest is empty. The key stays on your machine; never put it in the page.
+
+## Optional server packages (v55)
+
+- **`ws`**: `/ws` pushes `{t:'arena', ...}` (the same body `POST /api/arena` returns) on every arena change and every 2s while a lot is in lobby or live. Clients send `{t:'hello', id, nick, tier}` and `{t:'ping', tier, lot?}` every 20s; that counts as presence. Bids still use `POST /api/arena/bid`. Missing package: `WS off` in the log, polling as before. Local test timings: `ARENA_FIRST_MS`, `ARENA_LOBBY_MS`, `ARENA_LIVE_MS`.
+- **`sharp`**: generated photos are requested as PNG and stored as WebP q78; `/img/<photo>.webp?w=480|768|1080` serves a resized copy cached in `DATA_DIR/img/_w<width>/`. Missing or broken binary: `SHARP off` in the log, the original is served.
+- Static types include `.glb`, `.ogg`, `.mp3`, `.wasm`, `.bin` (not gzipped, cached 30 days). A missing file under `/img`, `/models`, `/sfx`, `/icons` is a 404, not the game page.
 
 ## Smoke test
 
