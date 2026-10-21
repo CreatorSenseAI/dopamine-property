@@ -261,7 +261,7 @@ button.pill.rar{font-family:inherit;cursor:pointer}
 .badge{background:var(--red);color:var(--on-red);font-family:var(--f-mono);font-size:11px;border-radius:999px;padding:1px 6px}
 
 /* toasts + modal */
-.toasts{position:absolute;left:16px;right:16px;top:64px;display:flex;flex-direction:column;gap:6px;z-index:20;pointer-events:none}
+.toasts{position:absolute;left:12px;right:12px;top:calc(6px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:6px;z-index:20;pointer-events:none}
 .toasts .toast{pointer-events:auto;touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .18s ease,opacity .18s ease;cursor:grab}
 .toasts .toast.gone{opacity:0;transform:translateY(-8px)}
 .toast{background:var(--ink);color:var(--bg);padding:10px 12px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 6px 18px var(--shadow);animation:drop .3s ease-out}
@@ -332,7 +332,7 @@ button.pill.rar{font-family:inherit;cursor:pointer}
 .gzoom button:disabled{opacity:.4;cursor:default}
 .wartag{display:inline-block;vertical-align:middle;background:var(--red);color:var(--on-red);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px}
 .offer.war{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
-.om{position:absolute;left:16px;right:16px;top:62px;z-index:21;display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:8px 8px 10px;box-shadow:0 10px 28px var(--shadow);overflow:hidden;animation:drop .3s ease-out}
+.om{position:absolute;left:12px;right:12px;top:calc(6px + env(safe-area-inset-top,0px));z-index:21;display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:8px 8px 10px;box-shadow:0 10px 28px var(--shadow);overflow:hidden;animation:drop .3s ease-out}
 .om .pthumb{width:56px;height:44px}
 .ommain{min-width:0}
 .omtag{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -344,7 +344,7 @@ button.pill.rar{font-family:inherit;cursor:pointer}
 .om .obar{background:var(--green)}
 .om .dpill{white-space:nowrap;font-size:11px;margin-left:2px}
 .omprice{flex-wrap:nowrap;white-space:nowrap}
-.toasts.shift{top:146px}
+.toasts.shift{top:calc(92px + env(safe-area-inset-top,0px))}
 .toast.tap{pointer-events:auto;cursor:pointer}
 .ghint{position:absolute;left:10px;top:8px;font-size:11px;color:var(--muted);pointer-events:none}
 .gsel{position:absolute;left:8px;right:8px;bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px var(--shadow);z-index:2}
@@ -1491,6 +1491,10 @@ body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34
 .rqrow.warn{border-color:#f08c2b}.rqrow.gone{border-color:var(--red)}.rqrow.warn .rqst{color:#f08c2b}.rqrow.gone .rqst{color:var(--red)}.rqrow.ask .rqst{color:var(--green)}
 .rqrow button.rqfix{--bc:var(--green);color:#04210f;border-radius:9px;padding:6px 10px;font:600 13px/1.1 var(--f-body);display:flex;flex-direction:column;align-items:center;gap:2px}.rqrow.ask button.rqfix{--bc:var(--btn-n);color:var(--ink)}
 .rqrow .rqfix small{font:700 11px/1 var(--f-mono)}
+
+/* v52 global rich list */
+.rich li.real .pltag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:5px;background:color-mix(in srgb,var(--blue,#5aa5ff) 22%,transparent);color:var(--ink)}
+.rich li.gap{opacity:.5;justify-content:center}
 </style>
 </head>
 <body>
@@ -1614,6 +1618,7 @@ body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34
     <div class="esec" data-s="fr" hidden><div id="frBox"></div></div>
     <div class="esec" data-s="rich" hidden>
     <h2>Rich list</h2>
+    <p class="upnote" id="richNote"></p>
     <ol class="rich" id="rich"></ol>
     <button class="sec sdboard" id="sdBoardBtn" hidden>Today's showdown leaderboard</button>
     </div>
@@ -1806,7 +1811,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v51-web';
+const VERSION='v52-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2224,7 +2229,12 @@ function sdSheet(board,score){const rows=board&&board.top||[];
  $('#sdClose').onclick=()=>{$('#modal').hidden=true;};
  $('#sdName').onclick=()=>{const p=$('#sdName').parentElement;p.innerHTML='<input id="sdNick" maxlength="16" value="'+esc(S.nick||'')+'" aria-label="Leaderboard name"><button class="linkbtn" id="sdSave">Save</button>';$('#sdSave').onclick=async()=>{const v=($('#sdNick').value||'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().slice(0,16);if(v.length<3)return;S.nick=v;save();try{await fetch(API+'/api/board',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({day:sdDay(),installId,nick:v,stars:S.legacy||0})});const b2=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();sdSheet(b2,score);}catch(e){sdSheet(board,score);}};};}
 async function openBoard(){try{const b=await (await fetch(API+'/api/board?day='+sdDay()+'&me='+installId)).json();const me=b.top&&b.top.find(r=>r.me);sdSheet(b,me?+me.score:null);}catch(e){toast('The leaderboard is offline right now.','down');}}
-function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length;}
+/* v52 (Matt: "the rich list needs to be every player and AI"): your name and net worth go to /api/rich every minute while you play, and the top 50 players come back to merge with your AI rivals. Anonymous stats off keeps you off the board. */
+let RICH={top:[],rank:null,total:0,at:0},richBusy=false;
+async function richSync(force){if(!SOC()||S.noStats||richBusy)return;if(!force&&Date.now()-RICH.at<60e3)return;richBusy=true;
+ try{const nick=myNick();const r=await fetch(API+'/api/rich',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({installId,nick,worth:Math.max(0,Math.round(worth())),stars:S.legacy||0,homes:S.props.length})});if(r.ok){const j=await r.json();RICH={top:j.top||[],rank:j.rank,total:j.total||0,at:Date.now()};if(view==='e')drawRich();}}catch(e){}richBusy=false;}
+const richOthers=()=>(RICH.top||[]).filter(x=>!x.me);
+function richRank(){const w=worth();return 1+Object.values(S.board).filter(v=>v>w).length+richOthers().filter(x=>x.worth>w).length;}
 /* v49 pass-in (r/AusProperty, MethClub7: "does it still pass in and the vendor relist it for 10% more than the highest bid?"). Yes. About 1 in 7 cheap wins: the vendor's reserve wasn't met, the agent comes back with +10% and 20 seconds. Take it or walk. */
 const PASSIN_P=0.15,PASSIN_UP=1.10,PASSIN_S=20;
 function passinOK(){const L=A.lot;return !A.run&&!A.showdown&&!A.arena&&!A.daily&&!A.featured&&!A.boss&&!A.prime&&L.fmt!=='board'&&!L.quiet&&!L.mystery&&(S.wins||0)>=3&&A.bid<L.value*0.96&&Math.random()<PASSIN_P;}
@@ -2534,6 +2544,7 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  if(S.lock>0){S.lock--;if(!S.lock)toast('Your rate lock ended. Loans are back to 6% a year.','down');}
  if(mktOn()){marketTick();offMarketTick();}/* auctions-first players have no Market: homes are bought at auction and sold at auction (or to an agent) */
  if(--digestIn<=0)flushDigest();
+ richSync();
  if(S.props.length){S.eventIn--;if(S.eventIn<=0){S.eventIn=Math.round(rnd(22,45));marketEvent();}}
  syncTier();updEmpire();updAuction();}
 /* after a downturn the market stays calm for 150 months, so crashes cannot stack */
@@ -2884,10 +2895,16 @@ function updEmpire(){const w=worth(),B=bills(),rentNow=S.props.reduce((a,p)=>a+(
   const rp=el.querySelector('[data-k="r"]');const ub=el.querySelector('.upbtn');if(ub)ub.hidden=!upgOpen(p);if(p.vacant>0){rp.textContent=(p.works?(p.works.redev?'Building ':'Works '):'Vacant ')+fmtDur(p.vacant);rp.className='pill '+(p.works?'works':'vac');}else{const nr=rentOf(p)-propCost(p,B.landRate)-(p.loan||0)*rate();rp.textContent=sg(nr)+'/mo';rp.className='pill '+(nr>=0?'pos':'neg');}
   const lp=el.querySelector('[data-k="l"]');lp.hidden=!(p.loan>0);if(p.loan>0)lp.textContent='Loan '+money(p.loan);
   const sb=el.querySelector('.sell');sb.disabled=!!p.listed;sb.textContent=p.listed?'At auction':'Sell';}
- const rows=[{name:'You',w,me:true},...Object.entries(S.board).map(([name,v])=>({name,w:v}))].sort((a,b)=>b.w-a.w);
+ drawRich();
  $('#pDays').textContent=S.days.length;$('#pSess').textContent=S.sessions;const pm=Math.round(S.playSec/60);$('#pTime').textContent=pm>=60?Math.floor(pm/60)+'h '+(pm%60)+'m':pm+'m';
  const joined=S.wins+S.losses;$('#pRate').textContent=$('#pRate2').textContent=joined?Math.round(S.wins/joined*100)+'%':'-';
- $('#rich').innerHTML=rows.map((r,i)=>(i>=5&&!r.me)?'':`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${!r.me&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${!r.me&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`).join('');}
+}
+function drawRich(){const el=$('#rich');if(!el)return;const w=worth(),me=autoNick()?'You':myNick();
+ const rows=[{name:me,w,me:true,stars:S.legacy||0},...Object.entries(S.board).map(([name,v])=>({name,w:v,ai:true})),...richOthers().map(x=>({name:x.nick,w:x.worth,real:true,stars:x.stars,homes:x.homes}))].sort((a,b)=>b.w-a.w);
+ const mi=rows.findIndex(r=>r.me),show=new Set();for(let i=0;i<Math.min(25,rows.length);i++)show.add(i);for(let i=Math.max(0,mi-2);i<=Math.min(rows.length-1,mi+2);i++)show.add(i);
+ let last=-1,html='';for(let i=0;i<rows.length;i++){if(!show.has(i))continue;if(last>=0&&i>last+1)html+='<li class="gap"><span></span><span>···</span><span></span></li>';last=i;const r=rows[i];
+  html+=`<li class="${r.me?'me':''}${r.real?' real':''}"><span class="rk">${i+1}</span><span>${esc(r.name)}${r.real?' <small class="pltag">Player</small>':''}${r.stars?` <small class="rec">★${r.stars}</small>`:''}${r.ai&&S.h2h&&S.h2h[r.name]?` <small class="rec">you ${S.h2h[r.name].w}–${S.h2h[r.name].l}</small>`:''}${r.ai&&S.nemesis===r.name?' <small class="nemtag">Nemesis</small>':''}</span><span class="num">${money(r.w)}</span></li>`;}
+ el.innerHTML=html;const n=$('#richNote');if(n)n.textContent=RICH.total?`${RICH.total} player${RICH.total>1?'s':''} on the board plus your ${Object.keys(S.board).length} AI rivals. You are #${mi+1} of ${rows.length}.`:SOC()&&!S.noStats?'Loading every player…':'Your AI rivals. Turn on Anonymous stats in the menu to join the players\' board.';}
 /* ---------- friends: invite codes, group boards, feed, duels (server: social.js) ---------- */
 const SOC=()=>WEB_STATS&&!!installId;
 let FRIENDS=[],GV=null,frBusy=false;
@@ -3075,7 +3092,7 @@ function eSub(k){const se=season();return{ov:'Worth, goal, the tiles',pf:`${S.pr
 function eSel(){const name=(ESECS.find(x=>x[0]===eSec)||ESECS[0])[1];$('#eSecName').textContent=name;}
 function eSecSheet(){$('#sheet').innerHTML=`<div class="shop esecs"><h3>Empire</h3>${EGRP.map(([g,ks])=>`<div class="shcat"><h4>${g}</h4><div class="mgrid">${ks.map(k=>`<button class="mt${k===eSec?' on':''}" data-sec="${k}">${mico(k)}<b>${esc(ESECS.find(x=>x[0]===k)[1])}</b><small>${esc(eSub(k))}</small></button>`).join('')}</div></div>`).join('')}</div>`;$('#modal').hidden=false;
  $('#sheet').querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>{$('#modal').hidden=true;eGo(b.dataset.sec);});}
-function eGo(k,quiet){if(k==='alb')setTimeout(renderAlbum,0);if(k==='sea')setTimeout(renderSeason,0);if(k==='tro')setTimeout(renderTrophies,0);if(k==='world')setTimeout(()=>{$('#worldBox').innerHTML=worldRows(false);},0);if(k==='fr')setTimeout(()=>renderFriends(),0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
+function eGo(k,quiet){if(k==='rich')richSync(true);if(k==='alb')setTimeout(renderAlbum,0);if(k==='sea')setTimeout(renderSeason,0);if(k==='tro')setTimeout(renderTrophies,0);if(k==='world')setTimeout(()=>{$('#worldBox').innerHTML=worldRows(false);},0);if(k==='fr')setTimeout(()=>renderFriends(),0);if(!ESECS.some(x=>x[0]===k))k='ov';eSec=k;document.querySelectorAll('#vEmpire .esec').forEach(d=>d.hidden=d.dataset.s!==k);$('#vEmpire').classList.toggle('ovw',k==='ov');eSel();$('#vEmpire').scrollTop=0;if(!quiet){T.c['esec_'+k]=(T.c['esec_'+k]||0)+1;tlog('empire_sec',{s:k});}updEmpire();}
 $('#eSecBtn').onclick=()=>eSecSheet();
 $('#worldPick').onclick=()=>worldSheet();
 $('#oTiles').onclick=e=>{const b=e.target.closest('[data-go]');if(b)eGo(b.dataset.go);};

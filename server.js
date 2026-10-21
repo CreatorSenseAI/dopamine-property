@@ -79,6 +79,27 @@ const DAY = /^\d{4}-\d{2}-\d{2}$/, NICK = /^[A-Za-z0-9 _.-]{3,16}$/;
 const boardFile = d => path.join(DATA, "boards", d + ".json");
 const readBoard = d => { try { return JSON.parse(fs.readFileSync(boardFile(d), "utf8")); } catch { return {}; } };
 function dayOk(d) { if (!DAY.test(d)) return false; const diff = Math.abs(Date.parse(d + "T00:00:00Z") - Date.parse(new Date().toISOString().slice(0, 10) + "T00:00:00Z")); return diff <= 864e5; }
+
+// ---------- v52 global rich list: every player's net worth, merged with the AI rivals on the client ----------
+const RICH_FILE = path.join(DATA, "rich.json");
+let RICH = (() => { try { return JSON.parse(fs.readFileSync(RICH_FILE, "utf8")); } catch { return {}; } })(), richDirty = false;
+setInterval(() => { if (richDirty) { richDirty = false; try { writeJSON(RICH_FILE, RICH); } catch (e) { console.log("RICH write " + e.message); } } }, 15000);
+function richTop(id) {
+  const cut = Date.now() - 14 * 864e5, all = Object.entries(RICH).filter(([, e]) => Date.parse(e.at) > cut).map(([k, e]) => ({ k, ...e })).sort((a, b) => b.worth - a.worth);
+  const i = all.findIndex(e => e.k === id);
+  return { top: all.slice(0, 50).map(e => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, me: e.k === id })), rank: i < 0 ? null : i + 1, total: all.length };
+}
+async function richPost(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 2048)); } catch { return send(req, res, 400, "text/plain", "bad body"); }
+  if (!b || !ID.test(String(b.installId))) return send(req, res, 400, "text/plain", "bad entry");
+  const nick = String(b.nick || "").trim(), worth = Number(b.worth);
+  if (!NICK.test(nick) || !isFinite(worth) || worth < 0 || worth > 1e15) return send(req, res, 400, "text/plain", "bad entry");
+  RICH[b.installId] = { nick, worth: Math.round(worth), stars: Math.max(0, Math.min(9999, b.stars | 0)), homes: Math.max(0, Math.min(999, b.homes | 0)), at: new Date().toISOString() };
+  richDirty = true;
+  return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId)), { "cache-control": "no-store" });
+}
 async function boardPost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
@@ -462,6 +483,7 @@ http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
+    if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""))), { "cache-control": "no-store" });
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
