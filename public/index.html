@@ -1470,6 +1470,27 @@ body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34
  .evfx{border-radius:44px}
  .stage-note{position:fixed;left:0;right:0;bottom:14px;text-align:center;font:600 12px/1.3 var(--f-body);color:#6f7d9a;letter-spacing:.04em;pointer-events:none}
 }
+
+/* v51 tenant requests */
+.reqstrip{display:flex;align-items:stretch;gap:6px;width:100%}
+.reqstrip .reqopen{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:1px solid var(--gold-hair);border-radius:10px;padding:4px 10px;background:var(--panel);color:var(--ink);text-align:left;line-height:1.25;font:inherit;cursor:pointer}
+.reqstrip .reqopen b{flex:none;font-family:var(--f-display);font-weight:400;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+.reqstrip .reqopen span{flex:1;min-width:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reqstrip.bad .reqopen{border-color:var(--red)}.reqstrip.bad .reqopen b{color:var(--red)}
+.reqstrip button.fixall{--bc:var(--green);color:#04210f;flex:none;border-radius:10px;padding:4px 12px;font:600 13px/1.2 var(--f-body);white-space:nowrap}
+.tabs .badge.req{background:var(--red)}
+.pthumb.rundown img,.pthumb.rundown svg{filter:grayscale(.75) brightness(.8) contrast(.9)}
+.prop.left .pmain{opacity:.85}
+.pill.rqpill{border:0;cursor:pointer;background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--ink);font:inherit;font-size:11px}
+.pill.rqpill.warn{background:color-mix(in srgb,#f08c2b 30%,transparent)}.pill.rqpill.gone{background:color-mix(in srgb,var(--red) 30%,transparent)}.pill.rqpill.ask{background:color-mix(in srgb,var(--green) 20%,transparent)}
+.pill.unr{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.upg.rq .rqlist{display:flex;flex-direction:column;gap:6px;margin:10px 0;text-align:left;max-height:46vh;overflow:auto}
+.rqrow{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px;border-radius:10px;background:var(--sunk);border:1px solid var(--line)}
+.rqrow .pthumb{width:44px;height:36px;border-radius:6px;overflow:hidden}
+.rqrow .rqmain{min-width:0;display:flex;flex-direction:column}.rqrow b{font-size:13px;line-height:1.2}.rqrow small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rqrow.warn{border-color:#f08c2b}.rqrow.gone{border-color:var(--red)}.rqrow.warn .rqst{color:#f08c2b}.rqrow.gone .rqst{color:var(--red)}.rqrow.ask .rqst{color:var(--green)}
+.rqrow button.rqfix{--bc:var(--green);color:#04210f;border-radius:9px;padding:6px 10px;font:600 13px/1.1 var(--f-body);display:flex;flex-direction:column;align-items:center;gap:2px}.rqrow.ask button.rqfix{--bc:var(--btn-n);color:var(--ink)}
+.rqrow .rqfix small{font:700 11px/1 var(--f-mono)}
 </style>
 </head>
 <body>
@@ -1568,6 +1589,7 @@ body[data-paddle="champion"] .pad.you b{background:linear-gradient(135deg,#ffd34
       <button data-go="bad"><small>Badges</small><strong id="oBadges">0</strong></button>
       <button data-go="bad"><small>Streak</small><strong id="oStreak">0</strong></button>
     </div>
+    <div id="reqBox" hidden></div>
     <div id="msnBox"></div>
     </div>
     <div class="esec" data-s="pf" hidden>
@@ -1689,9 +1711,9 @@ const phase=()=>honeymoon()?'honeymoon':stretch()?'stretch':'climb';
 /* v38 (Aaron: "fast pace, not a waiting game"): slots start at 20 and grow +1 every 2 levels, +5 per dynasty mark, +10 per Property manager.
    The Market is a meter, not a daily reset: MKT_MAX buys, one back every MKT_EVERY of real time, a Buyer's agent adds 5 on the spot. */
 /* v38 daily missions (Dan: "something people feel they have to come back to daily"): three a day from MSN, XP each, cash + a registration + XP for all three. */
-const MSN=[{k:'under',n:'Win 2 lots under the guide',need:2},{k:'join',n:'Bid in 5 auctions',need:5},{k:'tour',n:'Walk through a home',need:1},{k:'sell',n:'Sell a home',need:1},{k:'feat',n:'Win a featured lot',need:1},{k:'mkt',n:'Buy on the Market',need:1},{k:'nem',n:'Beat your nemesis',need:1},{k:'big',n:'Win with a Go big bid',need:1},{k:'flip',n:'Flip 3 lot cards',need:3},{k:'card',n:'Open a property card',need:1},{k:'win3',n:'Win 3 auctions',need:3}];
+const MSN=[{k:'under',n:'Win 2 lots under the guide',need:2},{k:'join',n:'Bid in 5 auctions',need:5},{k:'tour',n:'Walk through a home',need:1},{k:'sell',n:'Sell a home',need:1},{k:'feat',n:'Win a featured lot',need:1},{k:'mkt',n:'Buy on the Market',need:1},{k:'fix',n:'Fix 3 tenant requests',need:3},{k:'nem',n:'Beat your nemesis',need:1},{k:'big',n:'Win with a Go big bid',need:1},{k:'flip',n:'Flip 3 lot cards',need:3},{k:'card',n:'Open a property card',need:1},{k:'win3',n:'Win 3 auctions',need:3}];
 const msnDef=k=>MSN.find(x=>x.k===k);
-function msn(){const d=today();if(!S.msn||S.msn.d!==d){const pool=shuffle(MSN.filter(m=>!(m.k==='mkt'&&!mktOn())&&!(m.k==='nem'&&!S.nemesis)&&!(m.k==='sell'&&S.props.length<2)));S.msn={d,list:pool.slice(0,3).map(m=>({k:m.k,c:0})),claimed:false};}return S.msn;}
+function msn(){const d=today();if(!S.msn||S.msn.d!==d){const pool=shuffle(MSN.filter(m=>m.k!=='mkt'&&!(m.k==='fix'&&S.props.length<2)&&!(m.k==='nem'&&!S.nemesis)&&!(m.k==='sell'&&S.props.length<2)));S.msn={d,list:pool.slice(0,3).map(m=>({k:m.k,c:0})),claimed:false};}return S.msn;}
 const msnDone=m=>m.list.every(x=>x.c>=msnDef(x.k).need);
 function msnHit(k,n){const m=msn(),it=m.list.find(x=>x.k===k);if(!it)return;const def=msnDef(k);if(it.c>=def.need)return;it.c=Math.min(def.need,it.c+(n||1));
  if(it.c>=def.need){toast(`Mission done: ${def.n}. +20 XP`,'up');sfx('tick');pxp(20,'mission');T.c.missions=(T.c.missions||0)+1;tlog('mission',{k});
@@ -1712,7 +1734,7 @@ const DYT=[[50,'Gold'],[100,'Diamond'],[200,'Adamantium'],[300,'Mythril'],[400,'
 const dyTier=r=>DYT[Math.min(r,DYT.length-1)];
 /* v44: 75 stars and 4 dynasty marks were 4.25x rent, which took Matt from $4B to $99B in 90 minutes. The bonus now caps at +150% and yields compress past $10B of holdings (x0.75 at $100B, x0.5 at $1T) */
 const RENT_CAP=1.5,rentBonus=()=>1+Math.min(RENT_CAP,starBonus(S.legacy)+0.25*(S.dyRank||0)),yieldComp=h=>h>1e10?Math.max(0.4,1-0.25*Math.log10(h/1e10)):1;
-const rentOf=p=>p.value*RENT[baseTi(p)]*rentBonus()*yieldComp(holdings())*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1);
+const rentOf=p=>p.value*RENT[baseTi(p)]*rentBonus()*yieldComp(holdings())*(S.props.includes(p)?setMult(p):1)*((p.lease||0)>0?1.15:1)*((S.slump||0)>0?0.9:1)*(WM_ST[p.st]==='par'?1.1:1)*reqMult(p);
 /* costs of owning, as a share of value per month; stamp duty by tier; base growth per month */
 const LVR=0.8,INTEREST=0.005;/* mortgages: borrow up to 80% at 6% a year */
 const LOCK_RATE=0.00375;/* bank rate lock: 4.5% a year */
@@ -1751,7 +1773,7 @@ const STYPES=['Street','Avenue','Road','Crescent','Parade','Close','Lane','Terra
 
 const KEY='dopamine-property-v1';
 /* account-level things that survive a dynasty cash-out, a bankruptcy or a reset: test groups, purchases, privacy choice, streak, badges, tips seen */
-function carry(){const o={};for(const k of ['plv','dyRank','slotsBought','mktExtra','mkt','msn','onb','home','duelPend','duelW','arenaWon','revAt','src','fbDone','fbAsked','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
+function carry(){const o={};for(const k of ['pm','pmOff','plv','dyRank','slotsBought','mktExtra','mkt','msn','onb','home','duelPend','duelW','arenaWon','revAt','src','fbDone','fbAsked','inbox','inboxSeen','cityPass','refGot','sx','sp','sTitles','nightBest','r18','miles','paddle','paddles','frames','groups','gcur','nightDone','album','showcase','bossDone','frame','life','nick','sdDay','regVar','mkVar','reg','joined','adFree','noStats','coach','badges','streak','bestStreak','lastDay','freezes','featAt','dailyDay','tierAuto','autoPay'])if(S[k]!==undefined)o[k]=S[k];return o;}
 function fresh(){return{cash:450000,props:[],tier:0,maxTier:0,lotNo:100,wins:0,losses:0,rentTotal:0,paidOut:0,rules:0,od:false,autoOn:false,muted:false,board:Object.fromEntries(RIVALS.map(r=>[r.name,r.worth])),saved:Date.now(),nextId:1,eventIn:45,days:[],sessions:0,playSec:0,resets:0,bestWorth:450000,legacy:0,dynasties:0,skipStreak:0,h2h:{},nemesis:null};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.props))return Object.assign(fresh(),s);}catch(e){}return fresh();}
 function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -1784,7 +1806,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v50-web';
+const VERSION='v51-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -1848,7 +1870,7 @@ const basis=p=>p.paid+(p.duty||0)+(p.capex||0);
 const held=p=>p.age==null||p.age>=12;
 /* mansion tax, modelled on LA's Measure ULA: on the whole sale price, 4% from $5M, 5.5% from $10M */
 const mansionTax=price=>price>=10e6?price*0.055:price>=5e6?price*0.04:0;
-function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis(p),tax=gain>0?gain*(held(p)?0.15:0.30):0,loan=p.loan||0,mtax=mansionTax(net);return{net,tax,mtax,loan,bank:net-tax-mtax-loan,profit:net-tax-mtax-basis(p)};}
+function saleOf(p,price){const net=price!=null?price:p.value*0.98,gain=net-basis(p),tax=gain>0?gain*(held(p)?0.15:0.30):0,loan=p.loan||0,mtax=mansionTax(net)+(p.src==='market'||p.src==='offmarket'?net*0.03:0);/* v51: reselling a Market home carries a 3% agent fee (counted with mansion tax) so a flip is quick cash, not a money printer */return{net,tax,mtax,loan,bank:net-tax-mtax-loan,profit:net-tax-mtax-basis(p)};}
 /* ---------- upgrades: spend game cash to lift a home's value; works pause the rent; a big enough lift moves it up a category ---------- */
 const hasPool=p=>baseTi(p)>=2||!!(p.up&&p.up.pool)||(p.feats||[]).some(f=>/pool/i.test(f));
 const UPG=[
@@ -2493,11 +2515,12 @@ $('#skipBtn').onclick=()=>{if(A&&A.passin){passWalk();return;}if(!A||(A.sell&&!A
 /* ---------- economy ---------- */
 function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=0;
  const B=bills();S.cash-=B.total;S.paidOut+=B.total;
+ reqTick();
  const damp=growthDamp();
  for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((BASEG+(p.heat||0))*damp*ageDamp(p)+0.007*gauss());
   if(p.heat){if(p.heat>=0.0015&&Math.random()<0.004){p.value*=0.75;p.heat=0;T.c.bubblePops++;tlog('bubble_pop',{tier:p.ti,value:Math.round(p.value)});note('bubble','Bubble bursts at '+p.addr+'. Down 25%.','down',true);}else p.heat*=0.985;}
-  if(Math.random()<0.0015){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
-  buildEvents(p);if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(!(p.lease>0)&&Math.random()<0.0035){p.vacant=Math.round(rnd(8,22));const st=tenantStory(p);p.vacant+=st.extra||0;T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant,story:st.k});if(st.loud||S.props.length<3||Math.random()<0.25){toast(`${p.addr}: ${st.txt} Rent paused ${p.vacant} months.`,'down');eventFX(st.k==='shark'||st.k==='arrest'?st.k:'tenant');}else note('vac','','down');}
+  if(false){const c=p.value*rnd(0.002,0.006);S.cash-=c;S.paidOut+=c;T.c.repairs++;tlog('repair',{tier:p.ti,cost:Math.round(c)});S.props.length<3?toast(pick(isStrata(p)?['Special strata levy','Lift repairs','Burst pipe']:['Hot water system blew','Roof leak','Termite treatment','Burst pipe'])+' at '+p.addr+'. '+money(-c)+'.','down'):note('rep','','rep:'+c);}
+  buildEvents(p);if(p.vacant>0){p.vacant--;if(p.vacant===0){if(p.works)finishWorks(p);else note('ten','New tenant signed at '+p.addr,'up');}}else{const r=rentOf(p);S.cash+=r;S.rentTotal+=r;rentTick+=r;if(!(p.lease>0)&&!p.req&&Math.random()<0.0008){p.vacant=Math.round(rnd(8,22));const st=tenantStory(p);p.vacant+=st.extra||0;T.c.vacancies++;tlog('vacancy',{tier:p.ti,sec:p.vacant,story:st.k});if(st.loud||S.props.length<3||Math.random()<0.25){toast(`${p.addr}: ${st.txt} Rent paused ${p.vacant} months.`,'down');eventFX(st.k==='shark'||st.k==='arrest'?st.k:'tenant');}else note('vac','','down');}
    else if(Math.random()<0.0007)goodTenant(p);if(p.lease>0)p.lease--;}}
  monthTick();
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
@@ -2697,6 +2720,60 @@ const TSTORY=[['bali','moved to Bali to "find themselves".'],['scratchie','won $
 const TCOAST=[['yacht','took a deckhand job on a superyacht.'],['swell','left to chase the swell in Indo.']];
 const TDARK=[['cult','joined a cult in the hinterland. They took the curtains.',4],['roof','turned out to be living in the roof cavity of the house next door too.',2],['arrest','was arrested running a backyard crypto mine. In remand for 18 months.',8],['ghost','faked their own death. You kept the bond.',0],['tinder','was catfished into moving to Perth.',0],['divorce','got divorced. Both of them want the lease. Neither pays.',3],['witness','entered witness protection. Left a very neat kitchen.',0]];
 const TDCOAST=[['shark','was taken by a shark at the local beach. Brutal. Grief counsellor not included.',6]];
+/* ---------- v51 tenant requests and upkeep (Matt, 21 Oct): tenants ask for fixes in real time; the quote climbs the longer you wait, rent dips at 3 minutes, the tenant leaves at 8, and a neglected home goes run down (up to -15% value, faded photo). Fix all on Empire. Requests that came in while you were away are billed in the welcome-back. A Property manager (100 stars or the app) fixes everything on arrival at 25% over the quote. Replaces the old random repairs, and most random vacancies. ---------- */
+const REQ_P=1/200,REQ_DIP=180,REQ_WARN=300,REQ_LEAVE=480,REQ_ASK_TTL=300,RD_MAX=0.15,PM_MARK=1.25;
+const REQ_FIX=[['hotwater','The hot water system died'],['roof','The roof is leaking into a bedroom'],['aircon','The aircon gave up'],['oven','The oven won\'t heat'],['pipe','A pipe burst under the sink'],['mould','Mould is spreading in the bathroom'],['lock','The front door lock is broken'],['fence','The back fence blew over'],['toilet','The toilet won\'t stop running'],['possum','Possums are living in the roof'],['power','Half the power points are dead'],['window','A bedroom window is cracked'],['gutter','The gutters are overflowing'],['dryer','The dryer caught fire. Small one.']];
+const REQ_FIX_S=[['lift','The lift is out again'],['intercom','The intercom is dead'],['balcony','The balcony door won\'t lock'],['carpark','The car park gate is stuck'],['pipe','A pipe burst under the sink'],['aircon','The aircon gave up'],['hotwater','The hot water system died']];
+const REQ_ASK=[['dish','Could we get a dishwasher?'],['bedair','Could you put aircon in the bedrooms?'],['dog','Can we have a dog? We\'ll pay a bit more.'],['solar','Solar panels would cut our bills. Interested?'],['ev','Any chance of an EV charger?'],['blinds','Blockout blinds would change our lives']];
+const pmOn=()=>(S.pm||(S.legacy||0)>=100)&&S.pmOff!==true,pmUnlocked=()=>!!(S.pm||(S.legacy||0)>=100);
+const reqAge=p=>p.req?(S.rqc||0)-p.req.at:0;
+function reqCost(p){const r=p.req;if(!r)return 0;if(r.ask)return r.c0;return Math.round(r.c0*(1+0.1*reqAge(p)/60));}
+const reqStage=p=>!p.req||p.req.ask?0:p.left?3:reqAge(p)>=REQ_DIP?2:1;
+const reqMult=p=>!S.props||!S.props.includes(p)?1:(p.left?0:reqStage(p)===2?0.7:1)*(1+(p.rentUp||0))*(1-(p.rd||0));
+const openReqs=()=>S.props.filter(p=>p.req&&!p.req.ask),openAsks=()=>S.props.filter(p=>p.req&&p.req.ask);
+function reqNew(p,ask,quiet){const list=ask?REQ_ASK:isStrata(p)?REQ_FIX_S:REQ_FIX,[k,txt]=pick(list),base=p.value*RENT[baseTi(p)]*rentBonus();
+ const c0=Math.max(500,roundTo(base*(ask?rnd(18,36):rnd(10,26))*(honeymoon()?0.5:1),100));p.req={k,txt,c0,at:S.rqc||0,ask:!!ask};
+ if(!quiet){T.c.reqs=(T.c.reqs||0)+1;tlog('req',{k,ask:!!ask,tier:p.ti,cost:Math.round(c0)});if(!ask&&!(S.coach||{}).req)setTimeout(()=>coach('req','A tenant needs something fixed. Tap Empire, then Fix all, or leave it and watch the quote climb and the tenant run out of patience.'),400);}}
+let reqToastAt=0;
+function reqTick(){S.rqc=(S.rqc||0)+1;const hm=honeymoon(),now=Date.now();
+ for(const p of S.props){if(p.works)continue;
+  if(!p.req){if(!p.left&&!(p.vacant>0)&&Math.random()<REQ_P)reqNew(p,Math.random()<0.2);}
+  else if(p.req.ask){if(reqAge(p)>=REQ_ASK_TTL){T.c.asksLapsed=(T.c.asksLapsed||0)+1;p.req=null;}}
+  else{const a=reqAge(p);
+   if(a===REQ_WARN&&!hm&&now-reqToastAt>45e3){reqToastAt=now;toast(`Your tenant at ${p.addr} is fed up: ${p.req.txt.toLowerCase()}. Fix it in 3 minutes or they move out.`,'down',()=>reqSheet());}
+   if(a>=REQ_LEAVE&&!p.left&&!hm){p.left=true;T.c.reqLeft=(T.c.reqLeft||0)+1;tlog('req_left',{k:p.req.k,tier:p.ti,cost:reqCost(p)});pushNews(`Tenant walks out of ${p.addr}, ${p.sub} after landlord ignores repairs`);if(now-reqToastAt>20e3){reqToastAt=now;toast(`Your tenant at ${p.addr} moved out. No rent until you fix it and re-let.`,'down',()=>reqSheet());sfx('lose');}}
+   if(p.left&&(p.rd||0)<RD_MAX){const r0=p.rd||0,r1=Math.min(RD_MAX,r0+RD_MAX/600);p.value*=(1-r1)/(1-r0);p.rd=r1;if(r0<0.05&&r1>=0.05){T.c.runDown=(T.c.runDown||0)+1;tlog('run_down',{tier:p.ti});}}}
+  if(!p.req&&(p.rd||0)>0){const r0=p.rd,r1=Math.max(0,r0-RD_MAX/300);p.value*=(1-r1)/(1-r0);p.rd=r1;}}
+ if(pmOn())for(const p of openReqs()){if(S.cash>=reqCost(p)*PM_MARK)fixReq(p,true);}
+ drawReqBadge();}
+function fixReq(p,pm){if(!p||!p.req)return false;const c=Math.round(reqCost(p)*(pm?PM_MARK:1));if(S.cash<c)return false;const r=p.req,ask=r.ask,age=reqAge(p),st=reqStage(p);
+ S.cash-=c;S.paidOut+=c;p.req=null;
+ if(ask){p.rentUp=Math.min(0.15,(p.rentUp||0)+0.03);T.c.asksDone=(T.c.asksDone||0)+1;}
+ else{T.c.reqFixed=(T.c.reqFixed||0)+1;if(pm)T.c.pmFixes=(T.c.pmFixes||0)+1;msnHit('fix');if(p.left){p.left=false;p.vacant=Math.round(rnd(4,8));}}
+ T.c.reqSpend=(T.c.reqSpend||0)+c;tlog(ask?'ask_done':'req_fix',{k:r.k,age,stage:st,cost:c,pm:!!pm});return true;}
+function fixAll(){const list=openReqs().sort((a,b)=>reqAge(b)-reqAge(a));let n=0,spent=0;for(const p of list){const c=reqCost(p);if(S.cash<c)continue;spent+=c;if(fixReq(p))n++;}
+ if(n){T.c.fixAlls=(T.c.fixAlls||0)+1;sfx('cash');toast(`Fixed ${n} request${n>1?'s':''} for ${money(spent)}.`+(openReqs().length?` ${openReqs().length} left: not enough cash.`:' Tenants are happy.'),'up');}
+ else if(list.length)toast('Not enough cash to fix any of them. Sell a home or wait for rent.','down');
+ drawReqBadge();buildEmpire();save();return n;}
+function reqTotal(){return openReqs().reduce((a,p)=>a+reqCost(p),0);}
+function drawReqBadge(){const n=openReqs().length,c=$('#pCount');if(c){c.hidden=!n;c.textContent=n;c.classList.toggle('req',!!n);}const b=$('#reqBox');if(b){const sig=n+'|'+Math.round(reqTotal()/1e3)+'|'+openAsks().length+'|'+(S.cash>=reqTotal());if(b.dataset.sig!==sig){b.dataset.sig=sig;drawReqStrip();}}}
+function drawReqStrip(){const b=$('#reqBox');if(!b)return;const n=openReqs().length,na=openAsks().length,tot=reqTotal(),left=openReqs().filter(p=>p.left).length;
+ b.innerHTML=n||na?`<div class="reqstrip${left?' bad':''}"><button class="reqopen" id="reqOpen"><b>${n?n+' repair'+(n>1?'s':''):na+' request'+(na>1?'s':'')}</b><span>${left?left+' tenant'+(left>1?'s':'')+' moved out':n?'Quote climbs every minute':'Tenants want upgrades'}</span></button>${n?`<button class="fixall" id="fixAllBtn"${S.cash<Math.min(...openReqs().map(reqCost))?' disabled':''}>Fix all · ${money(tot)}</button>`:''}</div>`:'';
+ const o=$('#reqOpen');if(o)o.onclick=()=>reqSheet();const f=$('#fixAllBtn');if(f)f.onclick=()=>fixAll();
+ b.hidden=!(n||na);const ms=$('#msnBox');if(ms)ms.hidden=!!(n||na);}
+function reqSheet(){const rows=S.props.filter(p=>p.req).sort((a,b)=>(a.req.ask-b.req.ask)||reqAge(b)-reqAge(a));T.c.reqViews=(T.c.reqViews||0)+1;
+ const stTxt=p=>p.req.ask?'Optional · +3% rent':p.left?'Tenant moved out':reqStage(p)===2?'Rent down 30% · leaving in '+mmss(Math.max(0,REQ_LEAVE-reqAge(p))):'Rent dips in '+mmss(Math.max(0,REQ_DIP-reqAge(p)));
+ const body=rows.length?rows.map(p=>`<div class="rqrow${p.left?' gone':reqStage(p)===2?' warn':''}${p.req.ask?' ask':''}" data-rq="${p.id}"><div class="pthumb${(p.rd||0)>0.03?' rundown':''}">${artOf(p)}</div><div class="rqmain"><b>${esc(p.req.txt)}</b><small>${esc(p.addr)}, ${esc(p.sub)}</small><small class="rqst">${stTxt(p)}</small></div><button class="rqfix" data-fix="${p.id}"${S.cash<reqCost(p)?' disabled':''}>${p.req.ask?'Do it':'Fix'}<small>${money(reqCost(p))}</small></button></div>`).join(''):'<p class="upnote">No requests right now. Tenants are happy.</p>';
+ const n=openReqs().length;
+ $('#sheet').innerHTML=`<div class="upg rq"><h3>Tenant requests</h3><p class="upnote">Repairs get dearer the longer you wait. Ignore one for 3 minutes and the rent drops; 8 minutes and the tenant leaves and the home starts to run down.</p>${n?`<button id="rqAll"${S.cash<Math.min(...openReqs().map(reqCost))?' disabled':''}>Fix all ${n} · ${money(reqTotal())}</button>`:''}<div class="rqlist">${body}</div>${pmUnlocked()?`<button class="sec" id="pmTog">Property manager: ${pmOn()?'on':'off'}</button><p class="upnote">Fixes every repair the moment it comes in, at 25% over the quote.</p>`:`<p class="upnote">A Property manager fixes every repair the moment it lands, at 25% over the quote. Unlocks at 100★, or in the app.</p>${iapRow(IAP.find(x=>x.id==='prop_manager'))}`}</div>`;
+ $('#modal').hidden=false;
+ const a=$('#rqAll');if(a)a.onclick=()=>{fixAll();reqSheet();};
+ const t=$('#pmTog');if(t)t.onclick=()=>{S.pmOff=pmOn();save();reqSheet();};$('#sheet').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{b.disabled=true;buyItem(b.dataset.buy).finally(()=>{b.disabled=false;});});
+ $('#sheet').querySelector('.rqlist').onclick=e=>{const b=e.target.closest('[data-fix]');if(!b)return;const p=S.props.find(x=>x.id===+b.dataset.fix);if(fixReq(p)){sfx('cash');buildEmpire();save();reqSheet();}};}
+/* requests that came in while you were away: no decay, billed at the base quote, capped at twice the rent that came in */
+function awayReqs(n,rent){if(n<3)return{n:0,bill:0};let c=0,bill=0;const ch=1-Math.exp(-n/200*1.5);
+ for(const p of S.props){if(p.works||p.req||p.left)continue;if(Math.random()<ch){reqNew(p,false,true);bill+=p.req.c0;c++;p.req=null;}}
+ const cap=Math.max(0,rent*2);if(bill>cap)bill=cap;bill=Math.round(bill);if(c){S.cash-=bill;S.paidOut+=bill;T.c.awayFixes=(T.c.awayFixes||0)+c;T.c.reqSpend=(T.c.reqSpend||0)+bill;tlog('away_repairs',{n:c,bill});}return{n:c,bill};}
 function tenantStory(p){let pool=TSTORY.slice();if(COAST.has(p.sub))pool=pool.concat(TCOAST);if(S.r18){pool=pool.concat(TDARK,TDARK);if(COAST.has(p.sub))pool=pool.concat(TDCOAST,TDCOAST);}
  const x=pick(pool);return{k:x[0],txt:'Tenant '+x[1],extra:x[2]||0,loud:x[0]==='shark'||x[0]==='arrest'};}
 function goodTenant(p){const x=Math.random();if(x<0.5){p.value*=1.01;toast(`${p.addr}: your tenant built a veggie garden and fixed the fence. +1% value.`,'up');}else{p.lease=Math.max(p.lease||0,24);toast(`${p.addr}: your tenant is a famous chef. Queue out the door: rent +15% for two years.`,'up');}T.c.goodTenants=(T.c.goodTenants||0)+1;tlog('good_tenant',{});}
@@ -2744,16 +2821,16 @@ function marketEvent0(){const roll=Math.random(),down=roll<0.42;if(down&&(S.calm
  else{const p=pick(S.props);const sub=p.sub,mine=S.props.filter(q=>q.sub===sub);mine.forEach(q=>q.value*=1.08);sfx('cash');
   toast(`${sub} is booming: your ${mine.length>1?mine.length+' homes there are':'home there is'} up 8%. Tap to sell into it.`,'up',()=>{psort='gain';pg=0;show('e');eGo('pf');buildEmpire();const h=$('.phead');if(h)h.scrollIntoView({block:'start'});});}}
 function simulate(n){const before=holdings();let rent=0,costs=0;
- for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(!(p.lease>0)&&Math.random()<0.0035)p.vacant=Math.round(rnd(8,22));if(p.lease>0)p.lease--;}}monthTick(true);for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
+ for(let i=0;i<n;i++){costs+=bills().total;if(S.lock>0)S.lock--;for(const p of S.props){p.age=(p.age==null?12:p.age)+1;p.value*=Math.exp((0.0007+(p.heat||0))*growthDamp()*ageDamp(p)+0.006*gauss());if(p.heat)p.heat*=0.985;if(p.vacant>0){p.vacant--;if(p.vacant===0&&p.works)finishWorks(p,true);}else{const r=rentOf(p);rent+=r;if(!(p.lease>0)&&Math.random()<0.0008)p.vacant=Math.round(rnd(8,22));if(p.lease>0)p.lease--;}}monthTick(true);for(const k in S.board)S.board[k]*=Math.exp(0.0015);}
  S.cash+=rent-costs;S.rentTotal+=rent;S.paidOut+=costs;return{rent,costs,before,after:holdings()};}
 function awayCredit(since){const secs=(Date.now()-since)/1000;if(secs<-60)tflag('clock_backwards',{secs:Math.round(secs)});if(secs>30*86400)tflag('away_over_30_days',{secs:Math.round(secs)});
  const n=Math.min(Math.floor(secs/20),120);if(n<3||!S.props.length)return;
- const c0=S.cash,r=simulate(n),pct=r.before?((r.after/r.before-1)*100):0,floor=Math.min(0,c0),short=Math.max(0,floor-S.cash);if(short>0)S.cash=floor;const got=S.cash-c0;T.c.awayCredits++;tlog('away_credit',{awaySec:Math.round(secs),months:n,capped:n===120,rent:Math.round(r.rent),costs:Math.round(r.costs),shortfall:Math.round(short),valuePct:+pct.toFixed(2)});
+ const c0=S.cash,r=simulate(n),pct=r.before?((r.after/r.before-1)*100):0;r.rq=awayReqs(n,r.rent);const floor=Math.min(0,c0),short=Math.max(0,floor-S.cash-(r.rq.bill||0));if(short>0)S.cash=floor-(r.rq.bill||0);const got=S.cash-c0;T.c.awayCredits++;tlog('away_credit',{awaySec:Math.round(secs),months:n,capped:n===120,rent:Math.round(r.rent),costs:Math.round(r.costs),shortfall:Math.round(short),valuePct:+pct.toFixed(2)});
  welcomeBack(n,got,r,pct,short);
  syncTier();updEmpire();save();}
 /* v46: the welcome-back splash (V2 doc, idle layer): a count-up, the three lines that explain it, Collect, and in the app a fixed-price Double it */
 function welcomeBack(n,got,r,pct,short){const yrs=n>=12?Math.floor(n/12)+' year'+(n>=24?'s':'')+(n%12?' '+n%12+' months':''):n+' months',dbl=inApp()&&PRICES.double_back&&got>0;
- $('#sheet').innerHTML=`<div class="upg wb noclose"><div class="onbmark">AE</div><small class="wbs">While you were away · ${yrs}</small><b class="wbnum${got<0?' neg':''}" id="wbNum">${got<0?'−':'+'}$0</b><div class="wbrows"><div><span>Rent collected</span><em class="up">+${money(r.rent)}</em></div><div><span>Rates, upkeep, tax and interest</span><em class="dn">−${money(r.costs)}</em></div><div><span>Portfolio value</span><em class="${pct>=0?'up':'dn'}">${pct>=0?'+':'−'}${Math.abs(pct).toFixed(1)}%</em></div></div>${short>0?'<p class="upnote">Interest outran your rent and your cash ran out, so the bank paused the bills until you got back. Rent has to cover your loans from here.</p>':''}<button id="wbOk">Collect</button>${dbl?`<button class="sec" id="wbDbl">Double it · ${esc(PRICES.double_back)}</button>`:got>0&&!inApp()?'<p class="upnote">In the app you can double what you came back to.</p>':''}</div>`;$('#modal').hidden=false;
+ $('#sheet').innerHTML=`<div class="upg wb noclose"><div class="onbmark">AE</div><small class="wbs">While you were away · ${yrs}</small><b class="wbnum${got<0?' neg':''}" id="wbNum">${got<0?'−':'+'}$0</b><div class="wbrows"><div><span>Rent collected</span><em class="up">+${money(r.rent)}</em></div><div><span>Rates, upkeep, tax and interest</span><em class="dn">−${money(r.costs)}</em></div>${r.rq&&r.rq.n?`<div><span>Repairs while you were away · ${r.rq.n}</span><em class="dn">−${money(r.rq.bill)}</em></div>`:''}<div><span>Portfolio value</span><em class="${pct>=0?'up':'dn'}">${pct>=0?'+':'−'}${Math.abs(pct).toFixed(1)}%</em></div></div>${short>0?'<p class="upnote">Interest outran your rent and your cash ran out, so the bank paused the bills until you got back. Rent has to cover your loans from here.</p>':''}<button id="wbOk">Collect</button>${dbl?`<button class="sec" id="wbDbl">Double it · ${esc(PRICES.double_back)}</button>`:got>0&&!inApp()?'<p class="upnote">In the app you can double what you came back to.</p>':''}</div>`;$('#modal').hidden=false;
  const el=$('#wbNum'),t0=performance.now(),dur=1300,target=Math.abs(got);let lastTick=0;(function step(){const t=Math.min(1,(performance.now()-t0)/dur),e=1-Math.pow(1-t,3),v=target*e;el.textContent=(got<0?'−':'+')+money(v);if(t<1){if(performance.now()-lastTick>90){lastTick=performance.now();sfx('tick');}requestAnimationFrame(step);}else{sfx('cash');if(got>0)confetti(false);}})();
  $('#wbOk').onclick=()=>{$('#modal').hidden=true;};const d=$('#wbDbl');if(d)d.onclick=()=>{d.disabled=true;buyItem('double_back').then(ok=>{if(ok){S.cash+=got;T.c.doubleBacks=(T.c.doubleBacks||0)+1;tlog('double_back',{amt:Math.round(got)});toast(`Doubled: +${money(got)} more.`,'up');sfx('rare');confetti(true);}}).finally(()=>{$('#modal').hidden=true;save();updEmpire();});};}
 
@@ -2771,8 +2848,8 @@ function buildEmpire(){drawMsn();const nRare=S.props.filter(p=>p.rare).length;if
  $('#psort').hidden=S.props.length<4;$('#psort').querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===psort));
  $('#pager').hidden=all.length<=PAGE;$('#pgTxt').textContent=`${pg*PAGE+1}–${Math.min(all.length,pg*PAGE+PAGE)} of ${all.length}`;$('#pgPrev').disabled=pg<=0;$('#pgNext').disabled=pg>=pages-1;
  $('#pfilter').hidden=!nRare;$('#pfAllN').textContent=S.props.length;$('#pfRareN').textContent=nRare;$('#pfAll').setAttribute('aria-pressed',pf==='all');$('#pfRare').setAttribute('aria-pressed',pf==='rare');
- $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}" data-id="${p.id}"><div class="pthumb">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.rarity>=1?`<button class="pill rar r${p.rarity}"${p.rarity>=3?` data-share="${p.id}" aria-label="Share this ${RAR[p.rarity][0]} find"`:` data-rinfo="${p.id}" aria-label="What ${RAR[p.rarity][0]} means"`}>${gem(p.rarity)}${RAR[p.rarity][0]}${p.rarity>=3?' ↗':''}</button>`:''}${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
- const c=$('#pCount');c.hidden=!S.props.length;c.textContent=S.props.length;{const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const co=$('#coll');co.hidden=!(n[1]+n[2]+n[3]+n[4]);co.innerHTML='<b>Collection</b>'+[4,3,2,1].filter(i=>n[i]).map(i=>`<span class="rar r${i}">${gem(i)}${n[i]} ${RAR[i][0]}</span>`).join('');}renderSets();renderBadges();updEmpire();
+ $('#plist').innerHTML=S.props.length?list.map(p=>`<article class="prop${p.rare?' is-rare':''}${p.left?' left':''}" data-id="${p.id}"><div class="pthumb${(p.rd||0)>0.03?' rundown':''}">${artOf(p)}</div><div class="pmain"><div class="paddr"><span class="pname">${esc(p.addr)}</span>${p.rare?'<span class="rare-t">Rare</span>':''}</div><div class="psub">${esc(p.sub)} · ${TIERS[p.ti].name}${p.dwell?' · '+(p.dwell==='mansion'?'Mansion':'Duplex'):''}${p.up?Object.keys(p.up).map(k=>' · '+((UPG.find(u=>u.k===k)||{}).tag||'')).join(''):''}</div><div class="pnums"><span class="pv" data-k="v"></span><span class="pill" data-k="g"></span><span class="pill" data-k="r"></span><span class="pill loan" data-k="l" hidden></span>${p.rarity>=1?`<button class="pill rar r${p.rarity}"${p.rarity>=3?` data-share="${p.id}" aria-label="Share this ${RAR[p.rarity][0]} find"`:` data-rinfo="${p.id}" aria-label="What ${RAR[p.rarity][0]} means"`}>${gem(p.rarity)}${RAR[p.rarity][0]}${p.rarity>=3?' ↗':''}</button>`:''}${p.req?`<button class="pill rqpill${p.req.ask?' ask':p.left?' gone':reqStage(p)===2?' warn':''}" data-rqo="1">${p.req.ask?'Request':p.left?'Empty: fix it':'Repair'} ${money(reqCost(p))}</button>`:''}${(p.rd||0)>0.03?`<span class="pill neg">Run down −${Math.round(p.rd*100)}%</span>`:''}${p.src==='market'||p.src==='offmarket'?'<span class="pill unr">Unranked</span>':''}${p.heat>=0.0006?`<span class="pill hot">${p.heat>=0.0015?'Record':'Hot'} ${growPct(p.heat)}%/yr</span>`:''}</div></div><div class="pbtns"><button class="sell" data-sell="${p.id}">Sell</button><button class="upbtn" data-up="${p.id}"${upgOpen(p)?'':' hidden'}>Upgrade</button></div></article>`).join(''):'<div class="empty">No houses yet. Win an auction and it lands here, paying rent every second and running up bills.</div>';
+ drawReqBadge();drawReqStrip();{const n=[0,0,0,0,0];for(const q of S.props)if(q.rarity!=null)n[q.rarity]++;const co=$('#coll');co.hidden=!(n[1]+n[2]+n[3]+n[4]);co.innerHTML='<b>Collection</b>'+[4,3,2,1].filter(i=>n[i]).map(i=>`<span class="rar r${i}">${gem(i)}${n[i]} ${RAR[i][0]}</span>`).join('');}renderSets();renderBadges();updEmpire();
  if(view==='e'&&S.props.length>=3&&S.props.some(upgOpen))setTimeout(()=>{if(view==='e')coach('upgrade','Tap Upgrade on a home to renovate, extend or add a pool. It costs cash now and lifts the value and the rent.');},600);}
 /* goal lives in the chips row: next market, then the Dynasty cash-out */
 const CASH_AT=1e8,starsFor=w=>w<CASH_AT?0:1+Math.floor(Math.log2(w/CASH_AT)),starAt=n=>CASH_AT*Math.pow(2,n-1);
@@ -3097,7 +3174,7 @@ function sellProp(p,price,how){const i=S.props.indexOf(p);if(i<0)return;msnHit('
  if(how==='repossessed')toast(`The bank repossessed ${p.addr} and sold it for ${money(net)}. ${bank>=0?'You kept '+money(bank):'You still owe '+money(-bank)}.`,'down');
  else{toast(`Sold ${p.addr} for ${money(net)}. ${profit>=0?'Profit +'+money(profit):'Loss '+money(profit)}${tax>0?' after '+money(tax)+' capital gains tax':''}${mtax>0?' and '+money(mtax)+' mansion tax':''}${loan>0?'. Loan of '+money(loan)+' repaid':''}.`,profit>=0?'up':'down');sfx('cash');if(profit>0)confetti(false);}
  buildEmpire();updAuction();if(view==='m'){offSig='';renderMarket();}save();soonFlush();}
-$('#plist').onclick=e=>{if(!e.target.closest('button')){const pe=e.target.closest('.prop');if(pe){const p=S.props.find(q=>q.id===+pe.dataset.id);if(p)cardSheet(p);return;}}const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
+$('#plist').onclick=e=>{if(e.target.closest('[data-rqo]')){reqSheet();return;}if(!e.target.closest('button')){const pe=e.target.closest('.prop');if(pe){const p=S.props.find(q=>q.id===+pe.dataset.id);if(p)cardSheet(p);return;}}const ub=e.target.closest('[data-up]');if(ub){const p=S.props.find(q=>q.id===+ub.dataset.up);if(p){hideCoach('upgrade');upgradeSheet(p);}return;}const b=e.target.closest('[data-sell]');if(!b)return;const id=+b.dataset.sell;
  const p=S.props.find(q=>q.id===id);if(p)sellSheet(p);};
 function bankrupt(){const owed=-S.cash;T.c.bankruptcies++;tlog('bankrupt',{owed:Math.round(owed),sessionPlaySec:T.playSec,legacy:S.legacy||0});
  const keep={days:S.days,sessions:S.sessions,playSec:S.playSec,resets:S.resets,bestWorth:S.bestWorth,muted:S.muted,tour:S.tour,rules:4,legacy:S.legacy||0,dynasties:S.dynasties||0,lotNo:S.lotNo,h2h:S.h2h||{},nemesis:S.nemesis||null};
@@ -3163,8 +3240,8 @@ function weightedTier(){const w=worth(),ws=[];for(let i=0;i<=S.maxTier;i++){let 
 const cityTier=sub=>{const c=CITIES.find(x=>x.sub===sub);return c?c.ti:0;};
 function makeListing(o={}){const ti=o.ti!=null?o.ti:weightedTier();if(ti>S.maxTier)return null;const TT=TIERS[ti];
  let place=null;if(o.city){place=TT.places.find(x=>x[0]===o.city);if(!place)return null;}
- const L=makeLot(ti,{rareP:0.02,place,type:o.type||null});if(!L)return null;
- const deal=!!o.deal||Math.random()<0.2,ask=roundTo(L.value*(deal?rnd(0.84,0.92):rnd(0.98,1.1)),L.inc),ttl=Math.round(deal?rnd(12,20):rnd(30,75));
+ const L=makeLot(ti,{rareP:0,place,type:o.type||null});if(!L)return null;L.rare=false;/* v51: rarity comes only from auctions */
+ const deal=!!o.deal||Math.random()<0.2,ask=roundTo(L.value*(deal?rnd(0.92,0.97):rnd(1.0,1.1)),L.inc),ttl=Math.round(deal?rnd(12,20):rnd(30,75));
  return Object.assign(L,{mid:mid++,ask,deal,ttl,ttl0:ttl});}
 const matches=l=>(!MK.q||(l.sub+' '+l.st+' '+l.addr).toLowerCase().includes(MK.q))&&(MK.tier<0||l.ti===MK.tier)&&(MK.type==='all'||(MK.type==='apt')===isStrata(l))&&(!MK.deals||l.deal)&&(!MK.city||l.sub===MK.city);
 function refill(){let g=0;while(LST.length<10&&g++<20){const l=makeListing();if(l)LST.push(l);}
@@ -3217,11 +3294,11 @@ let qT=null;$('#mQ').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout
 $('#wmapBtn').onclick=()=>{const g=$('#globeSec'),open=g.hidden;g.hidden=!open;$('#wmapBtn').setAttribute('aria-expanded',open);$('#wmapBtn').textContent=open?'Hide world map':'World map: shop by city';if(open){gstart();g.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}else gstop();};
 function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(pfFull()){slotsSheet();return false;}if(mktLeft()<=0){mktSheet();return false;}if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}
  const pay=payFor(l.ask,l.ti);S.cash-=pay.out;S.paidOut+=pay.duty;if(i>=0)LST.splice(i,1);
- S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,land:l.land,beds:l.beds,feats:l.feats,seed:l.seed,rare:l.rare,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
- {const m=mktMeter();if(m.n>=mktMax())m.at=Date.now();m.n=Math.max(0,m.n-1);}msnHit('mkt');T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);award('first_win');if(S.props.length>=10)award('landlord10');if(S.props.length>=25)award('magnate25');
+ S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,land:l.land,beds:l.beds,feats:l.feats,seed:l.seed,rare:false,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
+ {const m=mktMeter();if(m.n>=mktMax())m.at=Date.now();m.n=Math.max(0,m.n-1);}T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);/* v51: Market homes count for sets, nothing else: no rarity, album, missions, badges or season XP */
  tlog('mkt_buy',{offmkt:!!l.offmkt,tier:l.ti,rare:l.rare,deal:l.deal,ask:Math.round(l.ask),value:Math.round(l.value),loan:Math.round(pay.loan),secsLeft:l.ttl,city:l.sub,cashAfter:Math.round(S.cash)});
  const eq=l.value-l.ask;toast(`Bought ${l.addr}.`+(eq>0?` +${money(eq)} equity.`:'')+(pay.loan?` Loan ${money(pay.loan)}.`:''),'up');
- sfx(l.deal||l.rare?'win':'cash');if(l.deal||l.rare)confetti(l.rare);buildEmpire();updAuction();save();soonFlush();return true;}
+ sfx('cash');buildEmpire();updAuction();save();soonFlush();return true;}
 function swipe(kind,viaDrag){const c=$('#mcard'),l=topListing();if(!c||!l||swiping)return;
  if(kind==='buy'&&(pfFull()||mktLeft()<=0)){c.style.transform='';c.style.setProperty('--sw',0);if(pfFull())slotsSheet();else mktSheet();return;}
  if(kind==='buy'&&!canPay(l.ask,l.ti)){c.style.transform='';c.style.setProperty('--sw',0);toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return;}
@@ -3252,7 +3329,7 @@ let OM=null;
 function offMarketTick(){if(OM){OM.ttl--;if(OM.ttl<=0){T.c.offmktMissed++;tlog('offmkt_missed',{tier:OM.ti,ask:Math.round(OM.ask),value:Math.round(OM.value)});OM=null;renderOM();}else renderOMtick();return;}
  if(!S.props.length)return;S.dealIn=(S.dealIn==null?20:S.dealIn)-1;if(S.dealIn>0||!$('#modal').hidden)return;S.dealIn=Math.round(rnd(60,110));
  /* only deals you can actually take: try your tiers from the top down until one is affordable */
- let l=null;for(let ti=S.maxTier;ti>=0&&!l;ti--){for(let k=0;k<3&&!l;k++){const c=makeListing({ti,deal:true});if(!c)continue;c.ask=roundTo(c.value*rnd(0.82,0.88),c.inc);if(canPay(c.ask,c.ti))l=c;}}
+ let l=null;for(let ti=S.maxTier;ti>=0&&!l;ti--){for(let k=0;k<3&&!l;k++){const c=makeListing({ti,deal:true});if(!c)continue;c.ask=roundTo(c.value*rnd(0.9,0.95),c.inc);if(canPay(c.ask,c.ti))l=c;}}
  if(!l)return;l.ttl=l.ttl0=10;l.offmkt=true;OM=l;T.c.offmktShown++;sfx('cash');renderOM();}
 function renderOM(){const el=$('#om');$('#toasts').classList.toggle('shift',!!OM);if(!OM){el.hidden=true;el.innerHTML='';return;}const l=OM,d=Math.round((1-l.ask/l.value)*100),ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0;
  el.hidden=false;el.innerHTML=`<div class="pthumb">${artOf(l)}</div><div class="ommain"><div class="omtag">Off-market · ${esc(l.sub)} · ${TIERS[l.ti].name}</div><div class="omprice">${money(l.ask)} <em class="dpill good">${d}% under</em></div><div class="omsub">Seller needs a quick sale · <span data-k="omt">${l.ttl}s</span></div></div><div class="ombtns"><button class="ombuy" id="omBuy" ${ok||pfFull()||mktLeft()<=0?'':'disabled'}>${pfFull()?'Full':mktLeft()<=0?'Wait '+mmss(mktNext()):ok?'Buy'+(needsLoan(l.ask,l.ti)?' · loan':''):'Need '+money(depositFor(l.ask,l.ti))}</button><button class="odec" id="omX">Pass</button></div><i class="obar" data-k="ombar"></i>`;renderOMtick();}
@@ -3451,7 +3528,8 @@ const IAP=[
  {id:'season_pass',kind:'consumable',name:'Season pass',desc:'The bottom row of this season\'s track: an Epic home every 10 tiers, a Legendary estate at 100, exclusive frames and paddles, cash, registrations and Market buys.',show:()=>S.sp!==season().id,grant:()=>{S.sp=season().id;const lv=S.sx&&S.sx.id===S.sp?S.sx.lv:0;for(let i=1;i<=lv;i++)grantReward(seaReward(i,true));}},
  {id:'cosmetic_pack',kind:'non_consumable',name:'Collector pack',desc:'Neon, marble and holo card frames, plus gold, neon and black paddles. Looks only.',show:()=>!(S.frames||[]).includes('marble'),grant:()=>{S.frames=Array.from(new Set((S.frames||[]).concat(['neon','marble','holo'])));S.paddles=Array.from(new Set((S.paddles||[]).concat(['gold','neon','black'])));}},
  {id:'remove_ads',kind:'non_consumable',name:'Remove ads',desc:'No ads, ever. Changes nothing else in the game.',show:()=>CONFIG.ads.enabled&&!adFree(),grant:()=>{S.adFree={at:Date.now()};document.querySelectorAll('.adslot').forEach(x=>x.remove());}},
- {id:'slots_10',kind:'consumable',name:'Property manager: +10 homes',desc:'Ten more portfolio slots, for good. Stacks.',show:()=>S.props.length>=slotsOf()-2,grant:()=>{S.slotsBought=(S.slotsBought||0)+1;}},
+ {id:'prop_manager',kind:'non_consumable',name:'Property manager',desc:'Fixes every tenant repair the moment it comes in, at 25% over the quote. Switch it off any time.',show:()=>!S.pm&&(S.legacy||0)<100,grant:()=>{S.pm=1;S.pmOff=false;}},
+ {id:'slots_10',kind:'consumable',name:'More homes: +10 slots',desc:'Ten more portfolio slots, for good. Stacks.',show:()=>S.props.length>=slotsOf()-2,grant:()=>{S.slotsBought=(S.slotsBought||0)+1;}},
  {id:'market_5',kind:'consumable',name:'Buyer\'s agent: +5 Market buys',desc:'Five more Market buys right now, on top of the meter. Stacks.',show:()=>mktOn()&&mktLeft()<=1,grant:()=>{mktMeter().n+=5;S.mktExtra=(S.mktExtra||0)+5;}},
  {id:'regos_10',kind:'consumable',name:'10 bidder registrations',desc:'Bid in 10 more auctions now instead of waiting for refills.',show:()=>regOn(),grant:()=>{regRefill();S.reg.n+=10;}},
  /* v36 cash ladder (Matt): fixed packs, $250K to $1B, 8 steps, top pack A$149.99. The shop shows the four around the player's tier. */
@@ -3473,9 +3551,9 @@ async function buyItem(id){const it=IAP.find(x=>x.id===id);if(!it||!STORE)return
  catch(e){toast('The store could not finish that purchase. You were not charged.','down');return false;}}
 async function restoreItems(){if(!STORE)return;try{const owned=await STORE.restore();let n=0;for(const id of owned||[]){const it=IAP.find(x=>x.id===id&&x.kind==='non_consumable');if(it){it.grant();n++;}}T.c.iapRestores++;tlog('restore',{n});save();toast(n?'Purchases restored.':'Nothing to restore on this account.',n?'up':'');}catch(e){toast('The store could not restore purchases right now.','down');}}
 /* v35: the shop opens on the web too, as a preview: every item with its guide price and an "In the app" button, so testers see what the app sells. Only the app can buy. */
-const GUIDE_PRICE={double_back:'A$0.99',remove_ads:'A$4.99',regos_10:'A$1.99',slots_10:'A$4.99',market_5:'A$2.99',cash_1:'A$1.49',cash_2:'A$2.99',cash_3:'A$7.99',cash_4:'A$14.99',cash_5:'A$29.99',cash_6:'A$59.99',cash_7:'A$99.99',cash_8:'A$149.99',rescue:'A$1.99',rate_lock:'A$1.99',finish_works:'A$0.99',season_pass:'A$7.99',cosmetic_pack:'A$4.99',city_pack:'A$2.99'};
+const GUIDE_PRICE={prop_manager:'A$9.99',double_back:'A$0.99',remove_ads:'A$4.99',regos_10:'A$1.99',slots_10:'A$4.99',market_5:'A$2.99',cash_1:'A$1.49',cash_2:'A$2.99',cash_3:'A$7.99',cash_4:'A$14.99',cash_5:'A$29.99',cash_6:'A$59.99',cash_7:'A$99.99',cash_8:'A$149.99',rescue:'A$1.99',rate_lock:'A$1.99',finish_works:'A$0.99',season_pass:'A$7.99',cosmetic_pack:'A$4.99',city_pack:'A$2.99'};
 /* v36 shop: category rows, illustrated cards, a hero for the season pass, a close X top-right. Art is inline SVG so it ships in the one file. */
-const SHOP_ART={
+const SHOP_ART={prop_manager:['#ffd67a','#c9961f','<path d="M40 12a10 10 0 0 0-9 14L14 43a4 4 0 1 0 6 6l17-17a10 10 0 0 0 13-12l-6 6-5-1-1-5z" fill="#fff" stroke="#8a6512" stroke-width="2" stroke-linejoin="round"/>'],
  cash_1:['#f7b733','#fc4a1a','<ellipse cx="32" cy="46" rx="16" ry="6" fill="#b8860b"/><ellipse cx="32" cy="41" rx="16" ry="6" fill="#ffd34d"/><ellipse cx="32" cy="36" rx="16" ry="6" fill="#b8860b"/><ellipse cx="32" cy="31" rx="16" ry="6" fill="#ffe9a3"/><text x="32" y="35" text-anchor="middle" font-size="9" font-weight="800" fill="#7a4f00">$</text>'],
  cash_8:['#ffd34d','#ff7a00','<rect x="10" y="40" width="20" height="10" rx="2" fill="#e0a020" transform="skewX(-12)"/><rect x="34" y="40" width="20" height="10" rx="2" fill="#ffd34d" transform="skewX(-12)"/><rect x="22" y="29" width="20" height="10" rx="2" fill="#fff0b3" transform="skewX(-12)"/><circle cx="48" cy="20" r="8" fill="#ffe9a3" stroke="#b8860b" stroke-width="2"/><text x="48" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="#7a4f00">$</text>'],
  slots_10:['#3fd08f','#0b6e4f','<path d="M14 30 32 16l18 14v20H14z" fill="#e8f7ee"/><path d="M12 31 32 14l20 17" fill="none" stroke="#0b6e4f" stroke-width="3" stroke-linejoin="round"/><rect x="27" y="36" width="10" height="14" fill="#0b6e4f"/><circle cx="48" cy="18" r="9" fill="#ffd34d"/><text x="48" y="22" text-anchor="middle" font-size="10" font-weight="800" fill="#1a1200">+10</text>'],
@@ -3490,7 +3568,7 @@ const SHOP_ART={
  remove_ads:['#97a3b9','#56647c','<rect x="12" y="20" width="40" height="24" rx="4" fill="#fff"/><text x="32" y="37" text-anchor="middle" font-size="12" font-weight="800" fill="#56647c">AD</text><path d="M14 50 50 14" stroke="#d7263d" stroke-width="5" stroke-linecap="round"/>'],
 };
 const cashIds=()=>{const ti=S.maxTier||0,lo=Math.max(0,Math.min(4,ti*2-1));return [0,1,2,3].map(i=>'cash_'+(lo+i+1));};
-const SHOP_CATS=[['cash','Cash','Get into the big room now',null],['grow','Grow faster','Lift the walls',['slots_10','market_5','regos_10']],['safe','Stay safe','Cover for bad months',['rescue','rate_lock','finish_works']],['style','Season and style','Looks and early access',['season_pass','cosmetic_pack','city_pack']],['ads','Ads',' ',['remove_ads']]];
+const SHOP_CATS=[['cash','Cash','Get into the big room now',null],['grow','Grow faster','Lift the walls',['prop_manager','slots_10','market_5','regos_10']],['safe','Stay safe','Cover for bad months',['rescue','rate_lock','finish_works']],['style','Season and style','Looks and early access',['season_pass','cosmetic_pack','city_pack']],['ads','Ads',' ',['remove_ads']]];
 const SHOP_TAG={cash_8:'Best value',cash_4:'Popular',slots_10:'Most popular',season_pass:'Limited'};
 SHOP_ART.cash_2=SHOP_ART.cash_3=SHOP_ART.cash_1;SHOP_ART.cash_7=SHOP_ART.cash_8;
 SHOP_ART.cash_4=SHOP_ART.cash_5=SHOP_ART.cash_6=['#ffd34d','#c2410c','<rect x="14" y="38" width="22" height="10" rx="2" fill="#e0a020" transform="skewX(-12)"/><rect x="36" y="38" width="22" height="10" rx="2" fill="#ffd34d" transform="skewX(-12)"/><rect x="26" y="27" width="22" height="10" rx="2" fill="#fff0b3" transform="skewX(-12)"/><rect x="30" y="16" width="14" height="8" rx="2" fill="#ffe9a3" transform="skewX(-12)"/>'];
@@ -3568,7 +3646,7 @@ setInterval(playTick,1000);
 setInterval(flushPlay,15000);setTimeout(flushPlay,4000);
 /* every session opens with a featured auction within 90 seconds: a reason to start playing now */
 if(S.props.length)S.featAt=Math.min(S.featAt||Infinity,Date.now()+90e3);
-drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(WEB_STATS&&!inApp()&&'serviceWorker' in navigator&&location.protocol==='https:')setTimeout(()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});},3000);{const sm=/[?&]src=([a-z0-9_-]{1,24})/i.exec(location.search);if(sm){const src=sm[1].toLowerCase();if(src==='pwa')T.c.pwaOpens=(T.c.pwaOpens||0)+1;else{T.c['src_'+src]=(T.c['src_'+src]||0)+1;if(!S.src){S.src=src;tlog('source',{src});}}}}if(/[?&]app=(ios|android)/.test(location.search))T.c.appOpens=(T.c.appOpens||0)+1;if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o),passIn,passTake,passWalk};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
+drawMute();drawStars();drawStreak();rankBadges();albumSets();drawTabs();applyPaddle();drawSiege();drawWv();if(WEB_STATS&&!inApp()&&'serviceWorker' in navigator&&location.protocol==='https:')setTimeout(()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});},3000);{const sm=/[?&]src=([a-z0-9_-]{1,24})/i.exec(location.search);if(sm){const src=sm[1].toLowerCase();if(src==='pwa')T.c.pwaOpens=(T.c.pwaOpens||0)+1;else{T.c['src_'+src]=(T.c['src_'+src]||0)+1;if(!S.src){S.src=src;tlog('source',{src});}}}}if(/[?&]app=(ios|android)/.test(location.search))T.c.appOpens=(T.c.appOpens||0)+1;if(/[?&]debug=1/.test(location.search))window.EAT_DEBUG={finishAll:()=>{for(const p of S.props)if(p.works){p.vacant=0;finishWorks(p);}updEmpire();},disaster,goodEvent,weirdEvent,shockEvent,eventFX,takeover,defend,worldSheet,sealedSheet,checkMiles,sxp,monthTick,state:()=>S,lot:()=>A,setS:o=>Object.assign(S,o),passIn,passTake,passWalk,reqNew,reqTick,fixAll,reqSheet,awayReqs};setTimeout(()=>{drawNight();if(PENDING_JOIN)openJoin();},1200);syncTier();buildChips();buildEmpire();startAuction();headLoop();initAnalytics();initStore();
 if(/[?&]debug=1/.test(location.search))window.__eat={get S(){return S;},get A(){return A;},pullCard,cardSheet,houseTour:(p,f)=>houseTour(p,f),eGo,show,startAuction,award};
 const since=S.saved;
 if(!S.wins&&!S.props.length){S.rules=4;S.tour=S.tour||0;}
