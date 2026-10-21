@@ -1728,6 +1728,26 @@ body.d3full .live .result{grid-area:res;margin:0}
 .poster .pbody{flex:none}
 .pprice{font-size:19px!important}
 @media (max-height:700px){.poster .pbody small{display:none}.swgrid{gap:18px 12px!important}}
+
+/* poster sheet fits one screen (Matt's comment 22 Oct): the photo gives up height first */
+.sheet:has(.psheet){padding:14px 14px 12px;overflow:hidden}
+.psheet .psart{aspect-ratio:auto!important;height:clamp(72px,calc(86dvh - 500px),200px);margin:-2px 0 8px}
+.psheet h3{font-size:22px!important;margin:0 0 2px!important;padding:0 30px!important;line-height:1.1}
+.psheet h3::after{display:none!important}
+.pssub{margin:0 0 8px!important;font-size:12.5px}
+.psnums{gap:6px!important;margin-bottom:6px!important}.psnums div{padding:6px 7px!important}.psnums b{font-size:17px!important}
+.pscmp{padding:7px 10px!important;margin-bottom:6px!important;font-size:12px!important;gap:1px!important;text-align:left}
+.psmeta{font-size:11.5px!important;margin:0 0 8px!important;line-height:1.3}
+.psbtns button{min-height:46px}
+
+/* mystery lots look like the normal ad, smeared with vaseline (Matt's comment 22 Oct) */
+.tarp{background:radial-gradient(60% 40% at 30% 30%,rgba(255,255,255,.22),transparent 70%),radial-gradient(50% 35% at 72% 68%,rgba(255,255,255,.16),transparent 70%),rgba(255,255,255,.06)!important;-webkit-backdrop-filter:blur(16px) saturate(1.35) brightness(1.06);backdrop-filter:blur(16px) saturate(1.35) brightness(1.06);align-content:end!important;padding-bottom:10px;color:#fff}
+.tarp small{background:rgba(20,32,58,.72);border-radius:999px;padding:5px 12px!important;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.tarp.off{transform:none!important;transition:opacity 1s!important}
+body.d3full .tarp{display:none}
+.d3smear{position:absolute;pointer-events:none;border-radius:40%;-webkit-backdrop-filter:blur(14px) saturate(1.35) brightness(1.06);backdrop-filter:blur(14px) saturate(1.35) brightness(1.06);background:radial-gradient(55% 40% at 35% 35%,rgba(255,255,255,.2),transparent 70%),radial-gradient(45% 30% at 68% 64%,rgba(255,255,255,.14),transparent 70%);-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);mask-image:radial-gradient(closest-side,#000 62%,transparent 100%);display:grid;place-items:end center;transition:opacity .9s}
+.d3smear small{margin-bottom:18%;font:800 11px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(20,32,58,.72);padding:5px 12px;border-radius:999px}
+.d3smear.off{opacity:0}
 </style>
 </head>
 <body>
@@ -2665,7 +2685,7 @@ function renderLot(){const L=A.lot,T=TIERS[L.ti];
  $('#lotCard').classList.remove('duel');$('#lotCard').dataset.fin='0';A.hit=null;
  if(!A.bg){for(const r of A.rivals)if(r.boss){setTimeout(()=>{if(A&&!A.ended)rivalSay(r,'boss');},900);break;}else if(r.grudge){setTimeout(()=>{if(A&&!A.ended&&!A.say)rivalSay(r,'grudge');},1200);break;}}
  $('#lotCard').classList.toggle('is-rare',L.rare);$('#lotCard').classList.toggle('is-feat',!!A.featured);$('#lotCard').classList.toggle('is-sell',!!A.sell);
- $('#addr').textContent=L.mystery&&!A.ended?'Mystery lot':L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;if(L.mystery&&!A.ended){const t=document.createElement('div');t.className='tarp';t.id='tarp';t.innerHTML=`<b>?</b><small>Mystery lot · ${esc(L.sub)} · ${L.land?L.land+' m²':'apartment'}</small>`;$('#art').appendChild(t);}{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
+ $('#addr').textContent=L.mystery&&!A.ended?'Mystery lot':L.addr;$('#sub').textContent=`${L.sub}, ${L.st}`;if(L.mystery&&!A.ended){const t=document.createElement('div');t.className='tarp';t.id='tarp';t.innerHTML=`<small>Mystery lot · ${esc(L.sub)} · ${L.land?L.land+' m²':'apartment'}</small>`;$('#art').appendChild(t);}{const c=sets(),own=c.sub[L.sub]||0,sp=c.street[L.sub+'|'+L.street]||0,sc=$('#setChip');let tx='';if(own>=SET_N)tx=`${L.sub} set complete: +10% rent here`;else if(own===SET_N-1)tx=`Completes your ${L.sub} set: +10% rent`;else if(own)tx=`${own}/${SET_N} homes in ${L.sub}`;if(sp===1)tx+=(tx?' · ':'')+`Street pair on ${L.street}: +5%`;sc.hidden=!tx;sc.textContent=tx;sc.className='setchip'+(own>=SET_N-1?' done':'');}$('#guide').textContent=money(L.guide);
  $('#specs').innerHTML=[`${L.beds} bed`,`${L.baths} bath`,`${L.cars} car`,L.land?`${L.land.toLocaleString('en-AU')} m²`:(L.style==='tower'?'Penthouse':'Apartment'),...L.feats].map(esc).map(s=>`<span>${s}</span>`).join('');
  {const bn=$('#backNote');if(bn)bn.textContent=`Valuer: ${money(A.est.lo)} to ${money(A.est.hi)}. Walk away at ${money(waOf(A.est))}. Risk here: ${hazOf(L).join(', ')}.${L.rare?' Rare listing.':''}${A.sell||A.first?'':' Swipe the photo to tour the rooms.'}`;}
  drawMeter();
@@ -4160,11 +4180,11 @@ function init(){cv=document.createElement('canvas');cv.className='d3cv';cv.setAt
  chars=[AUCT,YOU];document.addEventListener('visibilitychange',()=>{lastT=performance.now();});
  requestAnimationFrame(frame);}
 
-let lotG=null;
+let lotG=null,smear=null;
 function build(X){const L=X.lot,r=seeded(L.seed||1);dispose(lotG);lotG=new THREE.Group();const hg=new THREE.Group();let info;
  const reg=WM_OF(L).k;
  if(L.style==='tower')info=tower(hg,r,L);else if(reg==='uk'||reg==='ny'||reg==='par')info=rowHouse(hg,r,L,reg);else if(L.style==='unit')info=unitBlock(hg,r,L);else if(L.style==='modern'||reg==='tyo')info=modern(hg,r,L);else if(L.style==='villa'||reg==='dxb'||reg==='la')info=villa(hg,r,L);else info=cottage(hg,r,L.ti>=1,L);
- if(L.mystery&&!X.ended){const tarp=rbox(info.w+1.2,Math.min(info.h,14),9,1.2,M('#3d6fb0',{roughness:.9}));tarp.position.set(0,Math.min(info.h,14)/2,-4);hg.add(tarp);hg.userData.tarp=tarp;}
+ if(smear){smear.remove();smear=null;}if(L.mystery&&!X.ended){smear=document.createElement('div');smear.className='d3smear';smear.innerHTML='<small>Mystery lot</small>';ov.appendChild(smear);}
  lotG.add(hg);ENVK=setting(lotG,L,info,r);shade(lotG);lotG.traverse(o=>{if(o.isInstancedMesh&&o.instanceColor)o.castShadow=false;});scene.add(lotG);lot={L,info,X,hg};
  /* crowd */
  chars.filter(c=>c!==AUCT&&c!==YOU).forEach(c=>{dispose(c);if(c.userData.tag)c.userData.tag.remove();if(c.userData.bub)c.userData.bub.el.remove();});chars=[AUCT,YOU];rivMap=new Map();
@@ -4202,7 +4222,7 @@ function events(){const X=A;if(!X||X.bg)return;if(X!==cur||!lot){build(X);return
  if(!X.ended&&!X.passin){const s=X.clock<=2?2:X.clock<=4?1:0;if(s>stage){stage=s;say(AUCT,s===1?'Going once…':'Going twice…','auc',1300);AUCT.userData.raiseT=0;}else if(s<stage)stage=s;}
  if(X.passin&&!pinS){pinS=true;say(AUCT,'Passed in. Vendor wants '+money(X.passin.ask),'auc',4000);}
  if(X.ended&&!ended){ended=true;AUCT.userData.raiseT=0;const w=X.leader;if(!w)say(AUCT,'Passed in','sold',2600);else{say(AUCT,X.sell?'Sold!':'Sold!','sold',2600);const c=charOf(w);if(c)c.userData.cheer=2.6;if(w!=='you'&&!X.sell)YOU.userData.sad=2.2;}
-  if(lot.hg.userData.tarp){const tp=lot.hg.userData.tarp;tp.userData.lift=0;}}}
+  if(smear){const sm=smear;smear=null;sm.classList.add('off');setTimeout(()=>sm.remove(),900);}}}
 let layT=0,fN=0,uYaw=0,cdrag=null,phHomeOpen=false,phEl=null;
 function layout(){const app=$('#app');if(!app)return;{const li=$('#lotInfo'),lt=$('#lotTag');if(li){let t=li.querySelector('.ltag');if(!t){t=document.createElement('span');t.className='ltag';li.prepend(t);}t.textContent=lt?lt.textContent.split(' · ').slice(0,2).join(' · '):'';li.classList.toggle('rare',!!(A&&A.lot&&A.lot.rare));}const lc=$('#lvCount');if(lc&&!lc.dataset.w){lc.dataset.w=1;lc.setAttribute('role','button');lc.tabIndex=0;lc.onclick=()=>{app.classList.toggle('lvopen');layout();};}if(lc&&lc.hidden)app.classList.remove('lvopen');}const set=(k,v)=>app.style.setProperty(k,Math.round(v||0)+'px');const h=$('#app>header.top'),tr=$('#vAuction .toprow'),lv=$('#lvStrip'),dk=$('#dock'),li=$('#lotCard .live');
  if(h)set('--hdr',h.offsetTop+h.offsetHeight+4);if(tr)set('--trh',tr.offsetHeight);set('--lvh',lv&&!lv.hidden?lv.offsetHeight+6:0);if(dk)set('--dockh',dk.hidden?0:dk.offsetHeight);if(li)set('--liveh',li.offsetHeight);}
@@ -4217,7 +4237,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-(las
  const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;if(cv.width!==Math.round(w*R.getPixelRatio())||cv.height!==Math.round(h*R.getPixelRatio()))R.setSize(w,h,false);
  if(view==='m')return;if(phoneOpen()&&(fN++%3))return;
  for(const c of chars)animChar(c,dt,t);mark.position.y=2.7+Math.sin(t*2.4)*.06;mark.rotation.y=t*1.2;
- if(lot.hg.userData.tarp&&lot.hg.userData.tarp.userData.lift!=null){const tp=lot.hg.userData.tarp;tp.userData.lift+=dt;tp.position.y+=dt*9;tp.material.opacity=Math.max(0,1-tp.userData.lift);tp.material.transparent=true;if(tp.userData.lift>1.2){tp.visible=false;tp.userData.lift=null;}}
+ if(smear){const bb=lot.bb||(lot.bb=new THREE.Box3().setFromObject(lot.hg)),v=new THREE.Vector3();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let i=0;i<8;i++){v.set(i&1?bb.max.x:bb.min.x,i&2?bb.max.y:bb.min.y,i&4?bb.max.z:bb.min.z).project(cam);const sx=(v.x+1)/2*w,sy=(1-v.y)/2*h;x0=Math.min(x0,sx);x1=Math.max(x1,sx);y0=Math.min(y0,sy);y1=Math.max(y1,sy);}const pw=(x1-x0)*.12,ph=(y1-y0)*.14;Object.assign(smear.style,{left:(x0-pw)+'px',top:(y0-ph)+'px',width:(x1-x0+2*pw)+'px',height:(y1-y0+ph*.6)+'px'});}
  /* camera: aim at the clear band between the floating header and the bid panel */
  if(glide>0)glide=Math.max(0,glide-dt/1.4);const gx=26*ease(glide),tall=lot.info.tall,row=lot.info.row,asp=w/h,portrait=asp<.8;
  const cs=getComputedStyle($('#app')),num=k=>parseFloat(cs.getPropertyValue(k))||0;const top0=num('--hdr')+num('--trh')+num('--lvh')+6,bot0=view==='a'?num('--dockh')+num('--liveh')+26:0;const cy=Math.max(.2,Math.min(.5,(top0+(h-bot0))/2/h));
