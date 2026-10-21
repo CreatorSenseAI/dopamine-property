@@ -41,6 +41,10 @@ def close_sheets(pg):
         if not pg.is_visible("#modal"): break
         if pg.is_visible("#onbName"):
             pg.fill("#onbName", "Smoke"); pg.click("#onbGo"); pg.wait_for_timeout(400); continue
+        if pg.is_visible("#lkDone"):
+            pg.click("#lkDone"); pg.wait_for_timeout(400); continue
+        if pg.is_visible("#wnGo"):
+            pg.click("#wnGo"); pg.wait_for_timeout(250); continue
         if pg.is_visible("#homeOk"):
             pg.click("#homeOk"); pg.wait_for_timeout(400); continue
         if pg.is_visible("#tNext"):
