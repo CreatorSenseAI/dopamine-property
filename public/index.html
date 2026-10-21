@@ -4175,7 +4175,7 @@ const ASSET=p=>p;/* models/, sfx/ sit next to the page: /models on the web, the 
 /* howler.js + a CC0 sound sprite (Kenney impact, casino and interface packs): real chips, gavel knocks and clicks; musical cues stay synthesised */
 const SPR={gavel:[0,440],bid1:[690,170],bid2:[1110,227],bid3:[1587,266],rival:[2102,227],cash:[2579,170],cash2:[2999,256],tick:[3505,40],open:[3767,314],close:[4330,314],ok:[4894,539],err:[5683,104],drop:[6038,188],card:[6476,937],flip:[7663,456],bell:[8370,1741],thud:[10361,569],glass:[11180,238],metal:[11668,356]};
 let HOWL=null,HOWLP=null;
-function howlInit(){if(HOWLP)return HOWLP;HOWLP=lib('howler').then(()=>{HOWL=new Howl({src:[ASSET('sfx/sfx.webm'),ASSET('sfx/sfx.mp3')],sprite:SPR,volume:.75,preload:true,onloaderror:()=>{HOWL=null;}});}).catch(()=>{});return HOWLP;}
+function howlInit(){if(HOWLP)return HOWLP;if(location.protocol==='file:')return HOWLP=Promise.resolve();/* XHR can't read local files; synth sounds only */HOWLP=lib('howler').then(()=>{HOWL=new Howl({src:[ASSET('sfx/sfx.webm'),ASSET('sfx/sfx.mp3')],sprite:SPR,volume:.75,preload:true,onloaderror:()=>{HOWL=null;}});}).catch(()=>{});return HOWLP;}
 document.addEventListener('pointerdown',()=>howlInit(),{once:true});
 const SAMPLE={bid:()=>'bid'+(1+Math.floor(Math.random()*3)),gavel:()=>'gavel',rival:()=>'rival',cash:()=>Math.random()<.5?'cash':'cash2',tick:()=>'tick',drop:()=>'drop',card:()=>'card',flip:()=>'flip',open:()=>'open',close:()=>'close',bell:()=>'bell',thud:()=>'thud',glass:()=>'glass',metal:()=>'metal',ok:()=>'ok'};
 const SVOL={rival:.35,tick:.5,bid:.8,thud:.9};
