@@ -1700,6 +1700,34 @@ body.d3full .live .deal{width:100%;box-sizing:border-box;flex-wrap:nowrap!import
 body.d3full .live .deal .dhead{order:2;flex:none;margin:0!important}
 body.d3full .live .deal .dhead small{font-size:9px!important}body.d3full .live .deal .dhead .est{font-size:13px!important}
 body.d3full .live .result{grid-area:res;margin:0}
+
+/* 3d window v2: six posters that fit the screen, no filters */
+.swgrid{gap:24px 16px!important;padding:16px 0 20px!important}
+.poster .pphoto{aspect-ratio:16/10!important;position:relative}
+.pfit{position:absolute;left:4px;right:4px;bottom:4px;font:800 9.5px/1.2 var(--f-body);font-style:normal;color:#13203a;background:rgba(255,255,255,.92);border-radius:4px;padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pfit.set{background:#f2c14e;color:#1a1200}
+.poster .prow{display:flex;justify-content:space-between;gap:4px;align-items:baseline}
+.pnet{font:800 10px/1.1 var(--f-mono);color:#b3261e}.pnet.good{color:#17804f}
+.poster.cant{filter:saturate(.55) brightness(.92)}
+.poster.cant .pfoot{background:#5c6470}
+.poster.fresh{animation:pfresh .6s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pfresh{from{transform:translateY(-30px);opacity:0}to{transform:none;opacity:1}}
+.psnums b.gd{color:#17804f}.psnums b.bd{color:#b3261e}.psnums em{color:var(--muted)}
+.pscmp{display:flex;flex-direction:column;gap:3px;background:var(--sunk);border-radius:12px;padding:9px 11px;margin-bottom:10px;font-size:12.5px;color:var(--ink)}
+.pscmp b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.poster.fresh{animation:none}}
+
+/* 3d window v3: the posters fill the pane (3 rows, 2 with offers), never scroll */
+.swpanel{margin:8px max(12px,env(safe-area-inset-left,0px)) 0!important;max-height:34%;overflow:auto;flex:none;position:relative;z-index:3}
+.swpanel[hidden]{display:none}
+.swscroll{display:flex;flex-direction:column;padding-bottom:calc(34px + env(safe-area-inset-bottom,0px))!important}
+.swgrid{flex:1;min-height:0;grid-template-rows:repeat(3,minmax(0,1fr));gap:22px 14px!important;padding:12px 0 4px!important}
+.swgrid[data-n="4"]{grid-template-rows:repeat(2,minmax(0,1fr))}
+.poster{min-height:0}
+.poster .pphoto{flex:1 1 0;min-height:40px;aspect-ratio:auto!important}
+.poster .pbody{flex:none}
+.pprice{font-size:19px!important}
+@media (max-height:700px){.poster .pbody small{display:none}.swgrid{gap:18px 12px!important}}
 </style>
 </head>
 <body>
@@ -3486,7 +3514,7 @@ const cityTier=sub=>{const c=CITIES.find(x=>x.sub===sub);return c?c.ti:0;};
 function makeListing(o={}){const ti=o.ti!=null?o.ti:weightedTier();if(ti>S.maxTier)return null;const TT=TIERS[ti];
  let place=null;if(o.city){place=TT.places.find(x=>x[0]===o.city);if(!place)return null;}
  const L=makeLot(ti,{rareP:0,place,type:o.type||null});if(!L)return null;L.rare=false;/* v51: rarity comes only from auctions */
- const deal=!!o.deal||Math.random()<0.2,ask=roundTo(L.value*(deal?rnd(0.92,0.97):rnd(1.0,1.1)),L.inc),ttl=Math.round(deal?rnd(12,20):rnd(30,75));
+ const deal=!!o.deal||Math.random()<0.2,ask=roundTo(L.value*(deal?rnd(0.92,0.97):rnd(1.0,1.1)),L.inc),ttl=Math.round((deal?rnd(12,20):rnd(30,75)));
  return Object.assign(L,{mid:mid++,ask,deal,ttl,ttl0:ttl});}
 const matches=l=>(!MK.q||(l.sub+' '+l.st+' '+l.addr).toLowerCase().includes(MK.q))&&(MK.tier<0||l.ti===MK.tier)&&(MK.type==='all'||(MK.type==='apt')===isStrata(l))&&(!MK.deals||l.deal)&&(!MK.city||l.sub===MK.city);
 function refill(){let g=0;while(LST.length<10&&g++<20){const l=makeListing();if(l)LST.push(l);}
@@ -3508,30 +3536,40 @@ function marketTick(){
  if(view==='m')renderMarket();}
 function renderMarket(){renderMChips();renderOffers();renderWatch();renderDeck();if(G.sel)renderGsel();renderWindow();}
 /* ---------- 3d branch: the Market as an agency shop window (full-screen 3D mode only) ---------- */
-let SW=null,swSig='',swHold=0;
+let SW=null,swSig='',swHold=0,WIN=[];const winN=()=>OFF.length?4:6;
 function buildShop(){if(SW)return SW;const app=$('#app');SW=document.createElement('section');SW.className='shopwin';SW.id='shopWin';SW.setAttribute('aria-label','Agency window: homes for sale');
- SW.innerHTML=`<div class="swtop"><button class="swback" id="swBack" aria-label="Back to the auction">‹ Street</button><div class="swsign"><b>Harbour &amp; Hale</b><small>Real estate · in the window today</small></div><span class="swbuys" id="swBuys"></span></div><div class="swfil" id="swFil"></div><div class="swpane"><div class="swscroll" id="swScroll"><div class="swpanel" id="swPanel"></div><div class="swgrid" id="swGrid"></div></div><div class="swglass" aria-hidden="true"><span>Harbour &amp; Hale · Real estate</span></div></div>`;app.appendChild(SW);
- const fil=$('#swFil');[$('#vMarket .msearch'),$('#mTier'),$('#mOpts')].forEach(e=>e&&fil.appendChild(e));
- const pn=$('#swPanel');[$('#offHead'),$('#offers'),$('#wHead'),$('#wlist')].forEach(e=>e&&pn.appendChild(e));
+ SW.innerHTML=`<div class="swtop"><button class="swback" id="swBack" aria-label="Back to the auction">‹ Street</button><div class="swsign"><b>Harbour &amp; Hale</b><small>Six homes in the window, picked for you</small></div><span class="swbuys" id="swBuys"></span></div><div class="swpanel" id="swPanel"></div><div class="swpane"><div class="swscroll" id="swScroll"><div class="swgrid" id="swGrid"></div></div><div class="swglass" aria-hidden="true"><span>Harbour &amp; Hale · Real estate</span></div></div>`;app.appendChild(SW);
+ const pn=$('#swPanel');[$('#offHead'),$('#offers')].forEach(e=>e&&pn.appendChild(e));
+ MK={tier:-1,type:'all',deals:false,city:null};MK.q='';
  $('#swBack').onclick=()=>show('a');
  $('#swGrid').addEventListener('click',e=>{const p=e.target.closest('[data-pmid]');if(!p)return;const l=LST.find(x=>x.mid===+p.dataset.pmid);if(l){sfx('tick');posterSheet(l,p);}});
  return SW;}
-function posterHTML(l){const d=l.ask/l.value-1,rooms=isStrata(l)?ROOMS_U:ROOMS_H;
- return `<button class="poster${l.deal?' deal':''}${l.ttl<=5?' hot':''}" data-pmid="${l.mid}" aria-label="${esc(l.addr)}, ${esc(l.sub)}, asking ${money(l.ask)}"><span class="pclamp l"></span><span class="pclamp r"></span>`+
- `<span class="phead"><b>Harbour &amp; Hale</b><em>${l.deal?'Deal':TIERS[l.ti].name}</em></span><span class="pphoto">${artOf(l)}</span><span class="pthumbs"><span>${roomArt(l,rooms[1][0],1)}</span><span>${roomArt(l,rooms[2][0],2)}</span></span>`+
- `<span class="pbody"><b class="paddr">${esc(l.addr)}</b><small>${esc(l.sub)}, ${esc(l.st)}</small><span class="pspec">${l.beds} bed · ${l.baths} bath · ${l.cars} car${l.land?' · '+l.land.toLocaleString('en-AU')+' m²':''}</span><span class="pprice">${money(l.ask)}</span><span class="pval${d<0?' good':''}">${Math.abs(d*100).toFixed(0)}% ${d<0?'under':'over'} value</span></span>`+
- `<span class="pfoot"><span class="pttl">Gone in ${l.ttl}s</span><span class="pbar"><i style="width:${(l.ttl/l.ttl0*100).toFixed(0)}%"></i></span></span></button>`;}
-function renderWindow(){if(!document.body.classList.contains('d3full'))return;buildShop();const ls=LST.filter(matches).slice(0,16),g=$('#swGrid'),sig=ls.map(l=>l.mid).join(',');
- if(sig!==swSig&&Date.now()>swHold){swSig=sig;g.innerHTML=ls.length?ls.map(posterHTML).join(''):`<div class="swempty">The window is bare right now. New listings go up every few seconds.</div>`;}
- for(const l of ls){const el=g.querySelector(`[data-pmid="${l.mid}"]`);if(!el)continue;const t=el.querySelector('.pttl');if(t)t.textContent=l.ttl<=5?'Last '+l.ttl+'s':'Gone in '+l.ttl+'s';el.classList.toggle('hot',l.ttl<=5);const b=el.querySelector('.pbar i');if(b)b.style.width=(l.ttl/l.ttl0*100).toFixed(0)+'%';}
- const nx=mktLeft()<mktMax()?' · +1 in '+mmss(mktNext()):'';$('#swBuys').textContent=`${mktLeft()} of ${mktMax()} buys${nx}`;$('#swPanel').hidden=!OFF.length&&!LST.some(l=>WATCH.has(l.mid));}
-function posterSheet(l,el){const d=l.ask/l.value-1,ok=canPay(l.ask,l.ti)&&!pfFull()&&mktLeft()>0,label=pfFull()?'Portfolio full':mktLeft()<=0?'Next buy in '+mmss(mktNext()):canPay(l.ask,l.ti)?'Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' with a loan':''):'Need '+money(depositFor(l.ask,l.ti));
- $('#sheet').innerHTML=`<div class="upg psheet"><div class="psart">${artOf(l)}<span class="pstag">${l.deal?'Deal':TIERS[l.ti].name+' · for sale'}</span></div><h3>${esc(l.addr)}</h3><p class="pssub">${esc(l.sub)}, ${esc(l.st)} · ${l.beds} bed · ${l.baths} bath · ${l.cars} car${l.land?' · '+l.land.toLocaleString('en-AU')+' m²':''}</p>
- <div class="psnums"><div><small>Asking</small><b>${full(l.ask)}</b></div><div><small>Bank value</small><b>${money(l.value)}</b><em class="${d<0?'good':''}">${Math.abs(d*100).toFixed(0)}% ${d<0?'under':'over'}</em></div><div><small>Gone in</small><b>${l.ttl}s</b></div></div>
- <p class="psmeta">${esc(metaText(l))}. Market homes are quick flips: Unranked, no rarity, and a 3% agent fee if you resell.</p>
+/* what a listing does for this player: cash flow and set progress */
+function fitOf(l){const pr=project(l.ask,l.ti,l.value,l.style),c=sets(),own=c.sub[l.sub]||0,pair=(c.street[l.sub+'|'+l.street]||0)===1;
+ let tag='',cls='';if(own===SET_N-1){tag=`Completes your ${l.sub} set · +10%`;cls='set';}else if(own>=SET_N){tag=`In your ${l.sub} set`;cls='set';}else if(pair){tag=`Street pair on ${l.street} · +5%`;cls='set';}else if(own){tag=`${own+1} of ${SET_N} in ${l.sub}`;}
+ return{pr,tag,cls,pay:canPay(l.ask,l.ti)};}
+function winScore(l){const f=fitOf(l),ct=curTier();return(f.pay?100:0)+(f.cls==='set'?45:0)+(l.deal?30:0)-Math.abs(l.ti-ct)*12+(f.pr.net>0?10:0);}
+const mmssL=n=>n>=60?Math.floor(n/60)+':'+String(n%60).padStart(2,'0'):n+'s';
+function posterHTML(l){const d=l.ask/l.value-1,f=fitOf(l),net=f.pr.net;
+ return `<button class="poster${l.deal?' deal':''}${l.ttl<=10?' hot':''}${f.pay?'':' cant'}" data-pmid="${l.mid}" aria-label="${esc(l.addr)}, ${esc(l.sub)}, asking ${money(l.ask)}"><span class="pclamp l"></span><span class="pclamp r"></span>`+
+ `<span class="phead"><b>Harbour &amp; Hale</b><em>${l.deal?'Deal':TIERS[l.ti].name}</em></span><span class="pphoto">${artOf(l)}${f.tag?`<i class="pfit ${f.cls}">${esc(f.tag)}</i>`:''}</span>`+
+ `<span class="pbody"><b class="paddr">${esc(l.addr)}</b><small>${esc(l.sub)} · ${l.beds} bed${l.land?' · '+l.land.toLocaleString('en-AU')+' m²':''}</small><span class="pprice">${money(l.ask)}</span><span class="prow"><span class="pval${d<0?' good':''}">${Math.abs(d*100).toFixed(0)}% ${d<0?'under':'over'}</span><span class="pnet${net>=0?' good':''}">${net>=0?'+':''}${money(net)}/mo</span></span></span>`+
+ `<span class="pfoot"><span class="pttl">${f.pay?(l.ttl<=10?'Last '+l.ttl+'s':'Up for '+mmssL(l.ttl)):'Need '+money(depositFor(l.ask,l.ti))}</span><span class="pbar"><i style="width:${(l.ttl/l.ttl0*100).toFixed(0)}%"></i></span></span></button>`;}
+function renderWindow(){if(!document.body.classList.contains('d3full'))return;buildShop();const g=$('#swGrid');
+ const N=winN();WIN=WIN.filter(m=>LST.some(l=>l.mid===m)).slice(0,N);if(WIN.length<N&&Date.now()>swHold){const cand=LST.filter(l=>!WIN.includes(l.mid)).sort((a,b)=>winScore(b)-winScore(a));while(WIN.length<N&&cand.length){const l=cand.shift();if(!l.wx){l.wx=1;l.ttl=Math.max(45,l.ttl*4);l.ttl0=Math.max(l.ttl,l.ttl0*4);}WIN.push(l.mid);}}g.dataset.n=N;
+ const ls=WIN.map(m=>LST.find(l=>l.mid===m)).filter(Boolean),sig=WIN.join(',');
+ if(sig!==swSig&&Date.now()>swHold){const old=swSig.split(',');swSig=sig;g.innerHTML=ls.length?ls.map(posterHTML).join(''):`<div class="swempty">The window is bare right now. New listings go up every few seconds.</div>`;g.querySelectorAll('[data-pmid]').forEach(el=>{if(old[0]&&!old.includes(el.dataset.pmid))el.classList.add('fresh');});}
+ for(const l of ls){const el=g.querySelector(`[data-pmid="${l.mid}"]`);if(!el)continue;const pay=canPay(l.ask,l.ti),t=el.querySelector('.pttl');if(t)t.textContent=pay?(l.ttl<=10?'Last '+l.ttl+'s':'Up for '+mmssL(l.ttl)):'Need '+money(depositFor(l.ask,l.ti));el.classList.toggle('hot',l.ttl<=10);el.classList.toggle('cant',!pay);const b=el.querySelector('.pbar i');if(b)b.style.width=(l.ttl/l.ttl0*100).toFixed(0)+'%';}
+ const nx=mktLeft()<mktMax()?' · +1 in '+mmss(mktNext()):'';$('#swBuys').textContent=`${mktLeft()} of ${mktMax()} buys${nx}`;$('#swPanel').hidden=!OFF.length;}
+function posterSheet(l,el){const d=l.ask/l.value-1,f=fitOf(l),ok=f.pay&&!pfFull()&&mktLeft()>0,label=pfFull()?'Portfolio full':mktLeft()<=0?'Next buy in '+mmss(mktNext()):f.pay?'Buy '+money(l.ask)+(needsLoan(l.ask,l.ti)?' with a loan':''):'Need '+money(depositFor(l.ask,l.ti));
+ const tv=S.props.reduce((a,p)=>a+p.value,0),tr=S.props.reduce((a,p)=>a+rentOf(p),0),myY=tv?tr*12/tv*100:0,thisY=f.pr.rent*12/l.value*100;
+ $('#sheet').innerHTML=`<div class="upg psheet"><div class="psart">${artOf(l)}<span class="pstag">${l.deal?'Deal':TIERS[l.ti].name+' · for sale'}</span></div><h3>${esc(l.addr)}</h3><p class="pssub">${esc(l.sub)}, ${esc(l.st)} · ${l.beds} bed${l.baths?' · '+l.baths+' bath':''}${l.land?' · '+l.land.toLocaleString('en-AU')+' m²':''}</p>
+ <div class="psnums"><div><small>Asking</small><b>${money(l.ask)}</b><em class="${d<0?'good':''}">${Math.abs(d*100).toFixed(0)}% ${d<0?'under':'over'} value</em></div><div><small>Each month</small><b class="${f.pr.net>=0?'gd':'bd'}">${f.pr.net>=0?'+':''}${money(f.pr.net)}</b><em>after costs</em></div><div><small>Up for</small><b>${mmssL(l.ttl)}</b><em>then it's gone</em></div></div>
+ <div class="pscmp"><b>Against your homes</b><span>Rent yield <strong>${thisY.toFixed(1)}%</strong> vs your ${myY?myY.toFixed(1)+'%':'none yet'}</span><span>${f.tag?esc(f.tag):'No set bonus in '+esc(l.sub)+' yet'}</span><span>Takes slot ${S.props.length+1} of ${slotsOf()} · cash after ${money(S.cash-payFor(l.ask,l.ti).out)}</span></div>
+ <p class="psmeta">Market homes are quick flips: Unranked, no rarity, and a 3% agent fee if you resell.</p>
  <div class="psbtns"><button class="sec" id="psWatch">${WATCH.has(l.mid)?'Watching':'Watch'}</button><button id="psBuy"${ok?'':' class="wall"'}>${label}</button></div></div>`;$('#modal').hidden=false;
  $('#psWatch').onclick=()=>{toggleWatch(l.mid);$('#psWatch').textContent=WATCH.has(l.mid)?'Watching':'Watch';renderWindow();};
- $('#psBuy').onclick=()=>{if(pfFull()){slotsSheet();return;}if(mktLeft()<=0){mktSheet();return;}if(buyListing(l)){$('#modal').hidden=true;if(el&&el.isConnected){el.classList.add('sold');swHold=Date.now()+1800;setTimeout(()=>{swHold=0;swSig='';renderWindow();},1900);}}};}
+ $('#psBuy').onclick=()=>{if(pfFull()){slotsSheet();return;}if(mktLeft()<=0){mktSheet();return;}if(buyListing(l)){$('#modal').hidden=true;if(el&&el.isConnected){el.classList.add('sold');swHold=Date.now()+1800;setTimeout(()=>{swHold=0;renderWindow();},1900);}}};}
 
 function renderMChips(){$('#mTier').hidden=S.maxTier<1;const nd=LST.filter(l=>l.deal).length,sig=[S.maxTier,MK.tier,MK.type,MK.deals,MK.city,nd].join('|');if(sig===mchipSig)return;mchipSig=sig;
  $('#mTier').innerHTML=`<button class="chip" data-mt="-1" aria-pressed="${MK.tier<0}">All tiers</button>`+TIERS.slice(0,S.maxTier+1).map((t,i)=>`<button class="chip" data-mt="${i}" aria-pressed="${MK.tier===i}">${t.name}</button>`).join('');
