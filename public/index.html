@@ -1784,7 +1784,7 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v49-web';
+const VERSION='v50-web';
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2093,7 +2093,10 @@ function yourCall(){if(!A||A.bg||A.ended||A.leader==='you')return;const el=$('#c
 function flashReset(){if(A&&A.bg)return;const el=$('#callBig');if(!el)return;el.textContent='Clock reset';el.className='callbig reset';void el.offsetWidth;el.classList.add('on');clearTimeout(flashReset.t);flashReset.t=setTimeout(()=>{if(el.classList.contains('reset'))el.className='callbig';},900);}
 /* auto tier: the highest unlocked tier where a typical opening bid is affordable (deposit + duty), sometimes one lower for variety */
 const typicalOpen=i=>TIERS[i].min*0.78;
-function affordTier(){let best=0;for(let i=0;i<=S.maxTier;i++)if(S.cash>=depositFor(typicalOpen(i),i))best=i;return best;}
+/* v50: a tier counts as affordable when you can put down the deposit on a typical winning price there (geometric mean of the tier's range), not on the cheapest opening bid. A $2.7B player with $40M cash was being served $200-800M Icon lots he could never pay for (afford=false on almost every focused lot) and quit auctions for the Market. */
+const typicalWin=i=>Math.sqrt(TIERS[i].min*TIERS[i].max);
+function eqRoom(){try{return Math.max(0,borrowable());}catch(e){return 0;}}
+function affordTier(){let best=0;for(let i=0;i<=S.maxTier;i++)if(S.cash+eqRoom()*0.5>=depositFor(typicalWin(i),i))best=i;return best;}
 function pickTier(bg){if(S.tierAuto===false)return bg&&Math.random()<0.3?Math.floor(Math.random()*(S.maxTier+1)):S.tier;const a=affordTier();return a>0&&Math.random()<(bg?0.35:0.2)?a-1:a;}
 function startAuction(){
  while(SELLQ.length){const q=SELLQ.shift(),sp=S.props.find(x=>x.id===q.pid);if(sp){A=newSellAuction(sp,q.reserve);renderLot();return;}}
@@ -2106,7 +2109,7 @@ function startAuction(){
  if(feat){tlog('featured',{tier:A.lot.ti,rivals:A.rivals.length});sfx('rare');buzz([20,20,20]);}
  if(S.tierAuto===false&&S.tier<affordTier()&&worth()>TIERS[S.tier].max*15)setTimeout(()=>coach('outgrown','Your empire has outgrown '+TIERS[S.tier].name+' lots. Tap Auto in the tier row to bid where your cash is.'),1500);
  if(daily){S.dailyDay=today();T.c.dailyLots++;tlog('daily_lot',{tier:A.lot.ti});const d7=(S.streak||0)>0&&S.streak%7===0;if(d7)A.prime=true;setTimeout(()=>toast(d7?`Day ${S.streak} of your streak: win today's lot and it's guaranteed Prime or better.`:'Today’s lot: a rare home with softer rivals. Free to enter, one a day.','up'),1200);}if(!S.wins&&!S.props.length)coach('bid','Tap Bid. Green on the meter means you make money. Stop at the dashed walk-away line.');}
-function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<2;if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
+function newAuction(ti,place,bg,daily,feat){const L=makeLot(ti,daily||feat?{place,rareP:1}:{place});const first=!bg&&!S.wins&&!S.props.length&&(S.firstLots||0)<4;/* v50: was 2; a playmygame player lost 3 straight (two by one bid) and left without a win */if(first)S.firstLots=(S.firstLots||0)+1;const n=first?1:feat?4:Math.random()<0.5?3:2;
  const pool=first?shuffle(RIVALS.filter(r=>r.style==='cautious')).slice(0,1):shuffle(RIVALS).slice(0,n);if(!SD_BUILD&&S.nemesis&&(feat||Math.random()<0.45)&&!pool.some(r=>r.name===S.nemesis)){const nr=RIVALS.find(r=>r.name===S.nemesis);if(nr)pool[pool.length-1]=nr;}
  const rivals=pool.map(r=>({name:r.name,style:r.style,cool:rnd(0.3,1.5),bids:0,out:false,think:0,counterNext:false,max:first?L.value*rnd(0.84,0.9):daily?L.value*rnd(0.86,0.97):L.value*(r.style==='aggro'?rnd(0.9,1.12):r.style==='cautious'?rnd(0.78,1.0):rnd(0.86,1.06))*(r.name===S.nemesis?1.06:1)*rivalScale()}));
  /* v30c quiet rooms (iOS tester, 19 Oct: "just wanted more deals", kept stopping at the guide): 40% of Starter and 20% of Family lots have rivals who all quit at or under the price guide */
@@ -2499,6 +2502,7 @@ function econTick(){if(document.hidden||!$('#modal').hidden)return;let rentTick=
  monthTick();
  for(const k in S.board)S.board[k]*=Math.exp(0.0018+0.004*gauss());
  if(S.cash<0){if(!S.od){S.od=true;T.c.overdrafts++;tlog('overdraft',{cash:Math.round(S.cash),worth:Math.round(worth()),props:S.props.length});toast('Cash is below zero. Bills are going on the overdraft at 6% a year. Sell a house or wait for rent.','down');}}else S.od=false;
+ if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()&&!S.rescue&&honeymoon()&&!S.hmRescue){const p=S.props.slice().sort((a,b)=>b.value-a.value)[0],gap=-S.cash;S.hmRescue=true;p.loan=(p.loan||0)+gap;S.cash=0;S.borrowed=true;T.c.hmRescues=(T.c.hmRescues||0)+1;tlog('rescue',{gap:Math.round(gap),debt:Math.round(debt()),why:'honeymoon'});toast('Beginner\'s grace: the bank put '+money(gap)+' on your loan for '+p.addr+' instead of repossessing. Next time it sells a house at 85%.','down');}
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()&&S.rescue){const p=S.props.slice().sort((a,b)=>b.value-a.value)[0],gap=-S.cash;S.rescue=false;p.loan=(p.loan||0)+gap;S.cash=0;S.borrowed=true;T.c.rescues++;tlog('rescue',{gap:Math.round(gap),debt:Math.round(debt())});toast('Rescue cover stopped a repossession. '+money(gap)+' went onto your loan for '+p.addr+'.','up');}
  if(S.cash<0&&S.props.length&&-S.cash>0.1*holdings()){const p=S.props.slice().sort((a,b)=>(b.loan||0)-(a.loan||0)||b.value-a.value)[0];T.c.foreclosures++;tlog('foreclosure',{tier:p.ti,value:Math.round(p.value),loan:Math.round(p.loan||0),cash:Math.round(S.cash),debt:Math.round(debt())});sellProp(p,p.value*0.85,'repossessed');sfx('lose');}
  if(!S.props.length&&S.cash<0){bankrupt();return;}

@@ -51,7 +51,8 @@ def play_lot(pg, limit=250):
     for _ in range(limit):
         if pg.is_visible("#modal"): close_sheets(pg)
         if pg.is_enabled("#bidBtn") and "Overpaying" not in pg.inner_text("#verdict"):
-            pg.click("#bidBtn")
+            try: pg.click("#bidBtn", timeout=800)
+            except Exception: pass  # the button can disable between the check and the click (you took the lead, auto-bid fired)
         pg.wait_for_timeout(100)
         if pg.is_visible("#result"):
             return pg.inner_text("#result")
