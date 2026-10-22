@@ -394,6 +394,8 @@ function stats() {
     players: P.length, sessions: S.length,
     d1: pct(d1n, d1d), d1n: `${d1n}/${d1d}`, d7: pct(d7n, d7d), d7n: `${d7n}/${d7d}`,
     medSessionMin: med(S.map(s => s.playSec / 60))?.toFixed(1) ?? "–", medActiveMin: med(S.map(s => s.activeSec / 60))?.toFixed(1) ?? "–",
+    loop: [true, false].map(d3 => { const ss = S.filter(s => !!(s.derived || {}).d3 === d3 && (s.activeSec || 0) >= 30), nw = ss.filter(s => s.funnel?.newPlayer), c = k => ss.reduce((n, s) => n + ((s.counters || {})[k] || 0), 0);
+      return { d3, sessions: ss.length, medMin: med(ss.map(s => s.playSec / 60))?.toFixed(1) ?? "–", firstBid: med(nw.map(s => s.funnel.firstBidSec)), neverBid: pct(nw.filter(s => s.funnel.firstBidSec == null).length, nw.length), lotsPerMin: med(ss.map(s => (s.derived || {}).lotsPerMin).filter(x => x != null)), bidShare: pct(c("focusBid"), c("focusLots")), skips: c("cerSkips"), short: c("cerShort") + c("packShort") }; }),
     medFirstBidSec: med(S.filter(s => s.funnel?.newPlayer).map(s => s.funnel.firstBidSec)), medFirstWinSec: med(S.filter(s => s.funnel?.newPlayer).map(s => s.funnel.firstWinSec)),
     newNeverBid: pct(S.filter(s => s.funnel?.newPlayer && s.funnel.firstBidSec == null).length, S.filter(s => s.funnel?.newPlayer).length),
     auctionsSeen: sum("auctionsSeen"), joinRate: pct(sum("auctionsJoined"), sum("auctionsSeen")), winRate: pct(wins.length, joined.length),
@@ -453,6 +455,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a> · backup ${LAST_BACKUP ? LAST_BACKUP.at.slice(0, 16).replace("T", " ") + " UTC, " + Math.round(LAST_BACKUP.bytes / 1024) + " KB" + (LAST_BACKUP.remote ? ", copied to the bucket" : ", local only (set S3_* to copy off the box)") : "none yet"} · <a href="/admin/backup">back up now</a></p>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
+<h2>Core loop: 3D street vs card layout (v63)</h2><div class="g">${s.loop.map(l => tile(l.d3 ? "3D street" : "Card layout", (l.bidShare) + " of lots bid on", `${l.sessions} sessions (30s+) · ${l.medMin} min/session · ${l.lotsPerMin ?? "–"} lots/min · first bid ${l.firstBid == null ? "–" : l.firstBid + "s"} · new players who never bid ${l.neverBid} · ${l.skips} ceremony skips · ${l.short} short ceremonies`)).join("")}</div>
 <h2>First session</h2><div class="g">${tile("Time to first bid", s.medFirstBidSec == null ? "–" : s.medFirstBidSec + "s")}${tile("Time to first win", s.medFirstWinSec == null ? "–" : s.medFirstWinSec + "s")}${tile("New players who never bid", s.newNeverBid)}</div>
 </section>
 <section class="${tab === "players" ? "on" : ""}"><h2>Last 60 sessions</h2><div class="tbw">${players}</div></section>
