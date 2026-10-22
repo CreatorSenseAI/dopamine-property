@@ -8,40 +8,78 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#0b1324",
-    "splash": { "image": "./assets/splash.png", "resizeMode": "cover", "backgroundColor": "#0b1324" },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "bundleIdentifier": "com.creatorsenseai.auctionempires",
       "buildNumber": "1",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       },
-      "associatedDomains": ["applinks:game-production-ee8e.up.railway.app"]
+      "associatedDomains": [
+        "applinks:game-production-ee8e.up.railway.app"
+      ]
     },
     "android": {
       "package": "com.creatorsenseai.auctionempires",
       "versionCode": 1,
-      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#13203a" },
-      "permissions": ["VIBRATE", "com.android.vending.BILLING"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#13203a"
+      },
+      "permissions": [
+        "VIBRATE",
+        "com.android.vending.BILLING"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "game-production-ee8e.up.railway.app", "pathPrefix": "/join" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "game-production-ee8e.up.railway.app",
+              "pathPrefix": "/join"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
     "plugins": [
-      ["expo-notifications", { "color": "#f2c14e" }],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#0b1324"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#f2c14e"
+        }
+      ],
       "expo-web-browser"
     ],
     "extra": {
       "gameUrl": "https://game-production-ee8e.up.railway.app",
-      "rcKeys": { "ios": "", "android": "" },
-      "eas": { "projectId": "a53af9c7-9c35-4b5c-9111-3d51b93e4555" }
+      "rcKeys": {
+        "ios": "",
+        "android": ""
+      },
+      "eas": {
+        "projectId": "a53af9c7-9c35-4b5c-9111-3d51b93e4555"
+      }
     }
   }
 }

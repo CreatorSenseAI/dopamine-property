@@ -16,7 +16,9 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Purchases from 'react-native-purchases';
+import Purchases, { PRODUCT_CATEGORY } from 'react-native-purchases';
+/* getProducts defaults to subscriptions on Android: fetch one-off items (cash packs, boosts) and subscriptions, one list */
+const getAll = async ids => { const out = [], seen = new Set(); for (const c of [PRODUCT_CATEGORY.NON_SUBSCRIPTION, PRODUCT_CATEGORY.SUBSCRIPTION]) { try { for (const p of await Purchases.getProducts(ids, c)) if (!seen.has(p.identifier)) { seen.add(p.identifier); out.push(p); } } catch (e) {} } return out; };
 
 const EXTRA = (Constants.expoConfig && Constants.expoConfig.extra) || {};
 const GAME_URL = EXTRA.gameUrl || 'https://game-production-ee8e.up.railway.app';
@@ -99,9 +101,9 @@ export default function App() {
       if (k === 'haptic') { hapticFor(a.p).catch(() => {}); return; }
       if (k === 'review') { if (await StoreReview.hasAction()) StoreReview.requestReview(); return; }
       if (k === 'available') return resolve(id, true, await initPurchases());
-      if (k === 'products') { const list = await Purchases.getProducts(a.ids || []); return resolve(id, true, list.map(p => ({ id: p.identifier, price: p.priceString }))); }
+      if (k === 'products') { const list = await getAll(a.ids || []); return resolve(id, true, list.map(p => ({ id: p.identifier, price: p.priceString }))); }
       if (k === 'buy') {
-        try { const list = await Purchases.getProducts([a.id]); const prod = list[0]; if (!prod) return resolve(id, true, { ok: false });
+        try { const list = await getAll([a.id]); const prod = list[0]; if (!prod) return resolve(id, true, { ok: false });
           await Purchases.purchaseStoreProduct(prod); return resolve(id, true, { ok: true }); }
         catch (e) { return resolve(id, true, { ok: false, cancelled: !!(e && e.userCancelled) }); }
       }
