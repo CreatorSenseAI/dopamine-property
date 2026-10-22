@@ -39,7 +39,8 @@ module.exports = function arenaWS(server, social) {
       if (m.t === "hello") { if (!ID.test(String(m.id))) { ws.close(1008, "bad id"); return; } ws.id = String(m.id); ws.nick = m.nick; }
       else if (m.t !== "ping" || !ws.id) return;
       if (m.nick) ws.nick = m.nick;
-      try { A.presence({ installId: ws.id, nick: ws.nick, tier: m.tier, lot: m.lot }); } catch (e) { console.log("WS presence " + e.message); }
+      if (m.c) ws.c = m.c; if (m.sk) ws.sk = m.sk;
+      try { A.presence({ installId: ws.id, nick: ws.nick, tier: m.tier, lot: m.lot, c: ws.c, sk: ws.sk }); } catch (e) { console.log("WS presence " + e.message); }
       if (ws.readyState === 1) ws.send(JSON.stringify({ t: "arena", ...A.view(ws.id) }));
     });
   });
