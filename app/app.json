@@ -41,7 +41,7 @@
     "extra": {
       "gameUrl": "https://game-production-ee8e.up.railway.app",
       "rcKeys": { "ios": "", "android": "" },
-      "eas": { "projectId": "" }
+      "eas": { "projectId": "a53af9c7-9c35-4b5c-9111-3d51b93e4555" }
     }
   }
 }
