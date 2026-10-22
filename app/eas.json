@@ -1,16 +1,25 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "android": { "buildType": "apk" },
-      "ios": { "simulator": true }
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
     },
     "device": {
       "distribution": "internal",
       "channel": "preview",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "distribution": "store",
@@ -20,8 +29,9 @@
   },
   "submit": {
     "production": {
-      "ios": { "ascAppId": "" },
-      "android": { "track": "internal" }
+      "android": {
+        "track": "internal"
+      }
     }
   }
 }
