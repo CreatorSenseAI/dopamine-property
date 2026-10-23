@@ -13,7 +13,7 @@ const crypto = require("crypto");
 const PORT = process.env.PORT || 3000;
 /* RevenueCat: the app asks /api/rc for its public SDK key, so a key change needs no new app build.
    Only public SDK keys are ever served (goog_ Android, appl_ iOS, test_ Test Store). A secret key (sk_) stays on the server. */
-const RC_RAW = String(process.env.REVENUECAT_API_KEY || process.env.Revenucat_api_key || process.env.RC_API_KEY || "").trim();
+const RC_RAW = ["REVENUECAT_API_KEY", "Revenucat_api_key", "RC_API_KEY", "REVENUECAT_PUBLIC_KEY", "RC_PUBLIC_KEY", "RC_ANDROID_KEY", "RC_IOS_KEY"].map(k => process.env[k] || "").join(",");
 const RC_KEYS = {};
 for (const k of RC_RAW.split(/[\s,;]+/).filter(Boolean)) {
   if (/^goog_/.test(k)) RC_KEYS.android = k; else if (/^appl_/.test(k)) RC_KEYS.ios = k; else if (/^amzn_/.test(k)) RC_KEYS.amazon = k;
