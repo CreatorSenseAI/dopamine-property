@@ -23,7 +23,7 @@ console.log("RC keys: " + (Object.keys(RC_KEYS).map(k => k === "secret" ? "secre
 const ROOT = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".glb": "model/gltf-binary", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".wasm": "application/wasm", ".bin": "application/octet-stream" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".glb": "model/gltf-binary", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".wasm": "application/wasm", ".bin": "application/octet-stream" };
 /* binary game assets (3D models, sounds, wasm): never gzipped (the regex below skips them), cached for 30 days */
 const LONG = /^(model\/|audio\/|application\/(wasm|octet-stream))/;
 const ID = /^[a-z0-9]{6,32}$/i;
@@ -596,6 +596,15 @@ const server = http.createServer(async (req, res) => {
     /* a missing asset is a 404, not the game page (the service worker caches /img, /models, /sfx and /icons cache-first, so a fallback page would stick) */
     if (!f && (/^\/(img|models|sfx|icons)\//.test(url.pathname) || LONG.test(TYPES[path.extname(url.pathname)] || ""))) return send(req, res, 404, "text/plain", "not found");
     f = f || files.get("/index.html");
+    /* videos (site hero clip): Safari will only play an mp4 that answers Range requests */
+    if (/^video\//.test(f.type)) {
+      const size = f.body.length, m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
+      const base = { "content-type": f.type, "accept-ranges": "bytes", "cache-control": "public, max-age=604800" };
+      if (m) { let a0 = m[1] === "" ? Math.max(0, size - +m[2]) : +m[1], b0 = m[1] !== "" && m[2] !== "" ? Math.min(+m[2], size - 1) : size - 1;
+        if (a0 > b0 || a0 >= size) { res.writeHead(416, { "content-range": `bytes */${size}` }); return res.end(); }
+        res.writeHead(206, { ...base, "content-range": `bytes ${a0}-${b0}/${size}`, "content-length": b0 - a0 + 1 }); return res.end(req.method === "HEAD" ? undefined : f.body.subarray(a0, b0 + 1)); }
+      res.writeHead(200, { ...base, "content-length": size }); return res.end(req.method === "HEAD" ? undefined : f.body);
+    }
     const gzip = !!f.gz && /\bgzip\b/.test(req.headers["accept-encoding"] || "");
     res.writeHead(200, {
       "content-type": f.type,

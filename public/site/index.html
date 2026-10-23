@@ -3,42 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Auction Empires: the free property auction game</title>
-<meta name="description" content="Bid against rival investors at live 3D property auctions, collect the rent and build an empire from a Starter unit to a harbour estate. Free in your phone browser, no download.">
+<title>Auction Empires: win the house, skip the mortgage. The property auction game</title>
+<meta name="description" content="The property auction game where you outbid investors in ten seconds, collect the rent and build an empire. No deposit, no bank, no 30-year mortgage. Play free in your browser; iPhone and Android apps coming soon.">
 <link rel="canonical" href="{{ORIGIN}}/">
 <meta name="theme-color" content="#d6e9fb">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Auction Empires">
-<meta property="og:title" content="Auction Empires: the free property auction game">
-<meta property="og:description" content="Live 3D property auctions in ten-second rounds. Outbid rival investors, collect the rent, climb the rich list. Free in your browser.">
+<meta property="og:title" content="Auction Empires: win the house, skip the mortgage">
+<meta property="og:description" content="Outbid the investors in ten seconds, collect the rent, build an empire. The property auction game. Play free now.">
 <meta property="og:url" content="{{ORIGIN}}/">
 <meta property="og:image" content="{{ORIGIN}}/og.png">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:video" content="{{ORIGIN}}/site/vid/auction.mp4"><meta property="og:video:type" content="video/mp4">
 <meta property="og:locale" content="en_AU">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Auction Empires: the free property auction game">
-<meta name="twitter:description" content="Live 3D property auctions in ten-second rounds. Free in your browser.">
+<meta name="twitter:title" content="Auction Empires: win the house, skip the mortgage">
+<meta name="twitter:description" content="The property auction game. Ten seconds a lot. Play free now.">
 <meta name="twitter:image" content="{{ORIGIN}}/og.png">
 <link rel="icon" href="/icons/favicon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Familjen+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="/site/img/auction-street.webp" imagesrcset="/site/img/auction-street-sm.webp 420w, /site/img/auction-street.webp 780w" imagesizes="(max-width:860px) 74vw, 330px">
+<link rel="preload" as="image" href="/site/img/hero-poster.webp">
 <link rel="stylesheet" href="/site/site.css">
 <script>/* returning players see the site too; their Play buttons say Continue (no redirect: it hid the site from anyone with a save) */
-document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getItem('dopamine-property-v1'))document.querySelectorAll('a.btn[href^="/play"]').forEach(function(b){b.textContent=b.classList.contains('btn-play')&&b.closest('.top')?'Continue':'Continue your game';});}catch(e){}});</script>
+document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getItem('dopamine-property-v1'))document.querySelectorAll('a.btn[href^="/play"]').forEach(function(b){b.textContent=b.closest('.top')?'Continue':'Continue your game';});}catch(e){}
+ /* the hero clip plays muted and loops; reduced motion gets the still */
+ var v=document.querySelector('.phone video');if(v&&window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){v.removeAttribute('autoplay');v.pause();}});</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
  {"@type":"WebSite","@id":"{{ORIGIN}}/#site","url":"{{ORIGIN}}/","name":"Auction Empires","inLanguage":"en-AU","publisher":{"@id":"{{ORIGIN}}/#org"}},
  {"@type":"Organization","@id":"{{ORIGIN}}/#org","name":"CreatorSense AI","url":"https://creatorsenseai.com","email":"info@creatorsenseai.com","address":{"@type":"PostalAddress","addressLocality":"Sydney","addressCountry":"AU"}},
- {"@type":"VideoGame","@id":"{{ORIGIN}}/#game","name":"Auction Empires","url":"{{ORIGIN}}/play","description":"A free property auction tycoon game. Bid against rival investors at live 3D auctions, collect rent, upgrade and redevelop homes, and climb the rich list.","genre":["Simulation","Tycoon","Strategy"],"gamePlatform":["Web browser","Android","iOS"],"applicationCategory":"GameApplication","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en","image":"{{ORIGIN}}/site/img/auction-street.webp","screenshot":["{{ORIGIN}}/site/img/auction-street.webp","{{ORIGIN}}/site/img/my-town-map.webp","{{ORIGIN}}/site/img/legendary-card.webp"],"offers":{"@type":"Offer","price":"0","priceCurrency":"AUD","availability":"https://schema.org/InStock"},"author":{"@id":"{{ORIGIN}}/#org"},"publisher":{"@id":"{{ORIGIN}}/#org"}},
+ {"@type":"VideoGame","@id":"{{ORIGIN}}/#game","name":"Auction Empires","url":"{{ORIGIN}}/play","description":"A property auction tycoon game. Outbid rival investors at live 3D auctions, collect the rent, upgrade and redevelop homes, and climb the rich list.","genre":["Simulation","Tycoon","Strategy"],"gamePlatform":["Web browser"],"applicationCategory":"GameApplication","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"inLanguage":"en","image":"{{ORIGIN}}/site/img/hero-poster.webp","screenshot":["{{ORIGIN}}/site/img/auction-street.webp","{{ORIGIN}}/site/img/my-town-map.webp","{{ORIGIN}}/site/img/legendary-card.webp"],"trailer":{"@type":"VideoObject","name":"A live auction in Auction Empires","description":"Rival bidders on the lawn, a bidding war and the hammer falling.","thumbnailUrl":"{{ORIGIN}}/site/img/hero-poster.webp","contentUrl":"{{ORIGIN}}/site/vid/auction.mp4","uploadDate":"2026-10-23"},"offers":{"@type":"Offer","price":"0","priceCurrency":"AUD","availability":"https://schema.org/InStock"},"author":{"@id":"{{ORIGIN}}/#org"},"publisher":{"@id":"{{ORIGIN}}/#org"}},
  {"@type":"FAQPage","mainEntity":[
-  {"@type":"Question","name":"Is Auction Empires free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The whole game is free in your phone or computer browser. The app has optional purchases such as cash packs and Pro, and none of them win an auction for you."}},
-  {"@type":"Question","name":"Do I need to download anything?","acceptedAnswer":{"@type":"Answer","text":"No. Open the game in Safari or Chrome and start bidding. You can add it to your home screen to play it like an app."}},
-  {"@type":"Question","name":"Is it gambling or real money?","acceptedAnswer":{"@type":"Answer","text":"No. Game cash never turns back into money, there is no betting and nothing for sale is a chance-based reward. You win homes by bidding better than the rivals."}},
-  {"@type":"Question","name":"Are the prices real?","acceptedAnswer":{"@type":"Answer","text":"The suburbs and the auction rituals are real; the prices, rents and rivals are game numbers tuned to be fast and fair, so it is a game, not property advice."}},
-  {"@type":"Question","name":"How long does a game take?","acceptedAnswer":{"@type":"Answer","text":"Each auction runs ten to fifteen seconds and a game month passes every second, so a two-minute break is enough to win a home and see the rent come in."}},
-  {"@type":"Question","name":"Can I play with friends?","acceptedAnswer":{"@type":"Answer","text":"Yes. Start a group and share its code for a weekly league, duel on the same lot, meet on Thursday nights for Auction Night, or join the live arena where everyone online bids on one property."}},
-  {"@type":"Question","name":"Does my game save?","acceptedAnswer":{"@type":"Answer","text":"Your empire saves on your device automatically. To move it to another phone or into the app, make a transfer code from Settings."}}]}
+  {"@type":"Question","name":"Is Auction Empires free?","acceptedAnswer":{"@type":"Answer","text":"Yes. It's free to play in your browser right now. The iPhone and Android apps are coming soon, free to download with optional in-app purchases."}},
+  {"@type":"Question","name":"Is there an app?","acceptedAnswer":{"@type":"Answer","text":"The iPhone and Android apps are on the way. Until then it plays in Safari or Chrome on your phone, and you can add it to your home screen. When the apps land, you'll be able to bring your game across."}},
+  {"@type":"Question","name":"Is it real money?","acceptedAnswer":{"@type":"Answer","text":"No. It's a game. There's no betting, and game cash can't be cashed out or traded."}},
+  {"@type":"Question","name":"Are the prices real?","acceptedAnswer":{"@type":"Answer","text":"The suburbs and the auction-day rituals are real. The prices, rents and rivals are game numbers, so please don't take it to your mortgage broker."}},
+  {"@type":"Question","name":"How long does a game take?","acceptedAnswer":{"@type":"Answer","text":"An auction lasts ten to fifteen seconds and a game month passes every second, so a two-minute break is enough to win a home and watch the rent come in."}},
+  {"@type":"Question","name":"Can I play with friends?","acceptedAnswer":{"@type":"Answer","text":"Yes. Start a group and share the code for a weekly league, duel on the same lot, meet on Thursday nights for Auction Night, or jump into the live arena where everyone online bids on one trophy home."}},
+  {"@type":"Question","name":"Does my game save?","acceptedAnswer":{"@type":"Answer","text":"Your empire saves on your device as you play. To move it to another phone, make a transfer code in Settings."}}]}
 ]}
 </script>
 </head>
@@ -53,28 +56,32 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
    <div class="board-face">
     <span class="sold" aria-hidden="true">Sold</span>
     <div class="b-top">
-     <span class="agency">Auction Empires</span>
-     <h1 id="h1">The property auction game you play in ten seconds</h1>
+     <h1 id="h1"><span class="agency">The property auction game</span>Win the house. Skip the mortgage.</h1>
     </div>
     <div class="b-low">
-     <p>Stand on the front lawn with the other bidders, read the valuer, raise your paddle and win the house before the hammer falls. Then collect the rent and do it again, from a Starter unit to a harbour estate.</p>
-     <div class="ctas"><a class="btn btn-play" href="/play?src=site">Play free now</a><a class="btn btn-line" href="/how-to-play">How to play</a></div>
-     <span class="note">Runs in Safari and Chrome. No download, no sign-up.</span>
+     <p>Outbid the investor from Dural, the family trust and the bloke who always jumps fifty grand. Ten seconds a lot. Win it, bank the rent, and keep going until you own the harbour.</p>
+     <div class="ctas"><a class="btn btn-play" href="/play?src=site">Start bidding free</a><a class="btn btn-line" href="#how">How it works</a></div>
+     <div class="soon" aria-label="Apps coming soon">
+      <span class="store"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 18.5h3"/></svg><span><small>Coming soon to the</small><b>App Store</b></span></span>
+      <span class="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17l9-8.5z"/><path d="M5 3.5l12 6.8-3 2.2M5 20.5l12-6.8-3-2.2"/></svg><span><small>Coming soon to</small><b>Google Play</b></span></span>
+     </div>
     </div>
    </div>
    <div class="posts" aria-hidden="true"><i></i><i></i></div>
   </div>
   <div class="phone">
-   <img src="/site/img/auction-street.webp" srcset="/site/img/auction-street-sm.webp 420w, /site/img/auction-street.webp 780w" sizes="(max-width:860px) 74vw, 330px" width="390" height="844" alt="A live auction in Auction Empires: rival bidders on the front lawn of a Starter house in Ipswich, the price at $320,000 and the bid buttons below" fetchpriority="high">
+   <video autoplay muted loop playsinline preload="metadata" poster="/site/img/hero-poster.webp" width="390" height="844" aria-label="A live auction: rival bidders raise paddles, a bidding war heats up and the hammer falls">
+    <source src="/site/vid/auction.mp4" type="video/mp4">
+   </video>
   </div>
  </div>
 </section>
 
-<section class="how" aria-labelledby="how-h">
+<section class="how" id="how" aria-labelledby="how-h">
  <div class="wrap">
   <header>
-   <h2 id="how-h">How an auction works</h2>
-   <p class="lead">Every lot is a ten-second auction against investors with their own limits. The meter tells you how good the price is while it climbs.</p>
+   <h2 id="how-h">Ten seconds. One paddle. Your house.</h2>
+   <p class="lead">Every lot is a live auction against investors with deep pockets and their own limits. The meter tells you how good the price is while it climbs.</p>
   </header>
   <div class="meter" role="img" aria-label="The price meter: Steal, Good buy, Fair and Overpaying zones, with the walk-away line between Fair and Overpaying">
    <span class="mk" aria-hidden="true">Next bid $395K</span>
@@ -83,9 +90,9 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
    <div class="keys" aria-hidden="true"><span>Steal</span><span>Good buy</span><span>Fair</span><span>Overpaying</span></div>
   </div>
   <ol class="steps">
-   <li><h3>Read the valuer</h3><p>Each home shows a guide and the valuer's range. The middle of that range is your walk-away line.</p></li>
-   <li><h3>Bid in the green</h3><p>Raise your paddle, jump ahead with Go big, or let auto-bid carry you to the final call. Rivals drop out when they pass their limit.</p></li>
-   <li><h3>Collect the rent</h3><p>Win and the inspector reports, the home joins your empire and pays rent every game month. One second is a month.</p></li>
+   <li><h3>Check the valuer</h3><p>Every lot shows what it's really worth. Stay under the line and you're richer the moment the hammer falls.</p></li>
+   <li><h3>Bid in the green</h3><p>Tap Bid, slam Go big, or let auto-bid sweat it out for you. Rivals fold when they hit their limit. Most of them.</p></li>
+   <li><h3>Bank the rent</h3><p>The house is yours and the rent starts rolling in. A second is a month, so it adds up fast. Then do it again.</p></li>
   </ol>
  </div>
 </section>
@@ -97,14 +104,14 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
    <p>Eight things you'll be doing by the end of your first coffee.</p>
   </header>
   <ul class="posters">
-   <li class="poster"><div class="ph"><b>Auction</b><span>Every 10 seconds</span></div><figure><img src="/site/img/auction-street-sm.webp" width="420" height="909" loading="lazy" alt="Bidders raising paddles outside a house while the auctioneer calls the price"></figure><div class="pb"><h3>A street full of bidders</h3><p>Rivals raise paddles and talk trash, the auctioneer calls going once, and the crowd gets louder when a bidding war breaks out.</p></div></li>
-   <li class="poster"><div class="ph"><b>Your town</b><span>Map view</span></div><figure><img src="/site/img/my-town-map-sm.webp" width="420" height="909" loading="lazy" alt="A map of the player's homes across Bondi, Mosman, Ipswich and Penrith with repair and works pins"></figure><div class="pb"><h3>Your empire on a map</h3><p>Every home you own sits on your own town map. Fix repairs, start renovations and finish suburb sets for extra rent.</p></div></li>
-   <li class="poster"><div class="ph"><b>Market</b><span>Buy it now</span></div><figure><img src="/site/img/agency-window-sm.webp" width="420" height="909" loading="lazy" alt="The agent's window with listing posters, prices and cash flow per month"></figure><div class="pb"><h3>The agent's window</h3><p>Not in the mood for a fight? Buy straight off the market, take offers on your homes, or snap up an off-market deal before it goes.</p></div></li>
-   <li class="poster"><div class="ph"><b>Collect</b><span>Common to Legendary</span></div><figure><img src="/site/img/legendary-card-sm.webp" width="420" height="909" loading="lazy" alt="A Legendary collector card in a graded slab marked Gem Mint 10"></figure><div class="pb"><h3>Every win is a card</h3><p>Great buys, hidden finds and beating your nemesis earn rarer cards. Epic and Legendary pulls come slabbed and graded.</p></div></li>
+   <li class="poster"><div class="ph"><b>Auction</b><span>Every 10 seconds</span></div><figure><img src="/site/img/auction-street-sm.webp" width="420" height="909" loading="lazy" alt="Bidders raising paddles outside a house while the auctioneer calls the price"></figure><div class="pb"><h3>A street full of bidders</h3><p>Rivals raise paddles and talk trash, the auctioneer calls going once, and when a bidding war breaks out the crowd starts filming.</p></div></li>
+   <li class="poster"><div class="ph"><b>Your town</b><span>Map view</span></div><figure><img src="/site/img/my-town-map-sm.webp" width="420" height="909" loading="lazy" alt="A map of the player's homes across Bondi, Mosman, Ipswich and Penrith with repair and works pins"></figure><div class="pb"><h3>Your empire on a map</h3><p>Every home you own on your own town map. Fix the leaky roof, put in a pool, finish the suburb set for extra rent.</p></div></li>
+   <li class="poster"><div class="ph"><b>Market</b><span>Buy it now</span></div><figure><img src="/site/img/agency-window-sm.webp" width="420" height="909" loading="lazy" alt="The agent's window with listing posters, prices and cash flow per month"></figure><div class="pb"><h3>The agent's window</h3><p>Not in the mood for a fight? Buy straight off the market, field offers on your homes, or grab an off-market deal before it's gone.</p></div></li>
+   <li class="poster"><div class="ph"><b>Collect</b><span>Common to Legendary</span></div><figure><img src="/site/img/legendary-card-sm.webp" width="420" height="909" loading="lazy" alt="A Legendary collector card in a graded slab marked Gem Mint 10"></figure><div class="pb"><h3>Every win is a card</h3><p>Steal a house under value and it comes back as a rare card. Epic and Legendary pulls arrive graded and slabbed.</p></div></li>
    <li class="poster"><div class="ph"><b>Events</b><span>Live on your homes</span></div><figure><img src="/site/img/event-koala-sm.webp" width="420" height="909" loading="lazy" alt="A live event cutaway of a house with the caption: A koala moved into the roof"></figure><div class="pb"><h3>Floods, booms and a koala</h3><p>Storms, bushfires, suburb booms, rate cuts and tenants with stories hit your homes, and you watch it happen live.</p></div></li>
-   <li class="poster"><div class="ph"><b>Compete</b><span>Real players</span></div><figure><img src="/site/img/leaderboards-sm.webp" width="420" height="909" loading="lazy" alt="Leaderboards ranking players by net worth with a podium for the top three"></figure><div class="pb"><h3>Climb the rich list</h3><p>Weekly and all-time leaderboards, friend leagues, duels on the same lot, and a live arena where everyone online bids for one trophy home.</p></div></li>
-   <li class="poster"><div class="ph"><b>Your phone</b><span>Everything else</span></div><figure><img src="/site/img/phone-sm.webp" width="420" height="909" loading="lazy" alt="The in-game phone home screen with apps for My town, Market, Auctions, Money, Progress, Collection, Compete and World"></figure><div class="pb"><h3>It all fits in your pocket</h3><p>Your town, money, missions and messages from tenants and agents live on a phone, so the auction always stays on screen.</p></div></li>
-   <li class="poster"><div class="ph"><b>World</b><span>7 markets</span></div><figure><img src="/site/img/world-markets-sm.webp" width="420" height="909" loading="lazy" alt="The world markets list: Australia, Auckland, London, New York, Los Angeles, Dubai, Paris and Tokyo"></figure><div class="pb"><h3>From Sydney to Tokyo</h3><p>Start in Australia and open Auckland, London's sealed bids, New York co-op boards, Dubai off-the-plan and Paris heritage rules.</p></div></li>
+   <li class="poster"><div class="ph"><b>Compete</b><span>Real players</span></div><figure><img src="/site/img/leaderboards-sm.webp" width="420" height="909" loading="lazy" alt="Leaderboards ranking players by net worth with a podium for the top three"></figure><div class="pb"><h3>Climb the rich list</h3><p>Weekly and all-time leaderboards, friend leagues, duels on the same lot, and a live arena where everyone online fights for one trophy home.</p></div></li>
+   <li class="poster"><div class="ph"><b>Your phone</b><span>Everything else</span></div><figure><img src="/site/img/phone-sm.webp" width="420" height="909" loading="lazy" alt="The in-game phone home screen with apps for My town, Market, Auctions, Money, Progress, Collection, Compete and World"></figure><div class="pb"><h3>It all fits in your pocket</h3><p>Your town, money, missions and texts from tenants and agents live on a phone, so the auction never leaves the screen.</p></div></li>
+   <li class="poster"><div class="ph"><b>World</b><span>7 markets</span></div><figure><img src="/site/img/world-markets-sm.webp" width="420" height="909" loading="lazy" alt="The world markets list: Australia, Auckland, London, New York, Los Angeles, Dubai, Paris and Tokyo"></figure><div class="pb"><h3>From Sydney to Tokyo</h3><p>Start in Australia, then take on London's sealed bids, New York co-op boards, Dubai off-the-plan and Paris heritage rules.</p></div></li>
   </ul>
  </div>
 </section>
@@ -113,7 +120,7 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
  <div class="wrap">
   <header>
    <h2 id="ev-h">It happens on your street</h2>
-   <p class="lead">The camera cuts live to the home that's hit. Insure against the bad ones and cash in on the rebuild boom after.</p>
+   <p class="lead">The camera cuts live to the home that's hit. Insure the risky ones, then cash in on the rebuild boom.</p>
   </header>
   <ul class="reel">
    <li><img src="/site/img/event-flood-sm.webp" width="420" height="909" loading="lazy" alt="A house surrounded by floodwater: Flash flood in Ipswich"><span class="live">Live</span></li>
@@ -123,17 +130,20 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
  </div>
 </section>
 
-<section class="fair" aria-labelledby="fair-h">
+<section class="fair" aria-labelledby="vs-h">
  <div class="wrap">
   <div>
-   <h2 id="fair-h">Won by bidding, never by buying</h2>
-   <p class="lead">Rivals bid exactly the same whether you've spent a cent or not.</p>
-   <ul>
-    <li>Nothing in the store wins an auction or buys a chance at a prize.</li>
-    <li>No loot boxes and no betting. Game cash never turns back into money.</li>
-    <li>No account, email or sign-up. Your game saves on your device.</li>
-    <li>Optional Pro in the app adds a property manager, the season pass and more room for homes.</li>
-   </ul>
+   <h2 id="vs-h">The housing market, minus the pain</h2>
+   <table class="vs">
+    <thead><tr><th scope="col"><span class="sr">What</span></th><th scope="col">Real life</th><th scope="col">Auction Empires</th></tr></thead>
+    <tbody>
+     <tr><th scope="row">Deposit</th><td>Twenty per cent and a decade of saving</td><td>You start with $450K</td></tr>
+     <tr><th scope="row">Time to buy</th><td>Months of Saturday open homes</td><td>Ten seconds</td></tr>
+     <tr><th scope="row">Bank approval</th><td>Six weeks and a stress test</td><td>One tap</td></tr>
+     <tr><th scope="row">The investor outbidding you</th><td>Unbeatable</td><td>Very beatable</td></tr>
+     <tr><th scope="row">Your first hour</th><td>Still renting</td><td>A portfolio and a duplex on the way</td></tr>
+    </tbody>
+   </table>
   </div>
   <div class="phone"><img src="/site/img/bidding-war-sm.webp" srcset="/site/img/bidding-war-sm.webp 420w, /site/img/bidding-war.webp 780w" sizes="300px" width="390" height="844" loading="lazy" alt="A heated bidding war at dusk with the price at $295,000"></div>
  </div>
@@ -143,21 +153,24 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
  <div class="wrap">
   <div><h2 id="faq-h">Questions</h2><p class="lead" style="margin-top:16px">Anything else, email <a href="mailto:info@creatorsenseai.com">info@creatorsenseai.com</a>.</p></div>
   <div>
-   <details><summary>Is Auction Empires free?</summary><p>Yes. The whole game is free in your phone or computer browser. The app has optional purchases such as cash packs and Pro, and none of them win an auction for you.</p></details>
-   <details><summary>Do I need to download anything?</summary><p>No. Open the game in Safari or Chrome and start bidding. You can add it to your home screen to play it like an app.</p></details>
-   <details><summary>Is it gambling or real money?</summary><p>No. Game cash never turns back into money, there is no betting and nothing for sale is a chance-based reward. You win homes by bidding better than the rivals.</p></details>
-   <details><summary>Are the prices real?</summary><p>The suburbs and the auction rituals are real; the prices, rents and rivals are game numbers tuned to be fast and fair, so it is a game, not property advice.</p></details>
-   <details><summary>How long does a game take?</summary><p>Each auction runs ten to fifteen seconds and a game month passes every second, so a two-minute break is enough to win a home and see the rent come in.</p></details>
-   <details><summary>Can I play with friends?</summary><p>Yes. Start a group and share its code for a weekly league, duel on the same lot, meet on Thursday nights for Auction Night, or join the live arena where everyone online bids on one property.</p></details>
-   <details><summary>Does my game save?</summary><p>Your empire saves on your device automatically. To move it to another phone or into the app, make a transfer code from Settings.</p></details>
+   <details><summary>Is Auction Empires free?</summary><p>Yes. It's free to play in your browser right now. The iPhone and Android apps are coming soon, free to download with optional in-app purchases.</p></details>
+   <details><summary>Is there an app?</summary><p>The iPhone and Android apps are on the way. Until then it plays in Safari or Chrome on your phone, and you can add it to your home screen. When the apps land, you'll be able to bring your game across.</p></details>
+   <details><summary>Is it real money?</summary><p>No. It's a game. There's no betting, and game cash can't be cashed out or traded.</p></details>
+   <details><summary>Are the prices real?</summary><p>The suburbs and the auction-day rituals are real. The prices, rents and rivals are game numbers, so please don't take it to your mortgage broker.</p></details>
+   <details><summary>How long does a game take?</summary><p>An auction lasts ten to fifteen seconds and a game month passes every second, so a two-minute break is enough to win a home and watch the rent come in.</p></details>
+   <details><summary>Can I play with friends?</summary><p>Yes. Start a group and share the code for a weekly league, duel on the same lot, meet on Thursday nights for Auction Night, or jump into the live arena where everyone online bids on one trophy home.</p></details>
+   <details><summary>Does my game save?</summary><p>Your empire saves on your device as you play. To move it to another phone, make a transfer code in Settings.</p></details>
   </div>
  </div>
 </section>
 
 <section class="call" aria-labelledby="call-h">
  <div class="wrap">
-  <h2 id="call-h">The next lot starts in ten seconds</h2>
-  <a class="btn btn-gold" href="/play?src=site">Play free now</a>
+  <div>
+   <h2 id="call-h">Going once. Going twice.</h2>
+   <p class="callsub">The next lot starts in ten seconds. Apps for iPhone and Android are coming soon.</p>
+  </div>
+  <a class="btn btn-gold" href="/play?src=site">Start bidding free</a>
  </div>
 </section>
 </main>

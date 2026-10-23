@@ -199,3 +199,23 @@ p{margin:0 0 1em}
   .poster p{font-size:15px}
 }
 .log ul{max-width:44em}
+
+/* v68b: hero copy, store chips, clip, comparison table */
+.board-face h1 .agency{display:block;font:700 15px/1 var(--f-b);letter-spacing:.01em;opacity:.92;margin-bottom:16px}
+.board-face h1{max-width:8.6em}
+.soon{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.store{display:inline-flex;align-items:center;gap:10px;padding:8px 14px 8px 11px;border-radius:11px;background:var(--navy);color:#fff;line-height:1.05}
+.store svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.store small{display:block;font:600 11px/1.1 var(--f-b);opacity:.8}
+.store b{display:block;font:700 17px/1.1 var(--f-b);letter-spacing:-.01em}
+.phone video{display:block;border-radius:36px;width:100%;height:auto;aspect-ratio:390/844;object-fit:cover;background:#1b2c4f}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.vs{width:100%;border-collapse:collapse;margin-top:26px;font-size:17px}
+.vs th,.vs td{padding:14px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.vs thead th{font:400 22px/1 var(--f-d);border-bottom:3px solid var(--ink);padding-bottom:12px}
+.vs thead th:last-child{color:var(--red)}
+.vs tbody th{font-weight:700;width:30%}
+.vs td:nth-child(2){color:var(--muted)}
+.vs td:last-child{font-weight:700;color:var(--lawn-d)}
+@media (max-width:560px){.vs{font-size:15px}.vs th,.vs td{padding:11px 6px}.vs thead th{font-size:18px}}
+.call .callsub{margin:12px 0 0;font-size:19px;opacity:.92;max-width:30em}
