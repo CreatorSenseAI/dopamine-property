@@ -15,7 +15,7 @@ import * as StoreReview from 'expo-store-review';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Purchases, { PRODUCT_CATEGORY } from 'react-native-purchases';
 /* getProducts defaults to subscriptions on Android: fetch one-off items (cash packs, boosts) and subscriptions, one list */
 const getAll = async ids => { const out = [], seen = new Set(); for (const c of [PRODUCT_CATEGORY.NON_SUBSCRIPTION, PRODUCT_CATEGORY.SUBSCRIPTION]) { try { for (const p of await Purchases.getProducts(ids, c)) if (!seen.has(p.identifier)) { seen.add(p.identifier); out.push(p); } } catch (e) {} } return out; };
@@ -44,7 +44,13 @@ const BRIDGE = `(function(){
   return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){rpc('share',{text:d.text||'',url:d.url||'',name:f.name||'share.png',type:f.type||'image/png',dataUrl:r.result}).then(res,rej);};r.onerror=function(){rej(new Error('read'));};r.readAsDataURL(f);});};
  function ready(){var id=null;try{id=localStorage.getItem('dp-install');}catch(e){}post('ready',{installId:id,tzo:-new Date().getTimezoneOffset()});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
-})();true;`;
+})();`;
+/* Edge to edge: the WebView fills the whole screen and the game pads itself with env(safe-area-inset-*).
+   Most Android WebViews report those insets; if one reports 0 while the bars are there, pad :root from the native insets instead. */
+const insetJS = (ins) => `(function(){var T=${Math.round(ins.top)},B=${Math.round(ins.bottom)};window.EAT_INSETS={top:T,bottom:B};
+ function fix(){try{var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(d);var cs=getComputedStyle(d),t=parseFloat(cs.paddingTop)||0,b=parseFloat(cs.paddingBottom)||0;d.remove();
+  if((t<1&&T>0)||(b<1&&B>0)){var st=document.createElement('style');st.id='eatInsets';st.textContent=':root{padding-top:'+(t<1?T:t)+'px!important;padding-bottom:'+(b<1?B:b)+'px!important}';document.head.appendChild(st);}}catch(e){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();})();true;`;
 
 const hapticFor = (p) => {
   const arr = Array.isArray(p) ? p : [p]; const on = arr.filter((_, i) => i % 2 === 0); const strongest = Math.max(0, ...on);
@@ -55,6 +61,11 @@ const hapticFor = (p) => {
 };
 
 export default function App() {
+  return <SafeAreaProvider initialMetrics={initialWindowMetrics}><Shell /></SafeAreaProvider>;
+}
+
+function Shell() {
+  const ins = useSafeAreaInsets();
   const web = useRef(null);
   const installId = useRef(null);
   const rcReady = useRef(null);
@@ -138,24 +149,22 @@ export default function App() {
   }, []);
 
   if (failed) return (
-    <SafeAreaProvider><SafeAreaView style={styles.err}>
+    <SafeAreaView style={styles.err}>
       <Text style={styles.errH}>Auction Empires</Text>
       <Text style={styles.errP}>The auction room needs the internet. Check your connection and try again.</Text>
       <TouchableOpacity style={styles.btn} onPress={() => { setFailed(false); setNonce(n => n + 1); }}><Text style={styles.btnT}>Try again</Text></TouchableOpacity>
-    </SafeAreaView></SafeAreaProvider>
+    </SafeAreaView>
   );
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#13203a" />
-      <SafeAreaView style={styles.top} edges={['top']} />
-      <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
+    <View style={styles.root}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
         <WebView
           key={nonce}
           ref={web}
           source={{ uri: GAME_URL + '/?app=' + Platform.OS }}
           style={styles.web}
-          injectedJavaScriptBeforeContentLoaded={BRIDGE}
+          injectedJavaScriptBeforeContentLoaded={BRIDGE + insetJS(ins)}
           onMessage={onMessage}
           onShouldStartLoadWithRequest={onShouldStart}
           onError={() => setFailed(true)}
@@ -177,13 +186,11 @@ export default function App() {
           contentInsetAdjustmentBehavior="never"
           automaticallyAdjustContentInsets={false}
         />
-      </SafeAreaView>
-    </SafeAreaProvider>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  top: { backgroundColor: '#13203a' },
   root: { flex: 1, backgroundColor: '#0b1324' },
   web: { flex: 1, backgroundColor: '#0b1324' },
   err: { flex: 1, backgroundColor: '#0b1324', alignItems: 'center', justifyContent: 'center', padding: 28 },
