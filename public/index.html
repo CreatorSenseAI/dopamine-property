@@ -2713,7 +2713,8 @@ function regJoin(X){if(!X.joined){pxp(5,'join');if(!X.bg)msnHit('join');}if(X.jo
 function regAdd(n,why){if(S.regVar!==1)return 0;regRefill();const before=S.reg.n;S.reg.n=Math.min(REG_MAX+4,S.reg.n+n);const got=S.reg.n-before;if(got){T.c.regTopups+=got;tlog('reg_topup',{n:got,why});}return got;}
 
 /* ---------- play log (written to the artifact's db so Claude can review it) ---------- */
-const VERSION='v54-3d-web';
+/* play-log label: follows APPV and tells the app from the web (it sat at v54 for ten releases) */
+const verTag=()=>'v'+APPV+(/[?&]app=/.test(location.search)?'-app':'-web');
 const today=()=>new Date().toLocaleDateString('en-CA');
 let installId;try{installId=localStorage.getItem('dp-install');if(!installId){installId='p'+Math.random().toString(36).slice(2,10);localStorage.setItem('dp-install',installId);}}catch(e){installId='p'+Math.random().toString(36).slice(2,10);}
 const T={sid:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),start:Date.now(),playSec:0,activeSec:0,idleSec:0,hiddenSec:0,lastInput:Date.now(),taps:0,
@@ -2736,7 +2737,7 @@ function playTick(){const now=Date.now(),perf=performance.now();
 let DB=null,flushing=false;
 (async()=>{try{if(window.claude&&typeof window.claude.use==='function'){DB=await window.claude.use('db');if(DB)flushPlay();}}catch(e){DB=null;}})();
 function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you');
- return{sid:T.sid,installId,version:VERSION,start:new Date(T.start).toISOString(),lastSeen:new Date().toISOString(),localDate:today(),
+ return{sid:T.sid,installId,version:verTag(),start:new Date(T.start).toISOString(),lastSeen:new Date().toISOString(),localDate:today(),
   playSec:T.playSec,activeSec:T.activeSec,idleSec:T.idleSec,hiddenSec:T.hiddenSec,taps:T.taps,
   device:{w:innerWidth,h:innerHeight,dpr:devicePixelRatio,touch:'ontouchstart' in window,ua:navigator.userAgent.slice(0,140),wv:WVAPP||undefined},
   counters:Object.assign({},T.c),flags:Object.assign({},T.flags),
@@ -2747,7 +2748,7 @@ function sessionDoc(){const w=worth(),wins=T.auctions.filter(a=>a.winner==='you'
   tabSec:Object.assign({},T.tab),
   meta:{mkVar:S.mkVar,inApp:inApp(),adFree:adFree(),regVar:S.regVar,regOn:regOn(),regLeft:S.reg?S.reg.n:null,joined:S.joined||0,rateLock:S.lock||0,rescue:!!S.rescue,tierAuto:S.tierAuto!==false,streak:S.streak||0,bestStreak:S.bestStreak||0,freezes:S.freezes||0,badges:Object.keys(S.badges||{}),sets:Object.keys(S.sets||{}).length,streetSets:Object.keys(S.streetSets||{}).length,live:typeof LIVE!=='undefined'?LIVE.length:0,steals:S.steals||0,borrowed:!!S.borrowed},
   auctions:T.auctions.slice(-80),log:T.log.slice(-150),curve:T.curve.slice(-240)};}
-function playerDoc(){return{installId,version:VERSION,regVar:S.regVar,mkVar:S.mkVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
+function playerDoc(){return{installId,version:verTag(),regVar:S.regVar,mkVar:S.mkVar,lastSeen:new Date().toISOString(),days:S.days.slice(-60),daysPlayed:S.days.length,sessions:S.sessions,totalPlaySec:S.playSec,bestWorth:Math.round(S.bestWorth),currentWorth:Math.round(worth()),lifetimeWins:S.wins,lifetimeLosses:S.losses,resets:S.resets,maxTier:S.maxTier,legacy:S.legacy||0,dynasties:S.dynasties||0,lastSession:T.sid,firstSeen:S.days[0]||null,streak:S.streak||0,bestStreak:S.bestStreak||0,badges:Object.keys(S.badges||{}).length,device:{w:innerWidth,h:innerHeight}};}
 function soonFlush(){clearTimeout(soonFlush.t);soonFlush.t=setTimeout(flushPlay,2000);}
 /* on the web, play logs go to our own server (anonymous install id, no personal data); inside Claude they go to the artifact database */
 /* in the native app (app/ wrapper) window.EAT_API points at the Railway server */
@@ -4973,7 +4974,7 @@ function feedbackSheet(src){T.c.fbOpens=(T.c.fbOpens||0)+1;tlog('feedback_open',
  $('#fbX').onclick=()=>{$('#modal').hidden=true;if(src==='nudge'){S.fbAsked=Date.now();save();}};
  $('#fbSend').onclick=async()=>{const text=$('#fbText').value.trim(),contact=$('#fbContact').value.trim(),h=$('#fbHint');if(!stars&&!text){h.textContent='Tap a star or write a line first.';return;}
   const b=$('#fbSend');b.disabled=true;h.textContent='Sending…';
-  try{await net('/api/feedback',{stars,text,contact,version:VERSION,level:plvState().lv,worth:Math.round(worth()),sessions:S.sessions,device:(innerWidth+'x'+innerHeight+' '+(navigator.userAgent.match(/iPhone|iPad|Android|Windows|Mac/)||[''])[0]),source:src});
+  try{await net('/api/feedback',{stars,text,contact,version:verTag(),level:plvState().lv,worth:Math.round(worth()),sessions:S.sessions,device:(innerWidth+'x'+innerHeight+' '+(navigator.userAgent.match(/iPhone|iPad|Android|Windows|Mac/)||[''])[0]),source:src});
    T.c.fbSent=(T.c.fbSent||0)+1;tlog('feedback_sent',{stars,len:text.length,src});S.fbDone=Date.now();S.fbAsked=Date.now();save();$('#modal').hidden=true;toast(stars>=4?'Thanks! That made the day.':'Thanks. Read within the day, acted on within the week.','up');}
   catch(e){b.disabled=false;h.textContent=e.message||'Could not send. Try again in a moment.';}};}
 /* nudge once: third session, at least three wins, 90s in, and not already done; never more than once a month after a "Not now" */
