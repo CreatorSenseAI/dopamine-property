@@ -102,7 +102,10 @@ const BOARDS = {
 };
 function richTop(id, board) {
   const b = BOARDS[board] ? board : "worth", f = BOARDS[b], cut = Date.now() - 14 * 864e5;
-  const all = Object.entries(RICH).filter(([, e]) => Date.parse(e.at) > cut).map(([k, e]) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
+  /* one player on two devices (a moved game, or the app and a browser) shows once: same name, stars and dynasty = the same player; yours wins, else the most recent */
+  const seen = new Map();
+  for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; const key = String(e.nick || "").toLowerCase() + "|" + (e.stars || 0) + "|" + (e.dy || 0); const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
+  const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
   const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, score: e.score, rank: r, me: e.k === id });
   const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
   const wkEnds = WEEK0 + (weekNo() + 1) * WEEKMS, sNow = new Date(), sEnds = Date.UTC(sNow.getUTCFullYear(), sNow.getUTCMonth() + 1, 1);
