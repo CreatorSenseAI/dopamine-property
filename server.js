@@ -174,7 +174,7 @@ function saveGet(req, res, url) {
   if (!SAVE_CODE.test(code)) return send(req, res, 400, "application/json", JSON.stringify({ error: "That code doesn't look right. Codes look like EAT-7KQ2-M4PX." }));
   let j; try { j = JSON.parse(fs.readFileSync(saveFile(code), "utf8")); } catch { return send(req, res, 404, "application/json", JSON.stringify({ error: "No game found for that code. Codes last 30 days." })); }
   if (Date.now() - Date.parse(j.at) > 30 * 864e5) { try { fs.unlinkSync(saveFile(code)); } catch { } return send(req, res, 410, "application/json", JSON.stringify({ error: "That code has expired. Get a new one from the first device." })); }
-  send(req, res, 200, "application/json", JSON.stringify({ save: j.save }), { "cache-control": "no-store" });
+  send(req, res, 200, "application/json", JSON.stringify({ save: j.save, installId: j.installId || null }), { "cache-control": "no-store" });
 }
 setInterval(() => { try { for (const f of fs.readdirSync(path.join(DATA, "saves"))) { const p = path.join(DATA, "saves", f); if (Date.now() - fs.statSync(p).mtimeMs > 31 * 864e5) fs.unlinkSync(p); } } catch { } }, 6 * 3600e3);
 function boardGet(req, res, url) {

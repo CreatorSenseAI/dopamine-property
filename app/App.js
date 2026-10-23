@@ -3,7 +3,7 @@
    the store rating sheet, and deep links (https://<host>/join/CODE, auctionempires://join/CODE).
    The game talks to this file through window.DPStore and a few hooks; the contract is in the main README. */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Platform, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppState, Dimensions, Platform, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
@@ -45,12 +45,15 @@ const BRIDGE = `(function(){
  function ready(){var id=null;try{id=localStorage.getItem('dp-install');}catch(e){}post('ready',{installId:id,tzo:-new Date().getTimezoneOffset()});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();`;
-/* Edge to edge: the WebView fills the whole screen and the game pads itself with env(safe-area-inset-*).
-   Most Android WebViews report those insets; if one reports 0 while the bars are there, pad :root from the native insets instead. */
-const insetJS = (ins) => `(function(){var T=${Math.round(ins.top)},B=${Math.round(ins.bottom)};window.EAT_INSETS={top:T,bottom:B};
- function fix(){try{var d=document.createElement('div');d.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)';document.body.appendChild(d);var cs=getComputedStyle(d),t=parseFloat(cs.paddingTop)||0,b=parseFloat(cs.paddingBottom)||0;d.remove();
-  if((t<1&&T>0)||(b<1&&B>0)){var st=document.createElement('style');st.id='eatInsets';st.textContent=':root{padding-top:'+(t<1?T:t)+'px!important;padding-bottom:'+(b<1?B:b)+'px!important}';document.head.appendChild(st);}}catch(e){}}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();})();true;`;
+/* Insets: the game pads itself with --sat/--sab. Android WebViews report the system bars through env() whether or not
+   the view actually sits under them, which doubled the padding on Samsung. Work out what really overlaps: compare the page's
+   height with the screen and set --sat/--sab to exactly that. */
+const insetJS = (ins, sh) => `(function(){var T=${Math.round(ins.top)},B=${Math.round(ins.bottom)},SH=${Math.round(sh)};
+ function fix(){try{var h=window.innerHeight,gap=SH-h,t=T,b=B;
+  if(gap>=T+B-6){t=0;b=0;}else if(gap<=6){t=T;b=B;}else if(Math.abs(gap-T)<=8){t=0;b=B;}else if(Math.abs(gap-B)<=8){t=T;b=0;}
+  window.EAT_INSETS={top:t,bottom:b,gap:gap,T:T,B:B};var st=document.getElementById('eatInsets');if(!st){st=document.createElement('style');st.id='eatInsets';(document.head||document.documentElement).appendChild(st);}
+  st.textContent=':root{--sat:'+t+'px!important;--sab:'+b+'px!important}';}catch(e){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix);else fix();window.addEventListener('resize',fix);})();true;`;
 
 const hapticFor = (p) => {
   const arr = Array.isArray(p) ? p : [p]; const on = arr.filter((_, i) => i % 2 === 0); const strongest = Math.max(0, ...on);
@@ -164,7 +167,7 @@ function Shell() {
           ref={web}
           source={{ uri: GAME_URL + '/?app=' + Platform.OS }}
           style={styles.web}
-          injectedJavaScriptBeforeContentLoaded={BRIDGE + insetJS(ins)}
+          injectedJavaScriptBeforeContentLoaded={BRIDGE + insetJS(ins, Dimensions.get('screen').height)}
           onMessage={onMessage}
           onShouldStartLoadWithRequest={onShouldStart}
           onError={() => setFailed(true)}
