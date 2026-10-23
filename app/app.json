@@ -80,7 +80,9 @@
       },
       "eas": {
         "projectId": "a53af9c7-9c35-4b5c-9111-3d51b93e4555"
-      }
+      },
+      "rcTestKey": "test_IxhZUwBEJMxwNHxJGaElIQoqjdJ",
+      "rcEntitlement": "auction_empire_pro"
     }
   }
 }

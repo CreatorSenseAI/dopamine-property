@@ -16,14 +16,33 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView, initialWindowMetrics, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Purchases, { PRODUCT_CATEGORY } from 'react-native-purchases';
+import Purchases, { LOG_LEVEL, PRODUCT_CATEGORY } from 'react-native-purchases';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 /* getProducts defaults to subscriptions on Android: fetch one-off items (cash packs, boosts) and subscriptions, one list */
 const getAll = async ids => { const out = [], seen = new Set(); for (const c of [PRODUCT_CATEGORY.NON_SUBSCRIPTION, PRODUCT_CATEGORY.SUBSCRIPTION]) { try { for (const p of await Purchases.getProducts(ids, c)) if (!seen.has(p.identifier)) { seen.add(p.identifier); out.push(p); } } catch (e) {} } return out; };
 
 const EXTRA = (Constants.expoConfig && Constants.expoConfig.extra) || {};
 const GAME_URL = EXTRA.gameUrl || 'https://game-production-ee8e.up.railway.app';
 const GAME_HOST = new URL(GAME_URL).host;
-const RC_KEY = (EXTRA.rcKeys || {})[Platform.OS] || '';
+/* Test builds (preview/device/local, see app.config.js) use the RevenueCat Test Store key: simulated purchases, no store setup.
+   Store builds use the platform keys (goog_… / appl_…) from extra.rcKeys. */
+const RC_TEST = !!EXTRA.rcTest;
+/* Store builds: a key baked into app.json wins, else the server hands out the public key set in Railway (GET /api/rc),
+   so a new or rotated key needs no new build. Test builds always use the Test Store key. */
+const rcKey = async () => {
+  if (RC_TEST) return EXTRA.rcTestKey || '';
+  const built = (EXTRA.rcKeys || {})[Platform.OS];
+  if (built) return built;
+  try { const r = await fetch(GAME_URL + '/api/rc', { cache: 'no-store' }); const j = await r.json(); return (j && j[Platform.OS]) || ''; } catch (e) { return ''; }
+};
+/* Pro = one entitlement, sold as a monthly subscription or a lifetime purchase (products monthly / lifetime in the default offering). */
+const PRO = EXTRA.rcEntitlement || 'auction_empire_pro';
+const proOf = (ci) => {
+  const e = ci && ci.entitlements && ci.entitlements.active ? ci.entitlements.active[PRO] : null;
+  return e ? { on: true, prod: e.productIdentifier || '', life: !e.expirationDate, until: e.expirationDateMillis || 0, renew: !!e.willRenew, store: e.store || '', sandbox: !!e.isSandbox, test: RC_TEST }
+    : { on: false, test: RC_TEST };
+};
+const PW = { [PAYWALL_RESULT.PURCHASED]: 'purchased', [PAYWALL_RESULT.RESTORED]: 'restored', [PAYWALL_RESULT.CANCELLED]: 'cancelled', [PAYWALL_RESULT.NOT_PRESENTED]: 'not_presented', [PAYWALL_RESULT.ERROR]: 'error' };
 const NON_CONSUMABLE = ['remove_ads', 'cosmetic_pack'];
 
 Notifications.setNotificationHandler({ handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: false, shouldShowBanner: true, shouldShowList: true }) });
@@ -37,7 +56,7 @@ const BRIDGE = `(function(){
  window.__dpResolve=function(id,ok,v){var p=pend[id];if(!p)return;delete pend[id];if(ok)p.res(v);else p.rej(new Error(v||'bridge'));};
  window.EAT_API=${JSON.stringify(GAME_URL)};
  window.EAT_NATIVE={platform:${JSON.stringify(Platform.OS)}};
- window.DPStore={available:function(){return rpc('available');},products:function(ids){return rpc('products',{ids:ids});},buy:function(id){return rpc('buy',{id:id});},owned:function(){return rpc('owned');},restore:function(){return rpc('restore');},review:function(){post('review');}};
+ window.DPStore={available:function(){return rpc('available');},pro:function(){return rpc('pro');},paywall:function(){return rpc('paywall');},manage:function(){return rpc('manage');},products:function(ids){return rpc('products',{ids:ids});},buy:function(id){return rpc('buy',{id:id});},owned:function(){return rpc('owned');},restore:function(){return rpc('restore');},review:function(){post('review');}};
  navigator.vibrate=function(p){post('haptic',{p:p});return true;};
  navigator.canShare=function(){return true;};
  navigator.share=function(d){d=d||{};var f=d.files&&d.files[0];if(!f)return rpc('share',{text:d.text||'',url:d.url||''});
@@ -81,11 +100,19 @@ function Shell() {
   const initPurchases = useCallback(async () => {
     if (rcReady.current) return rcReady.current;
     rcReady.current = (async () => {
+      const RC_KEY = await rcKey();
       if (!RC_KEY) return false;
-      try { Purchases.configure({ apiKey: RC_KEY, appUserID: installId.current || undefined }); return true; } catch (e) { return false; }
+      try {
+        Purchases.setLogLevel(RC_TEST || __DEV__ ? LOG_LEVEL.VERBOSE : LOG_LEVEL.WARN);
+        /* the game's install id is the RevenueCat user, so purchases follow a transferred game */
+        Purchases.configure({ apiKey: RC_KEY, appUserID: installId.current || undefined });
+        /* every renewal, expiry, refund or purchase made anywhere reaches the game */
+        Purchases.addCustomerInfoUpdateListener((ci) => run(`window.EAT_PRO&&window.EAT_PRO(${JSON.stringify(proOf(ci))})`));
+        return true;
+      } catch (e) { return false; }
     })();
     return rcReady.current;
-  }, []);
+  }, [run]);
 
   const owned = useCallback(async () => {
     const ci = await Purchases.getCustomerInfo();
@@ -111,7 +138,7 @@ function Shell() {
     let m; try { m = JSON.parse(ev.nativeEvent.data); } catch (e) { return; }
     const { id, k, a } = m;
     try {
-      if (k === 'ready') { installId.current = a.installId || installId.current; registerPush(); return; }
+      if (k === 'ready') { installId.current = a.installId || installId.current; registerPush(); initPurchases(); return; }
       if (k === 'haptic') { hapticFor(a.p).catch(() => {}); return; }
       if (k === 'review') { if (await StoreReview.hasAction()) StoreReview.requestReview(); return; }
       if (k === 'available') return resolve(id, true, await initPurchases());
@@ -122,6 +149,21 @@ function Shell() {
         catch (e) { return resolve(id, true, { ok: false, cancelled: !!(e && e.userCancelled) }); }
       }
       if (k === 'owned') return resolve(id, true, await owned());
+      if (k === 'pro') { if (!(await initPurchases())) return resolve(id, true, { on: false, off: true }); return resolve(id, true, proOf(await Purchases.getCustomerInfo())); }
+      if (k === 'paywall') {
+        /* RevenueCat Paywall for the current offering (built in the dashboard). Shown only when Pro isn't active. */
+        if (!(await initPurchases())) return resolve(id, true, { result: 'error', msg: 'store off' });
+        try {
+          const r = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: PRO, displayCloseButton: true });
+          return resolve(id, true, { result: PW[r] || String(r), pro: proOf(await Purchases.getCustomerInfo()) });
+        } catch (e) { return resolve(id, true, { result: 'error', msg: String(e && e.message || e) }); }
+      }
+      if (k === 'manage') {
+        /* Customer Center: manage or cancel the subscription, restore, refunds, contact, all inside the app */
+        if (!(await initPurchases())) return resolve(id, true, { on: false });
+        try { await RevenueCatUI.presentCustomerCenter(); } catch (e) { /* falls through to the latest state */ }
+        return resolve(id, true, proOf(await Purchases.getCustomerInfo()));
+      }
       if (k === 'restore') { await Purchases.restorePurchases(); return resolve(id, true, await owned()); }
       if (k === 'share') {
         if (a.dataUrl) {

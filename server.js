@@ -11,6 +11,15 @@ const zlib = require("zlib");
 const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
+/* RevenueCat: the app asks /api/rc for its public SDK key, so a key change needs no new app build.
+   Only public SDK keys are ever served (goog_ Android, appl_ iOS, test_ Test Store). A secret key (sk_) stays on the server. */
+const RC_RAW = String(process.env.REVENUECAT_API_KEY || process.env.Revenucat_api_key || process.env.RC_API_KEY || "").trim();
+const RC_KEYS = {};
+for (const k of RC_RAW.split(/[\s,;]+/).filter(Boolean)) {
+  if (/^goog_/.test(k)) RC_KEYS.android = k; else if (/^appl_/.test(k)) RC_KEYS.ios = k; else if (/^amzn_/.test(k)) RC_KEYS.amazon = k;
+  else if (/^test_/.test(k)) RC_KEYS.test = k; else RC_KEYS.secret = true;
+}
+console.log("RC keys: " + (Object.keys(RC_KEYS).map(k => k === "secret" ? "secret (server only)" : k).join(", ") || "none"));
 const ROOT = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
@@ -530,6 +539,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
+    if (url.pathname === "/api/rc") { const o = {}; for (const k of ["android", "ios", "amazon", "test"]) if (RC_KEYS[k]) o[k] = RC_KEYS[k]; return send(req, res, 200, "application/json", JSON.stringify(o), { "cache-control": "no-store" }); }
     if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""), String(url.searchParams.get("b") || "worth"))), { "cache-control": "no-store" });
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);

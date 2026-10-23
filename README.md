@@ -69,6 +69,9 @@ window.DPStore = {
   buy: async id => ({ ok: true }),             // resolves after the store confirms (and the receipt is validated)
   owned: async () => ["remove_ads"],           // non-consumables this account owns (checked on launch)
   restore: async () => ["remove_ads"],         // the "Restore purchases" button (Apple requires one)
+  pro: async () => ({ on, prod, life, until, renew }), // Pro entitlement (auction_empire_pro) state; the wrapper also pushes changes to window.EAT_PRO
+  paywall: async () => ({ result, pro }),      // RevenueCat Paywall for the current offering; result purchased|restored|cancelled|not_presented|error
+  manage: async () => ({ on, ... }),           // RevenueCat Customer Center (manage/cancel, restore, refunds); resolves with the new Pro state
   review: () => {},                            // optional: open the native store rating sheet (SKStoreReviewController / In-App Review); the game calls it after a Legendary win or a dynasty prestige, at most weekly
 };
 ```
@@ -77,6 +80,8 @@ Product ids (create the same ids in App Store Connect and Play Console):
 
 | id | type | gives |
 | --- | --- | --- |
+| `monthly` | subscription | Auction Empires Pro, monthly (entitlement `auction_empire_pro`) |
+| `lifetime` | non-consumable | Auction Empires Pro for life (entitlement `auction_empire_pro`) |
 | `remove_ads` | non-consumable | no ads |
 | `regos_10` | consumable | 10 bidder registrations |
 | `slots_10` | consumable | Property manager: +10 portfolio slots, permanent, stacks |
@@ -90,6 +95,8 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | `city_pack` | consumable | opens the next country one market early |
 | `rescue` | consumable | stops one repossession |
 | `rate_lock` | consumable | 4.5% on loans for 24 months |
+
+Pro = Property manager, the season pass every season it is active, +10 home slots, no ads (`PRO_PERKS`, `proOn()`). Both Pro products sit in the RevenueCat `default` offering, which carries the Paywall built in the RevenueCat dashboard.
 
 All guaranteed results: no paid chance, no paid auction wins, game cash never converts back to money. The catalogue lives in `IAP` in `public/index.html`; `/admin` shows shop opens, purchases by id and restores (revenue is in App Store Connect and Play Console).
 
