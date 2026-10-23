@@ -24,8 +24,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Familjen+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/site/img/auction-street.webp" imagesrcset="/site/img/auction-street-sm.webp 420w, /site/img/auction-street.webp 780w" imagesizes="(max-width:860px) 74vw, 330px">
 <link rel="stylesheet" href="/site/site.css">
-<script>/* returning players typed the address to play: take them straight to their game (crawlers and new visitors see this page) */
-try{var r=document.referrer,same=r&&r.indexOf(location.origin)===0;if(!same&&!/[?&]site\b/.test(location.search)&&localStorage.getItem('dopamine-property-v1'))location.replace('/play');}catch(e){}</script>
+<script>/* returning players see the site too; their Play buttons say Continue (no redirect: it hid the site from anyone with a save) */
+document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getItem('dopamine-property-v1'))document.querySelectorAll('a.btn[href^="/play"]').forEach(function(b){b.textContent=b.classList.contains('btn-play')&&b.closest('.top')?'Continue':'Continue your game';});}catch(e){}});</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
  {"@type":"WebSite","@id":"{{ORIGIN}}/#site","url":"{{ORIGIN}}/","name":"Auction Empires","inLanguage":"en-AU","publisher":{"@id":"{{ORIGIN}}/#org"}},
