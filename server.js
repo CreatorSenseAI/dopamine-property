@@ -42,6 +42,32 @@ const files = new Map();
   }
 })(ROOT, "");
 
+/* ---------- marketing site (v68): "/" is the site, "/play" the game ----------
+   Old game links keep working: "/" with a game query (?app=, ?src=, ?debug=…) still serves the game, and the site's home
+   sends returning players (a save in localStorage, arriving from outside) straight to /play. SITE_URL sets the public origin. */
+const RAIL = "https://game-production-ee8e.up.railway.app";
+const ORIGIN = String(process.env.SITE_URL || RAIL).replace(/\/+$/, "");
+const GAME_Q = /[?&](app|src|debug|mkt|reg|night|3d|q|wn|tune|join|ref|gfx|lot)(=|&|$)/;
+const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const PATCHES = (() => { try { const m = /const PATCH=(\[[\s\S]*?\}\]);/.exec(files.get("/index.html").body.toString()); return m ? require("vm").runInNewContext(m[1], {}, { timeout: 200 }) : []; } catch (e) { console.log("site: PATCH unreadable " + e.message); return []; } })();
+const UPDATED = (() => { const d = PATCHES[0] ? Date.parse(PATCHES[0].d + " UTC") : NaN; return new Date(isNaN(d) ? Date.now() : d).toISOString().slice(0, 10); })();
+const siteNav = (cur) => `<header class="top"><div class="wrap"><a class="brand" href="/"><span class="mk" aria-hidden="true">AE</span><b>Auction Empires</b></a><nav class="nav" aria-label="Main"><a class="hide-s" href="/how-to-play"${cur === "how" ? ' aria-current="page"' : ""}>How to play</a><a class="hide-s" href="/updates"${cur === "updates" ? ' aria-current="page"' : ""}>What's new</a><a class="btn btn-play" href="/play?src=site">Play free</a></nav></div></header>`;
+const siteFoot = `<footer class="foot"><div class="wrap"><div class="about"><a class="brand" href="/"><span class="mk" aria-hidden="true">AE</span><b>Auction Empires</b></a><p>A free property auction game, made in Sydney by CreatorSense AI.</p></div><div><h2 class="fh">Game</h2><ul><li><a href="/play?src=site">Play free</a></li><li><a href="/how-to-play">How to play</a></li><li><a href="/updates">What's new</a></li></ul></div><div><h2 class="fh">About</h2><ul><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="mailto:info@creatorsenseai.com">Contact</a></li></ul></div><small>© ${new Date().getFullYear()} CreatorSense AI. Auction Empires is a game: its prices, rents and values are not property advice.</small></div></footer>`;
+const siteUpdates = () => PATCHES.map((p) => `<li><div><span class="v">Version ${escH(p.v)}</span><span class="d">${escH(p.d)}</span></div><div><h2>${escH(p.t)}</h2><ul>${(p.items || []).map((i) => `<li>${escH(i)}</li>`).join("")}</ul></div></li>`).join("");
+const rec = (body, type = "text/html; charset=utf-8") => { const b = Buffer.from(body); return { body: b, gz: zlib.gzipSync(b), type }; };
+const SITE = new Map();
+for (const [route, file] of [["/", "/site/index.html"], ["/how-to-play", "/site/how-to-play.html"], ["/updates", "/site/updates.html"]]) {
+  const f = files.get(file); if (!f) continue;
+  let h = f.body.toString().replace(/<!--NAV:(\w+)-->/, (_, c) => siteNav(c)).replace("<!--FOOT-->", siteFoot).replace("<!--UPDATES-->", siteUpdates).replace(/\{\{ORIGIN\}\}/g, ORIGIN).replace(/\{\{UPDATED\}\}/g, UPDATED);
+  SITE.set(route, rec(h));
+}
+/* with a custom domain (SITE_URL), absolute links in the game and legal pages follow it */
+if (ORIGIN !== RAIL) for (const k of ["/index.html", "/privacy.html", "/terms.html"]) { const f = files.get(k); if (f) files.set(k, rec(f.body.toString().split(RAIL).join(ORIGIN), f.type)); }
+SITE.set("/privacy", files.get("/privacy.html")); SITE.set("/terms", files.get("/terms.html"));
+SITE.set("/robots.txt", rec(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\n\nSitemap: ${ORIGIN}/sitemap.xml\n`, "text/plain; charset=utf-8"));
+SITE.set("/sitemap.xml", rec(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` + [["/", "weekly", "1.0"], ["/play", "daily", "0.9"], ["/how-to-play", "monthly", "0.8"], ["/updates", "daily", "0.6"]].map(([u, c, p]) => `<url><loc>${ORIGIN}${u}</loc><lastmod>${UPDATED}</lastmod><changefreq>${c}</changefreq><priority>${p}</priority></url>`).join("\n") + `\n</urlset>\n`, "application/xml; charset=utf-8"));
+console.log(`site: ${SITE.size} routes at ${ORIGIN}, ${PATCHES.length} updates`);
+
 function send(req, res, code, type, body, extra = {}) {
   const gz = typeof body !== "undefined" && body.length > 1024 && /\bgzip\b/.test(req.headers["accept-encoding"] || "");
   res.writeHead(code, { "content-type": type, "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", vary: "accept-encoding", ...(gz ? { "content-encoding": "gzip" } : {}), ...extra });
@@ -565,7 +591,8 @@ const server = http.createServer(async (req, res) => {
       const all = loadAll();
       return send(req, res, 200, "application/json", JSON.stringify({ sessions: all.sessions, players: all.players }), { "cache-control": "no-store" });
     }
-    let f = files.get(url.pathname === "/" ? "/index.html" : url.pathname);
+    const sp = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, "") : "/";
+    let f = sp === "/play" ? files.get("/index.html") : sp === "/" ? (GAME_Q.test(url.search) ? files.get("/index.html") : SITE.get("/")) : SITE.get(sp) || files.get(url.pathname);
     /* a missing asset is a 404, not the game page (the service worker caches /img, /models, /sfx and /icons cache-first, so a fallback page would stick) */
     if (!f && (/^\/(img|models|sfx|icons)\//.test(url.pathname) || LONG.test(TYPES[path.extname(url.pathname)] || ""))) return send(req, res, 404, "text/plain", "not found");
     f = f || files.get("/index.html");

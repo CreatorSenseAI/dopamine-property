@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Auction Empires</title>
+<title>Play Auction Empires: the free property auction game</title>
 <meta name="application-name" content="Auction Empires">
 <meta name="apple-mobile-web-app-title" content="Empires">
 <meta name="description" content="Bid against rival investors, build a property empire and climb the rich list. A fast, free browser game about Aussie property auctions.">
@@ -11,7 +11,8 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Auction Empires">
 <meta property="og:description" content="Bid against rival investors at live auctions, collect rent, dodge the bills and climb the rich list. Free in your browser.">
-<meta property="og:url" content="https://game-production-ee8e.up.railway.app/">
+<meta property="og:url" content="https://game-production-ee8e.up.railway.app/play">
+<link rel="canonical" href="https://game-production-ee8e.up.railway.app/play">
 <meta property="og:image" content="https://game-production-ee8e.up.railway.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -5601,7 +5602,7 @@ function drawHome(){const h=$('#phHome');if(!h)return;const d=new Date();$('#phT
   ${notes.length?`<div class="phnotes">${notes.slice(0,3).map((n,i)=>`<button class="phnote" data-note="${i}" style="--c:${n.c}"><i></i><span><b>${esc(n.t)}</b><small>${esc(n.s)}</small></span><em>›</em></button>`).join('')}</div>`:''}
   <div class="phgrid">${APPS().map(([k,n],i)=>ico(k,i,n,k==='town'?rq:0,'data-app')).join('')}</div>
   <div class="phdock">${DOCK().map(([k,n],i)=>ico(k,i,n,k==='shop'&&gr?1:k==='msg'?unreadN():k==='msn'&&notes.some(x=>x.k==='msn')?1:0,'data-dock')).join('')}</div>`;}
-function syncPhone(){if(!phEl)return;$('#app').classList.toggle('shopon',view==='m');if(view==='m')renderWindow();const open=phoneOpen();phEl.classList.toggle('open',open);document.body.classList.toggle('phup',open);if(open&&!$('#coach').hidden)$('#coach').hidden=true,$('#toasts').classList.remove('coached');phEl.setAttribute('aria-hidden',open?'false':'true');
+function syncPhone(){if(!phEl)return;$('#app').classList.toggle('shopon',view==='m');if(view==='m')renderWindow();const open=phoneOpen();phEl.classList.toggle('open',open);document.body.classList.toggle('phup',open);{const ch=$('#coach');if(open&&ch&&!ch.hidden){ch.hidden=true;$('#toasts').classList.remove('coached');}}phEl.setAttribute('aria-hidden',open?'false':'true');
  const home=phHomeOpen&&view==='a'&&!PHP;$('#phHome').hidden=!home;$('#phBack').hidden=home;
  const g=view==='e'?grpOf(eSec):null;if(g)PLAST[g]=eSec;
  const title=PHP==='store'?'Store':PHP==='sheet'?(($('#sheet h3')||$('#sheet h2')||{}).textContent||''):view==='m'?'Market':g?PGN[g]:'';const ti=$('#phTitle');if(ti.textContent!==title)ti.textContent=title;
