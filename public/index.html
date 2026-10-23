@@ -31,6 +31,17 @@
 /* v65: one source for the top and bottom insets. The app overrides --sat/--sab with what really overlaps the WebView (Samsung's WebView reports the bars even when the view sits between them) */
 :root{--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
 :root{padding-top:var(--sat);padding-bottom:var(--sab)}
+/* v69: in full-screen 3D the street runs under the bars and every floating panel offsets itself with --sat/--sab, so the root padding would count them twice (the app showed a dark band top and bottom) */
+:root.d3full{padding-top:0;padding-bottom:0}
+/* v69: boot cover while the 3D street loads, so the old card layout never flashes up first */
+.boot{position:absolute;inset:0;z-index:29;display:grid;place-items:center;align-content:center;gap:14px;background:radial-gradient(120% 80% at 50% 30%,#1b2c4f,#0b1324 70%);color:#fff;transition:opacity .35s}
+.boot .bmk{display:grid;place-items:center;width:84px;height:84px;border-radius:22px;background:#13203a;color:#f2c14e;font:400 40px/1 'Anton','Impact',sans-serif;box-shadow:0 0 0 2px rgba(242,193,78,.35),0 18px 40px rgba(0,0,0,.4)}
+.boot b{font:400 30px/1 'Anton','Impact',sans-serif;letter-spacing:.02em}
+.boot i{display:block;width:140px;height:4px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}
+.boot i::after{content:"";display:block;height:100%;width:40%;border-radius:4px;background:#f2c14e;animation:bootbar 1.1s ease-in-out infinite}
+@keyframes bootbar{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media (prefers-reduced-motion:reduce){.boot i::after{animation:none;width:100%}}
+.boot.out{opacity:0;pointer-events:none}
 html,body{margin:0;padding:0}
 [hidden]:not([hidden=until-found i]){display:none!important}
 /* Layout: one-screen phone app. Ledger header, scrolling stage, tab bar. Signboard type for every price. */
@@ -2400,6 +2411,9 @@ body .dock .dock4 .bid.fire.zgood,body .dock .dock4 .bid.fire.zsteal{animation:z
 </head>
 <body>
 <div id="app">
+<div class="boot" id="boot" aria-hidden="true"><span class="bmk">AE</span><b>Auction Empires</b><i></i></div>
+<script>/* v69: drop the boot cover straight away when there will be no 3D street (3d=0, 3D switched off in Settings, no WebGL) */
+(function(){var off=/[?&]3d=0/.test(location.search);try{var sv=JSON.parse(localStorage.getItem('dopamine-property-v1')||'{}');if(sv&&sv.d3off)off=true;}catch(e){}if(!off){try{var c=document.createElement('canvas');off=!(c.getContext('webgl2')||c.getContext('webgl'));}catch(e){off=true;}}if(off){var b=document.getElementById('boot');if(b)b.remove();}else setTimeout(function(){window.bootDone&&window.bootDone();},12000);})();</script>
   <header class="top">
     <div class="mark"><button class="seac" id="hSea" aria-label="Season level"><b id="hSeaLv">Lv 0</b><i><em id="hSeaBar"></em></i></button><button class="seac pass" id="hPass" aria-label="Season pass tier"><b id="hPassLv" data-lv="0">0</b><i><em id="hPassBar"></em></i></button><button class="stars" id="hStars" aria-label="Dynasty: stars and prestige">★ 0</button><button class="streakc" id="hStreak" hidden aria-label="Daily streak"></button></div>
     <div class="ledger">
@@ -2567,6 +2581,7 @@ body .dock .dock4 .bid.fire.zgood,body .dock .dock4 .bid.fire.zsteal{animation:z
 <script>
 (function(){
 const $=s=>document.querySelector(s);
+window.bootDone=()=>{const b=document.getElementById('boot');if(!b||b.classList.contains('out'))return;b.classList.add('out');setTimeout(()=>b.remove(),400);};
 /* ---------- site config: affiliate handoff, ad slots, analytics (all optional) ---------- */
 const CONFIG={
  affiliate:{enabled:true,au:'https://www.realestate.com.au/buy/in-{slug},+{st}/list-1'},
@@ -5021,8 +5036,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=67;
+const APPV=69;
 const PATCH=[
+ {v:69,d:'23 Oct 2026',t:'Edge to edge',items:['In the app the street now fills the whole screen: no dark bands above the top bar or under the bid buttons.','The game opens on a loading screen until the 3D street is ready, instead of flashing the old card layout first.']},
  {v:67,d:'23 Oct 2026',t:'Auction Empires Pro',items:['Pro, in the app: Property manager, the season pass every season, +10 home slots and no ads, monthly or once for life.','Manage or cancel Pro from Settings without leaving the game.','Pro never wins a lot or buys chance: rivals bid the same either way.']},
  {v:66,d:'23 Oct 2026',t:'A smoother street',items:['The street and crowd draw in about a third of the work they used to, so phones keep a steadier frame rate during bidding wars.','Leaderboards show each player once, even if an old copy of their game was still on the board.','Tips about the auction wait until you put the phone away.']},
  {v:65,d:'23 Oct 2026',t:'Tighter and smoother',items:['Smoother on phones: the street draws fewer pixels and steps down sooner when your phone struggles.','The app fills the screen properly: no gap above the top bar or under the bid buttons.','After a win the bid panel keeps its zone bar, the button turns green and reads Yours, and the replay pill waits for the next lot instead of covering the inspection card.','Crowd name tags and speech bubbles stay on screen; the event camera drops below an off-market offer instead of covering it.','Tenant requests and leaderboards no longer spill text over photos or cut off the Rival tag.','Moving your game with a transfer code now keeps your spot on the leaderboards (no second copy of you).']},
@@ -5141,8 +5157,8 @@ const SRC='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
 let mktS=false,openS=false,D3err='',st='idle',R=null,cv=null,ov=null,scene=null,cam=null,lot=null,ENVK='',cur=null,lastBid=null,lastSay=null,stage=0,ended=false,pinS=false,glide=0,rivMap=new Map(),chars=[],AUCT=null,YOU=null,mark=null,sun=null,townS=null,townCam=null,lastT=0,coinT=0,want=false;
 const isLow=()=>(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=3);
 function allowed(){if(S.d3off||/[?&]3d=0/.test(location.search))return false;try{const c=document.createElement('canvas');return !!(c.getContext('webgl2')||c.getContext('webgl'));}catch(e){return false;}}
-function load(){if(st!=='idle')return;if(!allowed()){st='off';return;}st='loading';const go=()=>{try{init();st='ready';T.c.d3on=(T.c.d3on||0)+1;tlog('d3',{ok:1,low:isLow()?1:0});}catch(e){st='fail';D3err=String(e&&e.stack||e).slice(0,400);T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:String(e).slice(0,80)});}};
- if(window.THREE){go();return;}const s=document.createElement('script');s.src=SRC;s.crossOrigin='anonymous';s.onload=go;s.onerror=()=>{st='fail';T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:'script'});};document.head.appendChild(s);}
+function load(){if(st!=='idle')return;if(!allowed()){st='off';window.bootDone&&window.bootDone();return;}st='loading';const go=()=>{try{init();st='ready';T.c.d3on=(T.c.d3on||0)+1;tlog('d3',{ok:1,low:isLow()?1:0});}catch(e){st='fail';window.bootDone&&window.bootDone();D3err=String(e&&e.stack||e).slice(0,400);T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:String(e).slice(0,80)});}};
+ if(window.THREE){go();return;}const s=document.createElement('script');s.src=SRC;s.crossOrigin='anonymous';s.onload=go;s.onerror=()=>{st='fail';window.bootDone&&window.bootDone();T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:'script'});};document.head.appendChild(s);}
 
 /* ---------- small helpers ---------- */
 let TX;const C=h=>new THREE.Color(h).convertSRGBToLinear();
@@ -5531,7 +5547,7 @@ function recFrame(now){const R0=REC;if(!R0)return;const X=R0.X;if(cur!==X||view!
 const LV={};let layT=0,fN=0,uYaw=0,cdrag=null,phHomeOpen=false,phEl=null;
 function layout(){const app=$('#app');if(!app)return;{const li=$('#lotInfo'),lt=$('#lotTag');if(li){let t=li.querySelector('.ltag');if(!t){t=document.createElement('span');t.className='ltag';li.prepend(t);}t.textContent=lt?lt.textContent.split(' · ').slice(0,2).join(' · '):'';li.classList.toggle('rare',!!(A&&A.lot&&A.lot.rare));const sp=$('#lspec'),dl=document.querySelector('#art .daily');if(sp){const tx=dl?dl.textContent.trim():'';if(sp.textContent!==tx)sp.textContent=tx;sp.hidden=!tx;}}const lc=$('#lvCount');if(lc&&!lc.dataset.w){lc.dataset.w=1;lc.setAttribute('role','button');lc.tabIndex=0;lc.onclick=()=>{app.classList.toggle('lvopen');layout();};}if(lc&&lc.hidden)app.classList.remove('lvopen');}const set=(k,v)=>{LV[k]=Math.round(v||0);app.style.setProperty(k,LV[k]+'px');};const h=$('#app>header.top'),tr=$('#vAuction .toprow'),lv=$('#lvStrip'),dk=$('#dock'),li=$('#lotCard .live');
  if(h)set('--hdr',h.offsetTop+h.offsetHeight+4);if(tr)set('--trh',tr.offsetHeight);set('--lvh',lv&&!lv.hidden?lv.offsetHeight+6:0);if(dk)set('--dockh',dk.hidden?0:dk.offsetHeight);if(li)set('--liveh',li.offsetHeight);}
-function mountFull(){const app=$('#app');if(!app)return;if(cv.parentNode!==app){app.prepend(ov);app.prepend(cv);document.body.classList.add('d3full');buildPhone();
+function mountFull(){const app=$('#app');if(!app)return;if(cv.parentNode!==app){app.prepend(ov);app.prepend(cv);document.body.classList.add('d3full');document.documentElement.classList.add('d3full');setTimeout(()=>window.bootDone&&window.bootDone(),250);buildPhone();
  cv.addEventListener('pointerdown',e=>{cdrag={x:e.clientX,y0:uYaw};try{cv.setPointerCapture(e.pointerId);}catch(x){}});cv.addEventListener('pointermove',e=>{if(cdrag)uYaw=Math.max(-.7,Math.min(.8,cdrag.y0-(e.clientX-cdrag.x)/240));});
  const up=()=>{cdrag=null;};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);}}
 const phoneOpen=()=>view==='e'||view==='m'||phHomeOpen||!!PHP;
