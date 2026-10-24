@@ -88,6 +88,7 @@ Product ids (create the same ids in App Store Connect and Play Console):
 | `market_5` | consumable | Buyer's agent: +5 Market buys on the meter now, stacks |
 | `cash_1` … `cash_8` | consumable | fixed cash ladder: $250K (A$1.49), $1M (2.99), $5M (7.99), $25M (14.99), $100M (29.99), $300M (59.99), $600M (99.99), $1B (149.99) |
 | `season_pass` | consumable | this season's pass row: Epic homes, exclusive frames and paddles, cash, registrations, Market buys |
+| `crew_1` | consumable | hires one more builder crew for good (one more build site and upgrade at a time), up to 3 |
 | `finish_works` | consumable | every upgrade and build under way finishes now |
 | `starter_pack` | non-consumable | one time: $2M cash, 10 registrations and the Tycoon wardrobe (A$4.99 guide). Restores only re-grant the wardrobe; the cash and registrations land once (`S.starter`). |
 | `double_back` | consumable | doubles the welcome-back credit (rent and growth from the time away), once per return |

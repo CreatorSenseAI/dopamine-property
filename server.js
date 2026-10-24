@@ -159,6 +159,35 @@ async function richPost(req, res) {
   richDirty = true;
   return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId, String(b.board || "worth"))), { "cache-control": "no-store" });
 }
+/* v72 global suburb ownership: every player posts how many homes they hold in each suburb; the owner of a suburb is whoever holds the most
+   (3 or more), then the most value. A dethroned owner gets a notice on their next post. Entries not seen for 14 days drop out. */
+const TURF_FILE = path.join(DATA, "turf.json");
+let TURF = (() => { try { return JSON.parse(fs.readFileSync(TURF_FILE, "utf8")); } catch { return { subs: {}, own: {}, notes: {} }; } })(), turfDirty = false;
+TURF.subs = TURF.subs || {}; TURF.own = TURF.own || {}; TURF.notes = TURF.notes || {};
+setInterval(() => { if (turfDirty) { turfDirty = false; try { writeJSON(TURF_FILE, TURF); } catch (e) { console.log("TURF write " + e.message); } } }, 15000);
+const SUB_RX = /^[\p{L}\p{N} .'&()-]{2,40}$/u;
+function turfOwner(sub) { const h = TURF.subs[sub]; if (!h) return null; const cut = Date.now() - 14 * 864e5; let best = null;
+  for (const [id, e] of Object.entries(h)) { if (Date.parse(e.t) < cut) { delete h[id]; continue; } if (e.n >= 3 && (!best || e.n > best.e.n || (e.n === best.e.n && e.v > best.e.v))) best = { id, e }; }
+  if (!Object.keys(h).length) delete TURF.subs[sub]; return best; }
+function turfView(me) { const owners = {}, counts = {};
+  for (const sub of Object.keys(TURF.subs)) { const o = turfOwner(sub); if (!o) continue; owners[sub] = { nick: o.e.nick, n: o.e.n, me: o.id === me, c: o.e.c || 0 }; counts[o.id] = counts[o.id] || { nick: o.e.nick, n: 0 }; counts[o.id].n++;
+    const prev = TURF.own[sub]; if (prev && prev !== o.id) { (TURF.notes[prev] = TURF.notes[prev] || []).push({ sub, by: o.e.nick, t: Date.now() }); TURF.notes[prev] = TURF.notes[prev].slice(-20); turfDirty = true; } if (prev !== o.id) { TURF.own[sub] = o.id; turfDirty = true; } }
+  const top = Object.entries(counts).map(([id, x]) => ({ nick: x.nick, n: x.n, me: id === me })).sort((a, b) => b.n - a.n).slice(0, 20);
+  const notes = me && TURF.notes[me] ? TURF.notes[me].splice(0) : []; if (notes.length) turfDirty = true;
+  return { owners, top, mine: (counts[me] || { n: 0 }).n, players: Object.keys(counts).length, notes }; }
+async function turfPost(req, res) {
+  const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
+  if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 32768)); } catch { return send(req, res, 400, "text/plain", "bad body"); }
+  if (!b || !ID.test(String(b.installId))) return send(req, res, 400, "text/plain", "bad entry");
+  const nick = String(b.nick || "").trim(); if (!NICK.test(nick)) return send(req, res, 400, "text/plain", "bad nick");
+  const now = new Date().toISOString(), own = b.own && typeof b.own === "object" ? b.own : {}, id = b.installId, c = Math.max(0, Math.min(15, Math.floor(Number(b.c) || 0)));
+  for (const sub of Object.keys(TURF.subs)) if (TURF.subs[sub][id] && !own[sub]) delete TURF.subs[sub][id];
+  let k = 0; for (const [sub, x] of Object.entries(own)) { if (++k > 400 || !SUB_RX.test(sub) || !Array.isArray(x)) continue; const n = Math.max(0, Math.min(99, Math.floor(Number(x[0]) || 0))), v = Math.max(0, Math.min(1e13, Math.round(Number(x[1]) || 0))); if (!n) continue;
+    (TURF.subs[sub] = TURF.subs[sub] || {})[id] = { nick, n, v, c, t: now }; }
+  turfDirty = true;
+  return send(req, res, 200, "application/json", JSON.stringify(turfView(id)), { "cache-control": "no-store" });
+}
 async function boardPost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
@@ -566,6 +595,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
     if (url.pathname === "/api/rc") { const o = {}; for (const k of ["android", "ios", "amazon", "test"]) if (RC_KEYS[k]) o[k] = RC_KEYS[k]; return send(req, res, 200, "application/json", JSON.stringify(o), { "cache-control": "no-store" }); }
+    if (url.pathname === "/api/turf") return req.method === "POST" ? await turfPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(turfView(String(url.searchParams.get("id") || ""))), { "cache-control": "no-store" });
     if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""), String(url.searchParams.get("b") || "worth"))), { "cache-control": "no-store" });
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
