@@ -4,6 +4,9 @@
 // - The save is stored as the client sends it (gzip+base64 when the browser can compress, plain JSON otherwise), max 1.5 MB,
 //   with the last 5 versions kept so a bad overwrite can be undone from the admin side.
 // - Without RESEND_API_KEY every email is a dry run: the code is written to the log (masked address) so the flow can be tested.
+// - v77: a username and password (Matt: "can't the accounts just be a username and password, bcrypt to protect"). Passwords are hashed with
+//   Node's built-in scrypt (N=16384, r=8, p=1, 16-byte salt, 64-byte key): a memory-hard hash in the same family as bcrypt with no extra package,
+//   compared in constant time. 8 wrong passwords lock the username for 15 minutes; sign-in has its own tighter per-IP limit.
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -12,15 +15,23 @@ const https = require("https");
 module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
   const AD = path.join(DATA, "accounts"), SD = path.join(DATA, "accsaves");
   for (const d of [AD, SD]) fs.mkdirSync(d, { recursive: true });
-  const IDX = path.join(DATA, "acct-email.json");
+  const IDX = path.join(DATA, "acct-email.json"), UIDX = path.join(DATA, "acct-user.json");
   const RESEND = process.env.RESEND_API_KEY || "", FROM = process.env.MAIL_FROM || "Auction Empires <play@creatorsenseai.com>";
   console.log("ACCT email: " + (RESEND ? "live" : "dry run (set RESEND_API_KEY)"));
   const read = f => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
   const aFile = id => path.join(AD, id + ".json"), sFile = (id, n) => path.join(SD, id + (n == null ? "" : "." + n) + ".json");
   const sha = s => crypto.createHash("sha256").update(String(s)).digest("hex");
   const AID = /^a[a-z0-9]{15}$/, EMAIL = /^[^\s@<>"']{1,64}@[^\s@<>"']{1,190}\.[a-z]{2,24}$/i;
-  let emails = read(IDX) || {};
-  const saveIdx = () => writeJSON(IDX, emails);
+  let emails = read(IDX) || {}, users = read(UIDX) || {};
+  const saveIdx = () => writeJSON(IDX, emails), saveUsers = () => writeJSON(UIDX, users);
+  const USR = /^[a-z0-9_.-]{3,20}$/, normU = u => String(u || "").trim().toLowerCase();
+  const SCR = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+  const hashPw = pw => new Promise((res, rej) => { const salt = crypto.randomBytes(16); crypto.scrypt(String(pw), salt, 64, SCR, (e, k) => e ? rej(e) : res("s1$" + salt.toString("base64") + "$" + k.toString("base64"))); });
+  const checkPw = (pw, h) => new Promise(res => { const [v, s, k] = String(h || "").split("$"); if (v !== "s1" || !s || !k) return res(false); const want = Buffer.from(k, "base64");
+    crypto.scrypt(String(pw), Buffer.from(s, "base64"), want.length, SCR, (e, got) => res(!e && got.length === want.length && crypto.timingSafeEqual(got, want))); });
+  const pwBad = pw => typeof pw !== "string" || pw.length < 8 ? "Use at least 8 characters for your password." : pw.length > 128 ? "That password is too long." : null;
+  const shits = new Map();
+  const slowSignin = ip => { const now = Date.now(), h = shits.get(ip) || [0, now]; if (now - h[1] > 60000) { h[0] = 0; h[1] = now; } h[0]++; shits.set(ip, h); if (shits.size > 5000) shits.clear(); return h[0] > 20; };
   const mask = e => { const [u, d] = String(e).split("@"); return (u.slice(0, 2) + "***@" + d); };
   const hits = new Map();
   const slow = (ip, n = 120) => { const now = Date.now(), h = hits.get(ip) || [0, now]; if (now - h[1] > 60000) { h[0] = 0; h[1] = now; } h[0]++; hits.set(ip, h); if (hits.size > 5000) hits.clear(); return h[0] > n; };
@@ -34,7 +45,7 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
   /* the account a request's token belongs to */
   function auth(b) { const id = String(b.acct || ""); if (!AID.test(id)) return null; const a = read(aFile(id)); if (!a) return null; const h = sha(b.tok || ""); return (a.toks || []).some(t => t.h === h) ? a : null; }
   const newTok = a => { const tok = crypto.randomBytes(24).toString("hex"); a.toks = (a.toks || []).filter(t => Date.now() - t.at < 400 * 864e5).slice(-9); a.toks.push({ h: sha(tok), at: Date.now() }); return tok; };
-  const meta = a => ({ acct: a.id, iid: a.iid, email: a.email ? mask(a.email) : null, hasEmail: !!a.email, rev: a.rev || 0, at: a.at || 0, dev: a.dev || null, worth: a.worth || 0, nick: a.nick || "", mail: !!RESEND });
+  const meta = a => ({ acct: a.id, iid: a.iid, email: a.email ? mask(a.email) : null, hasEmail: !!a.email, rev: a.rev || 0, at: a.at || 0, dev: a.dev || null, worth: a.worth || 0, nick: a.nick || "", mail: !!RESEND, user: a.user || null });
   function mail(to, subject, text, html) {
     if (!RESEND) { console.log(`ACCT dry-run mail to ${mask(to)}: ${text.replace(/\s+/g, " ").slice(0, 120)}`); return Promise.resolve({ dry: true }); }
     const data = JSON.stringify({ from: FROM, to: [to], subject, text, html });
@@ -87,11 +98,23 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
     async "POST /api/acct/login/verify"(req, res) { const b = await body(req, res); if (!b) return; const em = String(b.email || "").trim().toLowerCase(); const a = emails[em] && read(aFile(emails[em])); if (!a) return bad(req, res, "No game uses that email.", 404);
       const err = checkCode(a, "login", b.code); if (err) return bad(req, res, err); a.code = null; const tok = newTok(a); writeJSON(aFile(a.id), a); const s = read(sFile(a.id));
       console.log(`ACCT login ${a.id} ${mask(em)}`); ok(req, res, Object.assign(meta(a), { tok, save: s || null })); },
+    /* v77 username + password: set them once from a signed-in device (changing the password needs the old one) */
+    async "POST /api/acct/user"(req, res) { const b = await body(req, res); if (!b) return; const a = auth(b); if (!a) return bad(req, res, "Signed out", 401);
+      const pe = pwBad(b.pass); if (pe) return bad(req, res, pe);
+      if (a.user) { if (!(await checkPw(b.old, a.pw))) return bad(req, res, "Your current password isn't right."); a.pw = await hashPw(b.pass); writeJSON(aFile(a.id), a); console.log(`ACCT password changed ${a.id}`); return ok(req, res, meta(a)); }
+      const u = normU(b.user); if (!USR.test(u)) return bad(req, res, "Usernames are 3 to 20 letters, numbers, dots, dashes or underscores.");
+      if (users[u] && users[u] !== a.id) return bad(req, res, "That username is taken. Try another.", 409, { taken: true });
+      a.user = u; a.pw = await hashPw(b.pass); a.pwFail = null; users[u] = a.id; saveUsers(); writeJSON(aFile(a.id), a); console.log(`ACCT username set ${a.id} ${u}`); ok(req, res, meta(a)); },
+    async "POST /api/acct/signin"(req, res) { if (slowSignin(ipOf(req))) return bad(req, res, "Too many tries. Wait a minute and try again.", 429); const b = await body(req, res); if (!b) return;
+      const u = normU(b.user), a = USR.test(u) && users[u] && read(aFile(users[u])); if (!a || !a.pw) { await hashPw("x"); return bad(req, res, "That username and password don't match.", 401); }
+      if (a.pwFail && a.pwFail.until > Date.now()) return bad(req, res, "Too many wrong passwords. Try again in " + Math.ceil((a.pwFail.until - Date.now()) / 60000) + " minutes.", 429);
+      if (!(await checkPw(b.pass, a.pw))) { const f = a.pwFail && a.pwFail.until <= Date.now() && a.pwFail.n >= 8 ? { n: 0 } : (a.pwFail || { n: 0 }); f.n++; if (f.n >= 8) f.until = Date.now() + 15 * 60e3; a.pwFail = f; writeJSON(aFile(a.id), a); console.log(`ACCT signin fail ${a.id} ${f.n}`); return bad(req, res, "That username and password don't match.", 401); }
+      a.pwFail = null; const tok = newTok(a); writeJSON(aFile(a.id), a); const s = read(sFile(a.id)); console.log(`ACCT signin ${a.id} ${u}`); ok(req, res, Object.assign(meta(a), { tok, save: s || null })); },
     /* App Store rule: an account you can create, you can delete. Removes the account, its saves and its email */
     async "POST /api/acct/delete"(req, res) { const b = await body(req, res); if (!b) return; const a = auth(b); if (!a) return bad(req, res, "Signed out", 401);
-      if (a.email && emails[a.email] === a.id) { delete emails[a.email]; saveIdx(); } for (const f of [aFile(a.id), sFile(a.id), 0, 1, 2, 3, 4].map(x => typeof x === "number" ? sFile(a.id, x) : x)) { try { fs.unlinkSync(f); } catch { } }
+      if (a.email && emails[a.email] === a.id) { delete emails[a.email]; saveIdx(); } if (a.user && users[a.user] === a.id) { delete users[a.user]; saveUsers(); } for (const f of [aFile(a.id), sFile(a.id), 0, 1, 2, 3, 4].map(x => typeof x === "number" ? sFile(a.id, x) : x)) { try { fs.unlinkSync(f); } catch { } }
       console.log(`ACCT deleted ${a.id}`); ok(req, res, { deleted: true }); },
   };
-  function stats() { let n = 0, withEmail = 0, saved = 0, recent = 0; try { for (const f of fs.readdirSync(AD)) { const a = read(path.join(AD, f)); if (!a) continue; n++; if (a.email) withEmail++; if (a.rev) saved++; if (a.seen && Date.now() - Date.parse(a.seen) < 7 * 864e5) recent++; } } catch { } return { n, withEmail, saved, recent, live: !!RESEND }; }
+  function stats() { let n = 0, withEmail = 0, withUser = 0, saved = 0, recent = 0; try { for (const f of fs.readdirSync(AD)) { const a = read(path.join(AD, f)); if (!a) continue; n++; if (a.email) withEmail++; if (a.user) withUser++; if (a.rev) saved++; if (a.seen && Date.now() - Date.parse(a.seen) < 7 * 864e5) recent++; } } catch { } return { n, withEmail, withUser, saved, recent, live: !!RESEND }; }
   return { async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; await r(req, res); return true; }, stats };
 };

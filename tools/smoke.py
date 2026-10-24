@@ -103,6 +103,7 @@ with sync_playwright() as p:
         pg.click("#lotInfo"); pg.wait_for_timeout(500)
         if pg.is_visible("#ifwin"): pg.screenshot(path=str(out / f"v25-ifwin-{scheme}.png")); pg.click("#iwX"); pg.wait_for_timeout(400)
         # swipe tour: the next-room arrow on the photo
+        if pg.is_visible("#modal"): print(scheme, "sheet open before the gallery:", pg.inner_text("#sheet")[:120].replace("\n", " ")); close_sheets(pg)
         if pg.locator("#art .galnav.next").count() and pg.is_enabled("#art .galnav.next"):
             pg.click("#art .galnav.next"); pg.wait_for_timeout(400); print(scheme, "gallery room:", pg.inner_text("#art .galname") if pg.locator("#art .galname").count() else "none"); pg.screenshot(path=str(out / f"v30-gallery-{scheme}.png"))
         pg.click("#tE"); pg.wait_for_timeout(800)

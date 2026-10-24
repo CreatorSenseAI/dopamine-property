@@ -522,7 +522,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <div class="wrap">
 <section class="${tab === "overview" ? "on" : ""}">
 <p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a> · backup ${LAST_BACKUP ? LAST_BACKUP.at.slice(0, 16).replace("T", " ") + " UTC, " + Math.round(LAST_BACKUP.bytes / 1024) + " KB" + (LAST_BACKUP.remote ? ", copied to the bucket" : ", local only (set S3_* to copy off the box)") : "none yet"} · <a href="/admin/backup">back up now</a></p>
-<h2>Accounts</h2><div class="g">${(() => { const k = accts.stats(); return tile("Accounts", k.n, k.saved + " with a cloud save · " + k.recent + " seen this week") + tile("Protected with email", k.withEmail, k.n ? Math.round(k.withEmail / k.n * 100) + "% of accounts" : "") + tile("Sign-in email", k.live ? "Live" : "Dry run", k.live ? "Resend" : "set RESEND_API_KEY"); })()}</div>
+<h2>Accounts</h2><div class="g">${(() => { const k = accts.stats(); return tile("Accounts", k.n, k.saved + " with a cloud save · " + k.recent + " seen this week") + tile("With a username", k.withUser || 0, k.n ? Math.round((k.withUser || 0) / k.n * 100) + "% of accounts" : "") + tile("Protected with email", k.withEmail, k.n ? Math.round(k.withEmail / k.n * 100) + "% of accounts" : "") + tile("Sign-in email", k.live ? "Live" : "Dry run", k.live ? "Resend" : "set RESEND_API_KEY"); })()}</div>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>Core loop: 3D street vs card layout (v63)</h2><div class="g">${s.loop.map(l => tile(l.d3 ? "3D street" : "Card layout", (l.bidShare) + " of lots bid on", `${l.sessions} sessions (30s+) · ${l.medMin} min/session · ${l.lotsPerMin ?? "–"} lots/min · first bid ${l.firstBid == null ? "–" : l.firstBid + "s"} · new players who never bid ${l.neverBid} · ${l.skips} ceremony skips · ${l.short} short ceremonies`)).join("")}</div>
@@ -653,6 +653,8 @@ const server = http.createServer(async (req, res) => {
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
 });
+/* v76: keep connections open longer than the proxy's idle timeout, so requests don't land on a socket the server just closed */
+server.keepAliveTimeout = 65000; server.headersTimeout = 66000;
 server.listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));
 /* v55 live arena push over WebSocket at /ws (arena-ws.js); logs "WS off" and keeps polling only when the ws package is missing */
 const wsArena = require("./arena-ws")(server, social);

@@ -226,6 +226,9 @@ function Shell() {
           javaScriptEnabled
           sharedCookiesEnabled
           cacheEnabled
+          cacheMode="LOAD_DEFAULT"
+          androidLayerType="none"
+          webviewDebuggingEnabled={!!EXTRA.rcTest}
           pullToRefreshEnabled={false}
           allowsLinkPreview={false}
           contentInsetAdjustmentBehavior="never"
