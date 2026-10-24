@@ -2575,6 +2575,13 @@ body[data-paddle="founder"] .pad.you b{background:linear-gradient(135deg,#6a3fd6
 .evcals{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}.evcal{padding:8px 10px;border-radius:10px;background:var(--sunk);text-align:left;display:flex;flex-direction:column}.evcal.now{box-shadow:inset 0 0 0 2px #f2c14e}.evcal b{font:800 12px var(--f-body)}.evcal span{font:700 13px var(--f-body)}.evcal small{font:600 10.5px/1.3 var(--f-body);color:var(--muted)}
 .sbtn.adb{background:linear-gradient(180deg,#e9f2ff,#c9dcff)!important;color:#1d3f8a!important;box-shadow:inset 0 1px 0 #fff,0 2px 0 #8aa6d8!important;margin-left:6px}
 </style>
+<script>/* v82: three.js r164 as ES modules through an import map (own /vendor copies, jsdelivr in the artifact preview); ?three=128 or a failed r164 start falls back to r128 */
+(function(){var q=location.search,t128=/[?&]three=128/.test(q);try{if(localStorage.getItem('ae-t128'))t128=!/[?&]three=164/.test(q);}catch(e){}
+var ok=!t128&&window.HTMLScriptElement&&HTMLScriptElement.supports&&HTMLScriptElement.supports('importmap');window.AE_T164=!!ok;if(!ok)return;
+var own=/^https?:$/.test(location.protocol)&&!window.claude&&!/claude\.ai|claudeusercontent/.test(location.hostname)&&!/[?&]vend=0/.test(q),V='/vendor/',J='https://cdn.jsdelivr.net/npm/';
+var m=own?{three:V+'r164/three.module.min.js','three/addons/':V+'r164/addons/',postprocessing:V+'postprocessing-6.35.6.mjs','troika-three-text':V+'troika-three-text-0.52.5.mjs','troika-three-utils':V+'troika-three-utils-0.52.4.mjs','troika-worker-utils':V+'troika-worker-utils-0.52.0.mjs','webgl-sdf-generator':V+'webgl-sdf-generator-1.1.1.mjs','bidi-js':V+'bidi-1.0.3.mjs'}
+:{three:J+'three@0.164.1/build/three.module.min.js','three/addons/':J+'three@0.164.1/examples/jsm/',postprocessing:J+'postprocessing@6.35.6/build/index.js','troika-three-text':J+'troika-three-text@0.52.5/dist/troika-three-text.esm.js','troika-three-utils':J+'troika-three-utils@0.52.4/dist/troika-three-utils.esm.js','troika-worker-utils':J+'troika-worker-utils@0.52.0/dist/troika-worker-utils.esm.js','webgl-sdf-generator':J+'webgl-sdf-generator@1.1.1/dist/webgl-sdf-generator.mjs','bidi-js':J+'bidi-js@1.0.3/dist/bidi.mjs'};
+var s=document.createElement('script');s.type='importmap';s.textContent=JSON.stringify({imports:m});document.head.appendChild(s);})();</script>
 </head>
 <body>
 <div id="app">
@@ -5707,8 +5714,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=81;
+const APPV=82;
 const PATCH=[
+ {v:82,d:'25 Oct 2026',t:'New 3D engine underneath',items:['The street, My town and every live event now run on a newer version of the 3D engine. Same look, newer foundations for what comes next.']},
  {v:81,d:'25 Oct 2026',t:'Loads faster',items:['The 3D street now loads from our own server, compressed smaller and kept on your phone for next time, so it opens quicker and needs less data.']},
  {v:79,d:'25 Oct 2026',t:'Weekly events, Syndicate Races, album seasons',items:['Every week now has a theme: Rent week, Deal week, Builder week or Rare week.','Street Sprint, Monday to Thursday: most auction wins takes 50 stars. Weekend Cup, Friday to Sunday: biggest net worth gain. Prizes for the top half of each board.','Syndicate Race every other week: every win your friend group makes adds up, and every member shares the prize.','Album seasons: 12 suburbs every six weeks. Stars every four, and the full set pays an Epic home.','Invite friends with your link: when they reach level 5 you both get 20 stars.','New Events app on your phone with the four-week calendar.']},
  {v:78,d:'25 Oct 2026',t:'Store: starter pack, star vault, spending controls',items:['A one-time starter pack: 80 stars, an extra builder crew for a week and the Tycoon gavel paddle.','Your star vault fills as you win auctions. Open it whenever it holds 10 or more.','More star packs, from A$1.49 to A$149.99, and every star price now shows roughly what it is in dollars.','The Dynasty Club now comes with its own frame and paddle and can be paid yearly.','Back after a week away? 10 stars on the house.','Settings, then Purchases and spending: your purchase history and an optional monthly limit.']},
@@ -5818,8 +5826,15 @@ const VEND={three:'three-r128.min.js',gltf:['gltfloader-r128.js','meshopt-r128.j
 const VURL=(k,cdn)=>OWNV&&VEND[k]?(Array.isArray(VEND[k])?VEND[k].map(f=>'/vendor/'+f):'/vendor/'+VEND[k]):cdn;
 if(OWNV){for(const k of ['font','haptics'])CDN[k]=VURL(k,CDN[k]);}
 function loadSeq(urls){return urls.reduce((p,u)=>p.then(()=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.async=false;s.onload=()=>ok();s.onerror=()=>{s.remove();no(new Error('lib '+u));};document.head.appendChild(s);})),Promise.resolve());}
+const ESMLIB={gltf:()=>Promise.resolve(),pp:()=>import('postprocessing').then(m=>{window.POSTPROCESSING=m;}),troika:()=>import('troika-three-text').then(m=>{window.troika_three_text=m;})};
+/* r164 under the r128 code: colour management off (the game converts its own colours, as before), legacy lights, old point/spot decay, and the old encoding names */
+function shim164(ns,G,M,SU){const X=Object.assign({},ns);try{ns.ColorManagement.enabled=false;}catch(e){}X.sRGBEncoding=3001;X.LinearEncoding=3000;
+ if(!Object.getOwnPropertyDescriptor(ns.Texture.prototype,'encoding'))Object.defineProperty(ns.Texture.prototype,'encoding',{configurable:true,get(){return this.colorSpace==='srgb'?3001:3000;},set(v){this.colorSpace=v===3001?'srgb':'';}});
+ X.WebGLRenderer=class extends ns.WebGLRenderer{constructor(o){super(o);const w=console.warn;console.warn=()=>{};try{this.useLegacyLights=true;}finally{console.warn=w;}}set outputEncoding(v){this.outputColorSpace=v===3001?'srgb':'srgb-linear';}get outputEncoding(){return this.outputColorSpace==='srgb'?3001:3000;}};
+ X.PointLight=class extends ns.PointLight{constructor(c,i,d=0,dc=1){super(c,i,d,dc);}};X.SpotLight=class extends ns.SpotLight{constructor(c,i,d=0,a,pn,dc=1){super(c,i,d,a,pn,dc);}};
+ X.GLTFLoader=G.GLTFLoader;X.SkeletonUtils=SU;window.MeshoptDecoder=M.MeshoptDecoder;X.R164=1;window.THREE=X;}
 const LIBP={};
-const LIBS={};function lib(k){if(LIBP[k])return LIBP[k];LIBS[k]='loading';const cdn=[].concat(CDN[k]),loc=OWNV&&VEND[k]?[].concat(VURL(k)):null;LIBP[k]=loc?loadSeq(loc).catch(()=>{T.c.vendFail=(T.c.vendFail||0)+1;return loadSeq(cdn);}):loadSeq(cdn);LIBP[k].then(()=>{LIBS[k]='ok';},()=>{LIBS[k]='failed';T.c.libFail=(T.c.libFail||0)+1;tlog('lib_fail',{k});});return LIBP[k];}
+const LIBS={};function lib(k){if(LIBP[k])return LIBP[k];LIBS[k]='loading';const em=window.THREE&&THREE.R164&&ESMLIB[k];if(em){LIBP[k]=em();}else{const cdn=[].concat(CDN[k]),loc=OWNV&&VEND[k]?[].concat(VURL(k)):null;LIBP[k]=loc?loadSeq(loc).catch(()=>{T.c.vendFail=(T.c.vendFail||0)+1;return loadSeq(cdn);}):loadSeq(cdn);}LIBP[k].then(()=>{LIBS[k]='ok';},()=>{LIBS[k]='failed';T.c.libFail=(T.c.libFail||0)+1;tlog('lib_fail',{k});});return LIBP[k];}
 const ASSET=p=>p;/* models/, sfx/ sit next to the page: /models on the web, the artifact's own files in the preview */
 /* howler.js + a CC0 sound sprite (Kenney impact, casino and interface packs): real chips, gavel knocks and clicks; musical cues stay synthesised */
 const SPR={gavel:[0,440],bid1:[690,170],bid2:[1110,227],bid3:[1587,266],rival:[2102,227],cash:[2579,170],cash2:[2999,256],tick:[3505,40],open:[3767,314],close:[4330,314],ok:[4894,539],err:[5683,104],drop:[6038,188],card:[6476,937],flip:[7663,456],bell:[8370,1741],thud:[10361,569],glass:[11180,238],metal:[11668,356]};
@@ -5848,7 +5863,11 @@ let mktS=false,openS=false,D3err='',st='idle',R=null,cv=null,ov=null,scene=null,
 const isLow=()=>(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=3);
 function allowed(){if(S.d3off||/[?&]3d=0/.test(location.search))return false;try{const c=document.createElement('canvas');return !!(c.getContext('webgl2')||c.getContext('webgl'));}catch(e){return false;}}
 function load(){if(st!=='idle')return;if(!allowed()){st='off';window.bootDone&&window.bootDone();return;}st='loading';const go=()=>{try{init();st='ready';T.c.d3on=(T.c.d3on||0)+1;tlog('d3',{ok:1,low:isLow()?1:0});}catch(e){st='fail';window.bootDone&&window.bootDone();D3err=String(e&&e.stack||e).slice(0,400);T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:String(e).slice(0,80)});}};
- if(window.THREE){go();return;}const s=document.createElement('script');const own=OWNV;s.src=own?'/vendor/'+VEND.three:SRC;s.crossOrigin='anonymous';s.onload=go;s.onerror=()=>{if(own&&s.src.indexOf('/vendor/')>=0){T.c.vendFail=(T.c.vendFail||0)+1;const s2=document.createElement('script');s2.src=SRC;s2.crossOrigin='anonymous';s2.onload=go;s2.onerror=()=>fail3();document.head.appendChild(s2);return;}fail3();};const fail3=()=>{st='fail';window.bootDone&&window.bootDone();T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:'script'});};document.head.appendChild(s);}
+ if(window.THREE){go();return;}
+ let gl2=false;try{gl2=!!document.createElement('canvas').getContext('webgl2');}catch(e){}
+ if(window.AE_T164&&gl2&&!window.__T128){Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/libs/meshopt_decoder.module.js'),import('three/addons/utils/SkeletonUtils.js')]).then(([a,b,c,d])=>{shim164(a,b,c,d);T.c.t164=(T.c.t164||0)+1;go();if(st==='fail'){try{localStorage.setItem('ae-t128','1');}catch(e){}tlog('t164_fail',{e:D3err.slice(0,120)});}}).catch(e=>{T.c.t164load=(T.c.t164load||0)+1;tlog('t164_load',{e:String(e).slice(0,80)});window.__T128=1;load128();});return;}
+ load128();
+ function load128(){const s=document.createElement('script');const own=OWNV;s.src=own?'/vendor/'+VEND.three:SRC;s.crossOrigin='anonymous';s.onload=go;s.onerror=()=>{if(own&&s.src.indexOf('/vendor/')>=0){T.c.vendFail=(T.c.vendFail||0)+1;const s2=document.createElement('script');s2.src=SRC;s2.crossOrigin='anonymous';s2.onload=go;s2.onerror=()=>fail3();document.head.appendChild(s2);return;}fail3();};const fail3=()=>{st='fail';window.bootDone&&window.bootDone();T.c.d3fail=(T.c.d3fail||0)+1;tlog('d3',{ok:0,e:'script'});};document.head.appendChild(s);}}
 
 /* ---------- small helpers ---------- */
 let TX;const C=h=>new THREE.Color(h).convertSRGBToLinear();
@@ -6062,7 +6081,7 @@ const SHARED_MATS=new Set(),VCM=new Map();/* GLASS and other materials code chan
    existing limb, blink and lean animation keeps driving it, colours are baked into vertex colours. Skipped: transparent, mapped or named parts
    (paddle, sash) and anything under a named group. */
 const SKM=new Map();
-function skinMat(shiny){const k=shiny?'s':'m';let m=SKM.get(k);if(!m){m=new THREE.MeshStandardMaterial({vertexColors:true,skinning:true,roughness:shiny?.25:.65,metalness:0});m._keep=true;SKM.set(k,m);}return m;}
+function skinMat(shiny){const k=shiny?'s':'m';let m=SKM.get(k);if(!m){m=new THREE.MeshStandardMaterial(Object.assign({vertexColors:true,roughness:shiny?.25:.65,metalness:0},THREE.R164?{}:{skinning:true}));m._keep=true;SKM.set(k,m);}return m;}
 function rigidSkin(root){if(window.__NOSKIN)throw new Error('off');root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),bones=[],B={m:[],s:[]};
  root.traverse(o=>{if(!o.isMesh||o.isSkinnedMesh||o.isInstancedMesh||!o.visible||Array.isArray(o.material)||!o.geometry||!o.geometry.attributes.position)return;const m=o.material;
   if(m.transparent||m.map||!m.color||(m.emissive&&m.emissive.getHex()!==0))return;for(let a=o;a&&a!==root;a=a.parent)if(a.name&&!(a.name==='paddle'&&a!==o))return;
@@ -6938,7 +6957,7 @@ function mkComposer(rd,sc,cm,o){const P=POSTPROCESSING,c=new P.EffectComposer(rd
 function postOn(){lib('pp').then(()=>{if(Q.post)return;try{PPX.street=mkComposer(R,scene,cam,{ssao:Q.tier>=3});if(R3)PPX.cut=mkComposer(R3,cutS,cutCam,{ssao:Q.tier>=3});if(R2&&townS)PPX.town=mkComposer(R2,townS,townCam,{});for(const k in PPX){if(!PPX[k].ownTM)PPX[k].rd.toneMapping=THREE.NoToneMapping;PPX[k].w=0;}Q.post=true;Q.postAt=performance.now();QF.t=0;QF.n=0;T.c.post=1;document.body.classList.remove('d3vig');}catch(e){D3err='post '+e.message;postOff();}}).catch(()=>{});}
 function compare(ms){if(!Q.post)return;postOff();Q.cmp=1;toast('Effects off. Back on in '+Math.round(ms/1000)+' seconds');setTimeout(()=>{Q.cmp=0;applyQuality();toast('Effects back on');},ms);}
 function setTier(t){if(t==null||t<0){S.gfx=-1;Q.src='auto';}else{S.gfx=t;Q.tier=t;Q.src='setting';}save();Q.off=false;postOff();applyQuality();if(Q.tier>=1)loadModels();}
-function status(){return {pace:Q.pace?30:0,tier:Q.tier,src:Q.src,gpu:Q.gpu,post:Q.post,drop:Q.drop||null,fps:Q.fps||null,cap:Q.cap||null,rs:Q.rs||1,pr:R?+R.getPixelRatio().toFixed(2):null,ssao:!!(PPX.street&&PPX.street.ssao),models:MODELS.ready?Object.keys(MODELS.g).length:0,town3d:!!(TCC||window.CameraControls),text3d:!!window.troika_three_text,confetti:!!window.Nebula,st};}
+function status(){return {three:THREE.REVISION,pace:Q.pace?30:0,tier:Q.tier,src:Q.src,gpu:Q.gpu,post:Q.post,drop:Q.drop||null,fps:Q.fps||null,cap:Q.cap||null,rs:Q.rs||1,pr:R?+R.getPixelRatio().toFixed(2):null,ssao:!!(PPX.street&&PPX.street.ssao),models:MODELS.ready?Object.keys(MODELS.g).length:0,town3d:!!(TCC||window.CameraControls),text3d:!!window.troika_three_text,confetti:!!window.Nebula,st};}
 function postOff(){for(const k in PPX){try{PPX[k].rd.toneMapping=PPX[k].tm;PPX[k].dispose();}catch(e){}delete PPX[k];}Q.post=false;document.body.classList.add('d3vig');}
 function lateComposers(){if(!Q.post)return;try{if(R3&&!PPX.cut){PPX.cut=mkComposer(R3,cutS,cutCam,{ssao:Q.tier>=3});if(!PPX.cut.ownTM)PPX.cut.rd.toneMapping=THREE.NoToneMapping;}if(R2&&townS&&!PPX.town){PPX.town=mkComposer(R2,townS,townCam,{});if(!PPX.town.ownTM)PPX.town.rd.toneMapping=THREE.NoToneMapping;}}catch(e){}}
 /* draw through the composer when post-processing is on; resize either way */
