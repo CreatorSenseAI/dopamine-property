@@ -14,6 +14,8 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   const myGroups = id => read(mFile(id)) || [];
   const newCode = () => { for (let i = 0; i < 50; i++) { let c = "EAT-"; for (let k = 0; k < 4; k++) c += ALPHA[crypto.randomInt(ALPHA.length)]; if (!fs.existsSync(gFile(c))) return c; } return null; };
   const clean = s => String(s || "").replace(/[^A-Za-z0-9 _.,'!?&()-]/g, "").trim();
+  /* v71: feed text keeps + $ % ★ · : (it used to print "cashed out at 153M for 1 (Baron)") */
+  const cleanT = s => String(s || "").replace(/[^A-Za-z0-9 _.,'!?&()+$%★·:\/-]/g, "").trim();
   const num = (v, lo, hi) => { v = Number(v); return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : 0; };
   const ipOf = req => (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   const weekStart = () => { const d = new Date(); const day = (d.getUTCDay() + 6) % 7; d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() - day); return d.toISOString(); };
@@ -31,11 +33,19 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   }
   function view(g, me) {
     const ws = weekStart();
-    const members = Object.entries(g.members).map(([id, m]) => ({ nick: m.nick, worth: m.worth || 0, stars: m.stars || 0, title: m.title || "", homes: m.homes || 0, income: m.income || 0, best: m.best || null, style: m.style || "sniper", weekGain: m.week && m.week.at === ws ? (m.worth || 0) - m.week.worth : 0, me: id === me, key: crypto.createHash("sha1").update(g.code + id).digest("hex").slice(0, 10) }))
+    /* v71: one row per player. A moved or reinstalled game joins as a new install id, so the same nick showed 2-3 times (Matt at $61.8B, $8.04M and $4.90M).
+       Same nick (any case) = same player: your own copy wins, else the one seen most recently */
+    const seenAt = m => Date.parse(m.seen || m.joined || 0) || 0, byNick = new Map();
+    for (const [id, m] of Object.entries(g.members)) { const k = String(m.nick || "").toLowerCase(), cur = byNick.get(k);
+      if (!cur || (id === me) || (cur[0] !== me && seenAt(m) > seenAt(cur[1]))) byNick.set(k, [id, m]); }
+    const nickOf = id => (g.members[id] && g.members[id].nick) || "Someone";
+    const members = [...byNick.values()].map(([id, m]) => ({ nick: m.nick, worth: m.worth || 0, stars: m.stars || 0, title: m.title || "", homes: m.homes || 0, income: m.income || 0, best: m.best || null, style: m.style || "sniper", weekGain: m.week && m.week.at === ws ? (m.worth || 0) - m.week.worth : 0, me: id === me, key: crypto.createHash("sha1").update(g.code + id).digest("hex").slice(0, 10) }))
       .sort((a, b) => b.worth - a.worth);
-    const feed = g.feed.slice(-30).reverse().map(e => ({ eid: e.eid, t: e.t, nick: e.nick, kind: e.kind, text: e.text, card: e.card || null, reacts: Object.fromEntries(REACTS.map(r => [r, (e.reacts && e.reacts[r] || []).length])), mine: REACTS.filter(r => (e.reacts && e.reacts[r] || []).includes(me)) }));
+    const joinedSeen = new Set();
+    const feed = g.feed.slice(-40).reverse().filter(e => { if (e.kind !== "joined") return true; const k = String(e.nick || "").toLowerCase(); if (joinedSeen.has(k)) return false; joinedSeen.add(k); return true; }).slice(0, 30)
+      .map(e => ({ eid: e.eid, t: e.t, nick: e.nick, kind: e.kind, text: e.text, card: e.card || null, reacts: Object.fromEntries(REACTS.map(r => [r, (e.reacts && e.reacts[r] || []).length])), who: [...new Set(REACTS.flatMap(r => (e.reacts && e.reacts[r] || []).map(nickOf)))].slice(0, 4), mine: REACTS.filter(r => (e.reacts && e.reacts[r] || []).includes(me)) }));
     const duels = (g.duels || []).slice(-20).map(id => read(dFile(id))).filter(Boolean).filter(d => d.from === me || d.to === me || d.done).slice(-10).map(d => duelView(d, me, g));
-    const ms = Object.values(g.members), gainer = ms.filter(m => m.week && m.week.at === ws).sort((a, b) => ((b.worth || 0) - b.week.worth) - ((a.worth || 0) - a.week.worth))[0], find = ms.filter(m => m.best).sort((a, b) => b.best.rarity - a.best.rarity || b.best.value - a.best.value)[0];
+    const ms = [...byNick.values()].map(x => x[1]), gainer = ms.filter(m => m.week && m.week.at === ws).sort((a, b) => ((b.worth || 0) - b.week.worth) - ((a.worth || 0) - a.week.worth))[0], find = ms.filter(m => m.best).sort((a, b) => b.best.rarity - a.best.rarity || b.best.value - a.best.value)[0];
     const trophies = { gainer: gainer && (gainer.worth || 0) - gainer.week.worth > 0 ? gainer.nick : null, find: find && find.best.rarity >= 2 ? find.nick : null };
     return { code: g.code, name: g.name, owner: g.owner === me, members, feed, duels, trophies };
   }
@@ -44,7 +54,7 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
     return { id: d.id, seed: d.seed, tier: d.tier, from: nick(d.from), to: nick(d.to), mine: d.from === me ? "from" : d.to === me ? "to" : null, scores: { from: d.scores[d.from] ?? null, to: d.scores[d.to] ?? null }, done: !!d.done, at: d.at }; }
   function post(g, id, kind, text, card) {
     const m = g.members[id]; if (!m) return;
-    g.feed.push({ eid: crypto.randomBytes(5).toString("hex"), t: new Date().toISOString(), id, nick: m.nick, kind, text: clean(text).slice(0, 120), card, reacts: {} });
+    g.feed.push({ eid: crypto.randomBytes(5).toString("hex"), t: new Date().toISOString(), id, nick: m.nick, kind, text: cleanT(text).slice(0, 120), card, reacts: {} });
     if (g.feed.length > FEED) g.feed = g.feed.slice(-FEED);
   }
 
@@ -110,7 +120,7 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       if (!g.members[b.installId]) { if (Object.keys(g.members).length >= MAX_MEMBERS) return bad(req, res, "That group is full (" + MAX_MEMBERS + ")."); if (mine.length >= MAX_GROUPS) return bad(req, res, "You're in " + MAX_GROUPS + " groups already. Leave one first.");
         g.members[b.installId] = { nick, joined: new Date().toISOString(), ...statsOf(b), week: { at: weekStart(), worth: statsOf(b).worth } };
         const inv = b.ref && keyToId(g, String(b.ref)); if (inv && inv !== b.installId) { g.members[inv].refs = (g.members[inv].refs || 0) + 1; g.members[b.installId].referred = true; }
-        post(g, b.installId, "joined", nick + " joined" + (inv ? " on " + g.members[inv].nick + "'s invite" : "")); writeJSON(gFile(code), g); writeJSON(mFile(b.installId), mine.concat(code)); }
+        if (!Object.entries(g.members).some(([id, m]) => id !== b.installId && String(m.nick || "").toLowerCase() === nick.toLowerCase())) post(g, b.installId, "joined", nick + " joined" + (inv ? " on " + g.members[inv].nick + "'s invite" : "")); writeJSON(gFile(code), g); writeJSON(mFile(b.installId), mine.concat(code)); }
       ok(req, res, { code, group: view(g, b.installId) }); },
     async "POST /api/group/leave"(req, res) { const b = await body(req, res); if (!b) return; const g = read(gFile(String(b.code))); if (!g || !g.members[b.installId]) return ok(req, res);
       delete g.members[b.installId]; writeJSON(mFile(b.installId), myGroups(b.installId).filter(c => c !== g.code));
@@ -123,17 +133,20 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       const code = newCode(); if (!code) return bad(req, res, "Try again", 503); const old = g.code; g.code = code;
       for (const id of Object.keys(g.members)) writeJSON(mFile(id), myGroups(id).map(c => c === old ? code : c));
       writeJSON(gFile(code), g); try { fs.unlinkSync(gFile(old)); } catch {} ok(req, res, { code, group: view(g, b.installId) }); },
-    async "POST /api/group/sync"(req, res) { const b = await body(req, res); if (!b) return; const st = statsOf(b), nick = clean(b.nick), ws = weekStart(), out = [];
+    async "POST /api/group/sync"(req, res) { const b = await body(req, res); if (!b) return; const st = statsOf(b), nick = clean(b.nick), ws = weekStart(), out = [], rx = [];
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g || !g.members[b.installId]) continue; const m = g.members[b.installId];
-        Object.assign(m, st); if (NICK.test(nick)) m.nick = nick; if (!m.week || m.week.at !== ws) m.week = { at: ws, worth: st.worth }; m.seen = new Date().toISOString(); writeJSON(gFile(c), g); out.push({ code: c, name: g.name, n: Object.keys(g.members).length }); }
+        Object.assign(m, st); if (NICK.test(nick)) m.nick = nick; if (!m.week || m.week.at !== ws) m.week = { at: ws, worth: st.worth }; m.seen = new Date().toISOString(); if (m.rx && m.rx.length) { rx.push(...m.rx); m.rx = []; } writeJSON(gFile(c), g); out.push({ code: c, name: g.name, n: Object.keys(g.members).length }); }
       let refs = 0, referred = false; for (const c of myGroups(b.installId)) { const g = read(gFile(c)); const m = g && g.members[b.installId]; if (m) { refs += m.refs || 0; referred = referred || !!m.referred; } }
-      ok(req, res, { groups: out, refs, referred }); },
+      ok(req, res, { groups: out, refs, referred, rx: rx.slice(-10) }); },
     async "POST /api/group/event"(req, res) { const b = await body(req, res); if (!b) return; if (!KINDS.includes(b.kind)) return bad(req, res, "bad kind");
       const card = b.card && typeof b.card === "object" ? { addr: clean(b.card.addr).slice(0, 40), sub: clean(b.card.sub).slice(0, 30), rarity: num(b.card.rarity, 0, 4), value: Math.round(num(b.card.value, 0, 1e12)), paid: Math.round(num(b.card.paid, 0, 1e12)), style: clean(b.card.style).slice(0, 10), seed: Math.round(num(b.card.seed, -2e9, 2e9)), ti: num(b.card.ti, 0, 4) } : null;
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g) continue; post(g, b.installId, b.kind, b.text, card); writeJSON(gFile(c), g); } ok(req, res); },
     async "POST /api/group/react"(req, res) { const b = await body(req, res); if (!b) return; const g = read(gFile(String(b.code))); if (!g || !g.members[b.installId] || !REACTS.includes(b.r)) return bad(req, res, "Not found", 404);
       const e = g.feed.find(x => x.eid === b.eid); if (!e) return bad(req, res, "Not found", 404); e.reacts = e.reacts || {}; const L = e.reacts[b.r] = e.reacts[b.r] || [];
-      const i = L.indexOf(b.installId); if (i >= 0) L.splice(i, 1); else L.push(b.installId); writeJSON(gFile(g.code), g); ok(req, res, { group: view(g, b.installId) }); },
+      const i = L.indexOf(b.installId); if (i >= 0) L.splice(i, 1); else { L.push(b.installId);
+        /* v71: reactions reach the person: their next sync brings "Dan 🔥 your post" (they used to do nothing anyone could see) */
+        const on = String(e.nick || "").toLowerCase(), by = g.members[b.installId].nick; if (on && on !== String(by).toLowerCase()) for (const [oid, own] of Object.entries(g.members)) if (oid !== b.installId && String(own.nick || "").toLowerCase() === on) own.rx = (own.rx || []).concat({ by, r: b.r, text: String(e.text || "").slice(0, 60), g: g.name, t: Date.now() }).slice(-20); }
+      writeJSON(gFile(g.code), g); ok(req, res, { group: view(g, b.installId) }); },
     "GET /api/group"(req, res, url) { const me = url.searchParams.get("me") || "", g = read(gFile(String(url.searchParams.get("code") || "").toUpperCase()));
       if (!g || !g.members[me]) return bad(req, res, "Not a member", 404); ok(req, res, { group: view(g, me) }); },
     "GET /api/groups"(req, res, url) { const me = url.searchParams.get("me") || ""; if (!ID.test(me)) return bad(req, res, "bad id");
@@ -143,7 +156,7 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       const all = Object.entries(read(path.join(DATA, "boards", d + ".json")) || {}).filter(([id]) => g.members[id]).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.score - a.score);
       const rank = all.findIndex(e => e.id === me) + 1; ok(req, res, { day: d, count: all.length, rank: rank || null, top: all.slice(0, 50).map(e => ({ nick: e.nick, score: e.score, rarity: e.rarity, stars: e.stars || 0, me: e.id === me })) }); },
     "GET /api/group/rivals"(req, res, url) { const me = url.searchParams.get("me") || ""; if (!ID.test(me)) return bad(req, res, "bad id"); const seen = new Set(), out = [];
-      for (const c of myGroups(me)) { const g = read(gFile(c)); if (!g) continue; for (const [id, m] of Object.entries(g.members)) if (id !== me && !seen.has(id)) { seen.add(id); out.push({ nick: m.nick, style: m.style || "sniper", stars: m.stars || 0 }); } }
+      for (const c of myGroups(me)) { const g = read(gFile(c)); if (!g) continue; const myN = String((g.members[me] || {}).nick || "").toLowerCase(); for (const [id, m] of Object.entries(g.members)) { const k = String(m.nick || "").toLowerCase(); if (id !== me && k !== myN && !seen.has(k)) { seen.add(k); out.push({ nick: m.nick, style: m.style || "sniper", stars: m.stars || 0 }); } } }
       ok(req, res, { rivals: out.slice(0, 30) }); },
     // ---------- duels: 3 seeded lots each, best total equity wins ----------
     async "POST /api/duel/create"(req, res) { const b = await body(req, res); if (!b) return; const g = read(gFile(String(b.code))); if (!g || !g.members[b.installId]) return bad(req, res, "Not a member", 404);
