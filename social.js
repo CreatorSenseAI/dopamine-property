@@ -5,12 +5,12 @@ const path = require("path");
 const crypto = require("crypto");
 
 module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID, NICK }) {
-  for (const d of ["groups", "members", "duels", "nights", "push"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
-  const CODE = /^EAT-[A-HJ-NP-Z2-9]{4}$/, WEEK = /^\d{4}-W\d{2}$/, ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const MAX_MEMBERS = 50, MAX_GROUPS = 5, FEED = 60, KINDS = ["epic", "legendary", "cashout", "boss", "duel", "night", "joined", "takeover", "arena"], REACTS = ["fire", "gavel", "lol"];
+  for (const d of ["groups", "members", "duels", "nights", "push", "runs"]) fs.mkdirSync(path.join(DATA, d), { recursive: true });
+  const CODE = /^EAT-[A-HJ-NP-Z2-9]{4}$/, WEEK = /^\d{4}-W\d{2}$/, DAY = /^\d{4}-\d{2}-\d{2}$/, ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const MAX_MEMBERS = 50, MAX_GROUPS = 5, FEED = 60, KINDS = ["epic", "legendary", "cashout", "boss", "duel", "night", "joined", "takeover", "arena", "daily"], REACTS = ["fire", "gavel", "lol"];
   const read = f => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
   const gFile = c => path.join(DATA, "groups", c + ".json"), mFile = id => path.join(DATA, "members", id + ".json");
-  const dFile = id => path.join(DATA, "duels", id + ".json"), nFile = w => path.join(DATA, "nights", w + ".json");
+  const dFile = id => path.join(DATA, "duels", id + ".json"), nFile = w => path.join(DATA, "nights", w + ".json"), rFile = d => path.join(DATA, "runs", d + ".json");
   const myGroups = id => read(mFile(id)) || [];
   const newCode = () => { for (let i = 0; i < 50; i++) { let c = "EAT-"; for (let k = 0; k < 4; k++) c += ALPHA[crypto.randomInt(ALPHA.length)]; if (!fs.existsSync(gFile(c))) return c; } return null; };
   const clean = s => String(s || "").replace(/[^A-Za-z0-9 _.,'!?&()-]/g, "").trim();
@@ -30,6 +30,14 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   function statsOf(b) {
     const best = b.best && typeof b.best === "object" ? { addr: clean(b.best.addr).slice(0, 40), sub: clean(b.best.sub).slice(0, 30), rarity: num(b.best.rarity, 0, 4), value: Math.round(num(b.best.value, 0, 1e12)) } : null;
     return { worth: Math.round(num(b.worth, -1e12, 1e13)), stars: Math.round(num(b.stars, 0, 999)), title: clean(b.title).slice(0, 16), income: Math.round(num(b.income, -1e10, 1e10)), homes: Math.round(num(b.homes, 0, 9999)), style: ["aggro", "cautious", "sniper"].includes(b.style) ? b.style : "sniper", best };
+  }
+  function dailyView(d, me, code) {
+    let all = Object.entries(read(rFile(d)) || {}).map(([id, e]) => ({ id, ...e })); if (code) { const g = read(gFile(code)); all = g ? all.filter(e => g.members[e.id]) : []; }
+    all.sort((a, b) => b.score - a.score || b.wins - a.wins || b.streak - a.streak || a.at.localeCompare(b.at));
+    { const seen = new Set(); all = all.filter(e => { const k = String(e.nick).toLowerCase() + '|' + (e.stars || 0); if (e.id === me) { seen.add(k); return true; } if (seen.has(k)) return false; seen.add(k); return true; }); } /* a moved game shows once (same nick and stars) */
+    const rank = all.findIndex(e => e.id === me) + 1, mine = all[rank - 1];
+    return { day: d, count: all.length, rank: rank || null, pct: rank && all.length > 1 ? Math.max(1, Math.round(rank / all.length * 100)) : null, me: mine ? { score: mine.score, wins: mine.wins } : null,
+      top: all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, wins: e.wins, stars: e.stars, streak: e.streak, me: e.id === me })) };
   }
   function view(g, me) {
     const ws = weekStart();
@@ -176,6 +184,13 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       let all = Object.entries(read(nFile(w)) || {}).map(([id, e]) => ({ id, ...e })); if (code) { const g = read(gFile(code)); if (g) all = all.filter(e => g.members[e.id]); }
       all.sort((a, b) => b.score - a.score || a.at.localeCompare(b.at)); const rank = all.findIndex(e => e.id === me) + 1;
       ok(req, res, { week: w, count: all.length, rank: rank || null, top: all.slice(0, 20).map(e => ({ nick: e.nick, score: e.score, wins: e.wins, stars: e.stars, me: e.id === me })) }); },
+    // ---------- v73 daily run: three seeded lots per local date, one score per player per day, everyone or one group ----------
+    async "POST /api/daily"(req, res) { const b = await body(req, res); if (!b) return; if (!DAY.test(String(b.day))) return bad(req, res, "bad day"); const nick = clean(b.nick); if (!NICK.test(nick)) return bad(req, res, "bad name");
+      const bd = read(rFile(b.day)) || {}; if (!bd[b.installId]) { bd[b.installId] = { nick, score: Math.round(num(b.score, -100, 1000) * 10) / 10, wins: Math.round(num(b.wins, 0, 3)), stars: Math.round(num(b.stars, 0, 9999)), streak: Math.round(num(b.streak, 0, 9999)), tier: Math.round(num(b.tier, 0, 4)), at: new Date().toISOString() }; writeJSON(rFile(b.day), bd);
+        const e = bd[b.installId]; console.log(`DR ${b.day} ${nick} ${e.score}% ${e.wins}/3 streak ${e.streak}`);
+        if (e.wins >= 2 || e.streak % 7 === 0) for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (g && g.members[b.installId]) { post(g, b.installId, "daily", `${nick} scored ${e.score >= 0 ? "+" : ""}${e.score}% on the daily run${e.streak > 1 ? ` · day ${e.streak} streak` : ""}`); writeJSON(gFile(c), g); } } }
+      ok(req, res, dailyView(b.day, b.installId, "")); },
+    "GET /api/daily"(req, res, url) { const d = String(url.searchParams.get("day") || ""); if (!DAY.test(d)) return bad(req, res, "bad day"); ok(req, res, dailyView(d, url.searchParams.get("me") || "", String(url.searchParams.get("code") || "").toUpperCase())); },
     // ---------- live arena (v41): one shared lot for everyone online, every few minutes, AI rivals plus every player who taps Bid ----------
     async "POST /api/arena"(req, res) { const b = await body(req, res, 4096, true); if (!b) return; arenaPresence(b);
       ok(req, res, arenaView(b.installId)); },

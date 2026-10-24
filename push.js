@@ -32,10 +32,10 @@ module.exports = function push({ DATA, writeJSON }) {
   const tokens = () => fs.readdirSync(DIR).filter(f => f.endsWith(".json")).map(f => Object.assign({ id: f.slice(0, -5) }, read(path.join(DIR, f)) || {})).filter(t => t.token);
   const localDay = (tzo) => { const d = new Date(Date.now() + (tzo || 0) * 60e3); return { day: d.toISOString().slice(0, 10), hour: d.getUTCHours() }; };
   const played = (id, day, tzo) => { const p = read(path.join(DATA, "players", id + ".json")); if (!p || !p.lastSeen) return false; return new Date(Date.parse(p.lastSeen) + (tzo || 0) * 60e3).toISOString().slice(0, 10) === day; };
-  const LOTS = ["Today's lot is up: a rare listing with softer rivals, no registration needed.", "Your daily lot is waiting. First one in wins it.", "A rare lot just hit the board for you. Ten seconds on the clock when you're ready."];
+  const LOTS = ["Your daily run is ready: three lots, the same for every player. Keep your streak going.", "Today's three lots are up. Win the headliner and climb the board.", "Daily run time: three lots, one shot each. Day 7 pays an Epic home."];
   async function tick() { let sent = read(SENT) || {}; const now = Date.now(); for (const k of Object.keys(sent)) if (now - sent[k] > 2 * 864e5) delete sent[k];
     let n = 0; for (const t of tokens()) { const { day, hour } = localDay(t.tzo); const key1 = t.id + ":lot:" + day, key2 = t.id + ":streak:" + day;
-      if (hour === 18 && !sent[key1] && !played(t.id, day, t.tzo)) { sent[key1] = now; n++; await send(t, "Today's lot", LOTS[Math.floor(Math.random() * LOTS.length)], { kind: "lot" }); }
+      if (hour === 18 && !sent[key1] && !played(t.id, day, t.tzo)) { sent[key1] = now; n++; await send(t, "Your daily run", LOTS[Math.floor(Math.random() * LOTS.length)], { kind: "lot" }); }
       else if (hour === 21 && !sent[key2] && !played(t.id, day, t.tzo)) { sent[key2] = now; n++; await send(t, "Your streak ends at midnight", "One auction keeps it alive. The clock is ten seconds.", { kind: "streak" }); } }
     writeJSON(SENT, sent); if (n) console.log(`PUSH tick: ${n} message${n === 1 ? "" : "s"} (${live.ios ? "APNs live" : "APNs dry"}, ${live.android ? "FCM live" : "FCM dry"})`); }
   setTimeout(() => tick().catch(e => console.log("PUSH error " + e.message)), 30000); setInterval(() => tick().catch(e => console.log("PUSH error " + e.message)), 10 * 60e3);
