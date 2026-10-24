@@ -1665,7 +1665,7 @@ body.d3full #vMarket{display:none!important}
 .pthumbs>span{display:block;aspect-ratio:4/3;overflow:hidden;background:#e5e9ef}
 .poster .pbody{display:flex;flex-direction:column;gap:1px;padding:6px 6px 5px}
 .paddr{font:800 12px/1.15 var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pbody small{font:600 10.5px/1.2 var(--f-body);color:#53627d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poster .pbody small{font:600 10.5px/1.2 var(--f-body);color:#53627d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pspec{font:500 9.5px/1.3 var(--f-mono);color:#53627d;margin-top:2px}
 .pprice{font:400 21px/1.05 var(--f-display);margin-top:3px;letter-spacing:.01em}
 .pval{font:800 10px/1.1 var(--f-body);color:#b3261e}.pval.good{color:#17804f}
@@ -1997,7 +1997,7 @@ body.d3full #lotInfo .lval:empty{display:none}
 .sttabs button:focus-visible,.stbuy:focus-visible,.stx:focus-visible,.stfr:focus-visible{outline:3px solid #1f63c2;outline-offset:2px}
 .stdot{position:absolute;top:4px;right:5px;width:8px;height:8px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 2px var(--bg)}
 .stbody{flex:1;min-height:0;overflow:auto;padding:2px 14px 20px;overscroll-behavior:contain}
-.stfoot{flex:none;padding:10px 16px calc(12px + var(--sab));font:600 11px/1.4 var(--f-body);color:var(--muted);text-align:center;border-top:1px solid var(--line)}
+.stfoot{flex:none;padding:7px 16px calc(8px + var(--sab));font:600 11px/1.3 var(--f-body);color:var(--muted);text-align:center;border-top:1px solid var(--line)}
 .stfoot .linkbtn{font:inherit;font-weight:800;color:#1f63c2;text-decoration:underline;background:none;border:0;padding:0;min-height:0;box-shadow:none}
 .sth{margin:16px 2px 8px;font:800 12px/1 var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .stlead{margin:4px 2px 10px;font:600 13px/1.4 var(--f-body);color:var(--muted)}
@@ -2421,8 +2421,8 @@ body.d3full .live #clockTxt{font-size:17px!important;color:#13203a!important;opa
 body.d3full .live .deal .dhead small{font-size:10px!important;color:#33415c!important;font-weight:800!important;letter-spacing:.04em}
 body.d3full .live .deal .dhead .est{color:#13203a!important}
 /* v71 dynasty marks: the mark's colour on the header star, your nameplate on the street, the phone and the dynasty sheet */
-body.dym #hStars{color:var(--dym)!important;text-shadow:0 0 8px color-mix(in srgb,var(--dym) 60%,transparent)}
-body[data-dy="infinite"] #hStars{background:linear-gradient(90deg,#ff7ab8,#ffd34d,#7fe3ff,#b69cff);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+body.dym #hStars .hsg{color:var(--dym);text-shadow:0 0 8px color-mix(in srgb,var(--dym) 60%,transparent)}
+body[data-dy="infinite"] #hStars .hsg{background:linear-gradient(90deg,#ff7ab8,#ffd34d,#7fe3ff,#b69cff);-webkit-background-clip:text;background-clip:text;color:transparent!important}
 body.dym .d3n.you{background:var(--dym)!important;color:#10172a!important;box-shadow:0 0 0 2px #fff,0 0 12px var(--dym)}
 body.dym #phBtn{box-shadow:0 0 0 2px var(--dym),0 0 14px color-mix(in srgb,var(--dym) 55%,transparent),0 8px 20px rgba(0,0,0,.3)}
 .dyn.dymk .dhero .dbig{color:var(--dym)}.dyn.dymk .bar i{background:var(--dym)}.dyn.dymk .ladder .on{background:color-mix(in srgb,var(--dym) 35%,#fff8e6)}
@@ -2596,6 +2596,15 @@ body[data-paddle="founder"] .pad.you b{background:linear-gradient(135deg,#6a3fd6
 .gm{--gg:color-mix(in srgb,var(--surface,#fff) 95%,transparent)}
 .gm .gsheet,.gm .gchip,.gm .gcity,.gm .gres{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .townbox.m-night .gm{--gg:color-mix(in srgb,#1b2330 96%,transparent)}
+/* v84 fixes: readable Club perks and wallet labels, a select that works in dark mode, night-map lists, nothing from the street over a phone page */
+.stpro li small{opacity:1;color:rgba(255,246,222,.84)}
+.stwal small{opacity:1;color:#e4dafc}
+.stsel{color-scheme:light;background:#fff;color:#13203a;border:1px solid rgba(19,32,58,.25);border-radius:8px;padding:2px 4px;font:700 12px var(--f-body);max-width:100%}
+.townbox.m-night .gm{--surface:#1f2836;--surface2:rgba(255,255,255,.07);--btn-n:#2b3647}
+.townbox.m-night .gm .bdpips i{background:rgba(255,255,255,.18)}
+.townbox.m-night .gm .bdchips button[aria-pressed=true]{background:#f2c14e;color:#1a1200}
+body.phup .d3ov:not(.tov),body.phup #vAuction .toprow,body.phup #lvCount{visibility:hidden}
+#hStars{white-space:nowrap}#hStars .hsv{font-style:normal;display:inline}#hStars .hsg{font-style:normal}
 </style>
 <script>/* v82: three.js r164 as ES modules through an import map (own /vendor copies, jsdelivr in the artifact preview); ?three=128 or a failed r164 start falls back to r128 */
 (function(){var q=location.search,t128=/[?&]three=128/.test(q);try{if(localStorage.getItem('ae-t128'))t128=!/[?&]three=164/.test(q);}catch(e){}
@@ -5165,7 +5174,7 @@ function show(t){view=t;hideCoach();$('#dock').hidden=t!=='a';$('#vAuction').hid
  if(t==='m'){T.c.mktViews++;refill();deckId=null;mchipSig='';offSig='';renderMarket();if(!$('#globeSec').hidden)gstart();if(!$('#mNew').hidden){$('#mNew').hidden=true;coach('market',document.body.classList.contains('d3full')?'Every poster in the window is for sale right now. Tap one to look closer, buy it or watch it.':'Buy homes instantly here. Swipe right to buy, left to pass, or tap the star to watch one.');}}else gstop();}
 $('#tA').onclick=()=>show('a');$('#tM').onclick=()=>{if(!mktOpen()){toast('Win your first house to open the Market.','down');return;}show('m');};$('#tE').onclick=()=>show('e');
 let dCash=S.cash,dWorth=worth();
-function drawStars(){const b=$('#hStars'),n=S.legacy||0,t='★ '+ladN();if(b.textContent!==t)b.textContent=t;b.classList.toggle('ready',worth()>=CASH_AT);b.setAttribute('aria-label',`Dynasty: ${n} stars banked, ${dyTitle()}`);dyPaint();if(S.dyRank&&!S.dyCU){S.dyCU=1;dyGear();save();}}
+function drawStars(){const b=$('#hStars'),n=S.legacy||0,w=walOf(),t='★ '+w;/* v84: the header shows stars to spend (it showed stars since the last dynasty mark, which read ★ 0 right after a mark) */if(b.textContent!==t)b.innerHTML='<em class="hsv"><i class="hsg">★</i> '+w+'</em>';b.classList.toggle('ready',worth()>=CASH_AT);b.setAttribute('aria-label',`${w} stars to spend. Dynasty: ${n} stars banked, ${dyTitle()}`);dyPaint();if(S.dyRank&&!S.dyCU){S.dyCU=1;dyGear();save();}}
 $('#hStars').onclick=()=>dynastySheet('header');
 document.addEventListener('click',e=>{if(e.target.closest('#tourBtn')&&A&&!A.ended){hideCoach();houseTour(A.lot,'lot');return;}const b=e.target.closest('[data-dyn]');if(b){e.preventDefault();dynastySheet(b.id==='dynCard'?'empire':'overview');}});
 function drawFeatIn(){const el=$('#featIn');if(!el)return;if(!S.props.length){el.hidden=true;return;}if(!S.featAt){S.featAt=Date.now()+90e3;}
@@ -5351,7 +5360,7 @@ function starSpend(n,what){if(walOf()<n){starShort(n,what);return false;}S.wal=w
 const CALLS=['the Magnificent','the Bold','the Closer','the Shark','the Baron','the Legend'];
 /* every star purchase in one table: cost (may depend on the target), whether it's on offer, and what it does */
 const SACT={
- finish:{cost:pid=>{const p=S.props.find(x=>x.id===+pid);return p?Math.max(1,Math.ceil((p.vacant||0)/240)):1;},ok:pid=>{const p=S.props.find(x=>x.id===+pid);return !!(p&&p.works);},go:pid=>{const p=S.props.find(x=>x.id===+pid);if(!p)return;p.vacant=0;finishWorks(p);toast('Finished now: '+p.addr+'. Rent starts today.','up');},n:'Finish now'},
+ finish:{cost:pid=>{const p=S.props.find(x=>x.id===+pid);return p?Math.max(1,Math.ceil((p.vacant||0)/240)):1;},ok:pid=>{const p=S.props.find(x=>x.id===+pid);return !!(p&&p.works&&(p.vacant||0)>=20);},go:pid=>{const p=S.props.find(x=>x.id===+pid);if(!p)return;p.vacant=0;finishWorks(p);toast('Finished now: '+p.addr+'. Rent starts today.','up');},n:'Finish now'},
  crew:{cost:()=>15,ok:()=>(S.crews||0)<3,go:()=>{S.crews=(S.crews||0)+1;toast('New crew hired: '+redevMax()+' build sites and '+worksMax()+' upgrades at once.','up');},n:'Hire a crew'},
  slots:{cost:()=>20,ok:()=>true,go:()=>{S.slotsBought=(S.slotsBought||0)+1;toast('+10 slots: '+slotsOf()+' homes now.','up');},n:'+10 slots'},
  pm:{cost:()=>40,ok:()=>!S.pm&&!pmUnlocked(),go:()=>{S.pm=1;S.pmOff=false;toast('Property manager hired: every repair is fixed the moment it lands.','up');},n:'Property manager'},
@@ -5557,7 +5566,7 @@ function stSeasonHero(full){const sp=IAP.find(x=>x.id==='season_pass');if(!sp)re
 function stBody(t){const can=stCan,I=id=>IAP.find(x=>x.id===id);
  if(t==='feat'){const g=giftState(),fy=stFor(),fd=I('founder');
   const sp=I('starter_299'),vt=I('vault');
-  return (sp&&!S.starter2&&(S.wins||0)>=1&&(STORE?PRICES.starter_299:true)?`<div class="stbundle"><i class="sttag">Once only</i><div><small>Starter pack</small><b>★ 80, a 7-day builder crew and the Tycoon gavel</b><span>About ${(Math.round((80*STAR_A()+2.99)*100)/100).toFixed(2)} dollars of value for A$2.99.</span></div>${stBuy(sp)}</div>`:'')+stProHero()+(vt&&(S.wins||0)>=1?vaultCard():'')+(fd&&can(fd)?`<div class="stbundle stfd"><i class="sttag">Launch only</i><div><small>Founder's deed</small><b>★ 30, your name on a suburb and the Founder set</b><span>Frame, paddle and title that are never sold again.${FOUNDER_TILL?' Ends '+new Date(FOUNDER_TILL).toLocaleDateString(undefined,{day:'numeric',month:'short'})+'.':''}</span></div>${stBuy(fd)}</div>`:'')+
+  return (sp&&!S.starter2&&(S.wins||0)>=1&&(STORE?PRICES.starter_299:true)?`<div class="stbundle"><i class="sttag">Once only</i><div><small>Starter pack</small><b>★ 80, a 7-day builder crew and the Tycoon gavel</b><span>The 80 stars alone are A$9.99 as a pack.</span></div>${stBuy(sp)}</div>`:'')+stProHero()+(vt&&(S.wins||0)>=1?vaultCard():'')+(fd&&can(fd)?`<div class="stbundle stfd"><i class="sttag">Launch only</i><div><small>Founder's deed</small><b>★ 30, your name on a suburb and the Founder set</b><span>Frame, paddle and title that are never sold again.${FOUNDER_TILL?' Ends '+new Date(FOUNDER_TILL).toLocaleDateString(undefined,{day:'numeric',month:'short'})+'.':''}</span></div>${stBuy(fd)}</div>`:'')+
    (fy.length?`<h4 class="sth">Stars would do this for you now</h4><div class="stlist upg stsp">${fy.join('')}</div>`:'')+stSeasonHero(false)+
    `<button class="stgift${g.ready?' ready':''}" data-go="free"><i>🎁</i><span><b>${g.ready?'Your free gift is ready':'Free gift in '+hmDur(g.left)}</b><small>${esc(giftTxt(g.r))} · every 4 hours</small></span><em>›</em></button>`;}
  if(t==='stars'){const base=10/(pnum(STORE?PRICES.star_10:GUIDE_PRICE.star_10)||1.49),nk=nick1n();
@@ -5584,7 +5593,7 @@ function storeOpen(tab){T.c.shopViews++;tlog('shop_view',{web:!STORE,tab:tab||ST
  el.innerHTML=`<header class="sthd"><h2>Store</h2><div class="stbal"><small>To spend</small><b id="stCash">★ ${walOf()}</b></div><button class="stx" id="stX" aria-label="Close the store">×</button></header>
   <nav class="sttabs" role="tablist" aria-label="Store sections">${STAB.map(([k,n])=>`<button role="tab" data-tab="${k}" aria-selected="${STV===k}">${n}${k==='free'&&giftState().ready?'<i class="stdot"></i>':''}</button>`).join('')}</nav>
   <div class="stbody" id="stBody" role="tabpanel">${stBody(STV)}</div>
-  <footer class="stfoot">${STORE?'<button class="linkbtn" id="stRestore">Restore purchases</button> · ':''}${STORE?'Payments go through the App Store or Google Play.':'The store opens in the Auction Empires app. Prices here are a guide. Move your web game into the app with a transfer code from the menu.'} Nothing here wins an auction or buys chance. Bought stars never raise your dynasty.</footer>`;
+  <footer class="stfoot">${STORE?'<button class="linkbtn" id="stRestore">Restore purchases</button> · ':''}${STORE?'Payments go through the App Store or Google Play.':'Preview: prices are a guide, buying opens in the app.'}</footer>`;
  el.hidden=false;document.body.classList.add('stopen');try{D3.phStore(true);}catch(e){}requestAnimationFrame(()=>el.classList.add('on'));stWire();clearInterval(STT);STT=setInterval(()=>{if(el.hidden){clearInterval(STT);return;}const c=$('#stCd'),g=giftState();if(c){if(g.ready)storeOpen();else c.textContent=hmDur(g.left);}const k=$('#stCash');if(k)k.textContent='★ '+walOf();},1000);}
 function storeClose(){const el=$('#store');if(!el)return;el.classList.remove('on');document.body.classList.remove('stopen');if(el.classList.contains('inph')){el.hidden=true;try{D3.phStore(false);}catch(e){}}clearInterval(STT);setTimeout(()=>{el.hidden=true;},200);}
 function stWire(){const el=$('#store');$('#stX').onclick=()=>{sfx('close');storeClose();};
@@ -5731,8 +5740,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=83;
+const APPV=84;
 const PATCH=[
+ {v:84,d:'25 Oct 2026',t:'Tidy-up',items:['Stars in the header now show the stars you can spend.','Text inside the phone no longer cuts off with "...".','Store: clearer Club perks and wallet, an auctioneer call picker that works in dark mode, a shorter footer, and no Finish button on works that are already done.','My town at night: the suburb list is readable again.']},
  {v:83,d:'25 Oct 2026',t:'My town, smoother',items:['The map only redraws when something moves, so it no longer drags the whole phone down while it sits there.','Drag anywhere to pan, even on a suburb name or a home pin, and pinch to zoom. The map no longer spins or tilts by accident.','Cleaner screen: your city up top (tap it to jump to your next city), the jobs that need you beside it, and your suburbs and search in the bar at the bottom.']},
  {v:82,d:'25 Oct 2026',t:'New 3D engine underneath',items:['The street, My town and every live event now run on a newer version of the 3D engine. Same look, newer foundations for what comes next.','Prize homes now say which market they land in, instead of "a tier up".']},
  {v:81,d:'25 Oct 2026',t:'Loads faster',items:['The 3D street now loads from our own server, compressed smaller and kept on your phone for next time, so it opens quicker and needs less data.']},
