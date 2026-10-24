@@ -78,26 +78,24 @@ window.DPStore = {
 
 Product ids (create the same ids in App Store Connect and Play Console):
 
+v75: stars are the store's currency. Sell these (create the same ids in App Store Connect, Play Console and RevenueCat):
+
 | id | type | gives |
 | --- | --- | --- |
-| `monthly` | subscription | Auction Empires Pro, monthly (entitlement `auction_empire_pro`) |
-| `lifetime` | non-consumable | Auction Empires Pro for life (entitlement `auction_empire_pro`) |
+| `monthly` | subscription | Dynasty Club, A$9.99 a month (entitlement `auction_empire_pro`) |
+| `lifetime` | non-consumable | Dynasty Club for life (entitlement `auction_empire_pro`) |
+| `star_10` | consumable | ★ 10 to spend (A$1.49 guide) |
+| `star_35` | consumable | ★ 35 (A$4.49) |
+| `star_80` | consumable | ★ 80 (A$8.99) |
+| `star_180` | consumable | ★ 180 (A$17.99) |
+| `star_500` | consumable | ★ 500 (A$44.99) |
+| `founder` | non-consumable | Founder's deed, launch window only: ★ 30, one free naming right, the Founder frame, paddle and title (A$2.99) |
+| `season_pass` | consumable | this season's pass row |
 | `remove_ads` | non-consumable | no ads |
-| `regos_10` | consumable | 10 bidder registrations |
-| `slots_10` | consumable | Property manager: +10 portfolio slots, permanent, stacks |
-| `market_5` | consumable | Buyer's agent: +5 Market buys on the meter now, stacks |
-| `cash_1` … `cash_8` | consumable | fixed cash ladder: $250K (A$1.49), $1M (2.99), $5M (7.99), $25M (14.99), $100M (29.99), $300M (59.99), $600M (99.99), $1B (149.99) |
-| `season_pass` | consumable | this season's pass row: Epic homes, exclusive frames and paddles, cash, registrations, Market buys |
-| `crew_1` | consumable | hires one more builder crew for good (one more build site and upgrade at a time), up to 3 |
-| `finish_works` | consumable | every upgrade and build under way finishes now |
-| `starter_pack` | non-consumable | one time: $2M cash, 10 registrations and the Tycoon wardrobe (A$4.99 guide). Restores only re-grant the wardrobe; the cash and registrations land once (`S.starter`). |
-| `double_back` | consumable | doubles the welcome-back credit (rent and growth from the time away), once per return |
-| `cosmetic_pack` | non-consumable | neon, marble and holo card frames; gold, neon and black paddles |
-| `city_pack` | consumable | opens the next country one market early |
-| `rescue` | consumable | stops one repossession |
-| `rate_lock` | consumable | 4.5% on loans for 24 months |
 
-Pro = Property manager, the season pass every season it is active, +10 home slots, no ads (`PRO_PERKS`, `proOn()`). Both Pro products sit in the RevenueCat `default` offering, which carries the Paywall built in the RevenueCat dashboard.
+Bought stars go to the wallet (`S.wal`) only; dynasty stars (`S.legacy`) only grow from stars earned in play. Retired in v75 (no longer shown, kept in `IAP` so anything owned restores): `regos_10`, `slots_10`, `market_5`, `cash_1` … `cash_8`, `crew_1`, `finish_works`, `starter_pack`, `double_back`, `cosmetic_pack`, `style_pack`, `phone_gold`, `city_pack`, `rescue`, `rate_lock`, `prop_manager`.
+
+Dynasty Club (was Pro) = Property manager, the season pass every season it is active, +10 home slots, no ads, 5★ and a streak save every week, and tier 100 of the season track after 20 daily runs (`PRO_PERKS`, `proOn()`). Both Pro products sit in the RevenueCat `default` offering, which carries the Paywall built in the RevenueCat dashboard.
 
 All guaranteed results: no paid chance, no paid auction wins, game cash never converts back to money. The catalogue lives in `IAP` in `public/index.html`; `/admin` shows shop opens, purchases by id and restores (revenue is in App Store Connect and Play Console).
 

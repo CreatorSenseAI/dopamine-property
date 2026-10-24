@@ -243,7 +243,7 @@ with sync_playwright() as p:
     st = pg.evaluate("JSON.parse(localStorage.getItem('dopamine-property-v1'))")
     kept = {k: st.get(k) for k in ["regVar", "mkVar", "joined", "adFree", "streak", "dynasties", "legacy"]}; kept["header"] = pg.inner_text("#hStars"); kept["badges"] = sorted((st.get("badges") or {}).keys())
     print("after cash-out:", kept, "| market tab visible:", pg.is_visible("#tM"))
-    assert st.get("regVar") == 1 and st.get("mkVar") == 1 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
+    assert st.get("regVar") == 0 and st.get("mkVar") == 1 and st.get("adFree") and st.get("streak") == 6 and "rare" in kept["badges"], "account state lost on cash-out"
     assert "rank1" in kept["badges"] and st.get("legacy", 0) >= 1, "stars and title badge should land on cash-out"
     pg.close()
 
@@ -253,7 +253,7 @@ with sync_playwright() as p:
     play_lot(pg); pg.wait_for_timeout(3500); close_sheets(pg)
     print("market kept: tab visible after a win:", pg.is_visible("#tM")); pg.close()
 
-    # ---------- registrations (limited variant, nearly out) ----------
+    # ---------- registrations retired in v75: an old limited save that is nearly out can still bid ----------
     import re as _re
     _html = (ROOT / "public/index.html").read_text(); _b = _html[_html.index("const BADGES=["):]; _b = _b[:_b.index("]];")]
     allb = {k: 1 for k in _re.findall(r"\['([a-z0-9_]+)','", _b)}
@@ -262,13 +262,13 @@ with sync_playwright() as p:
     print("reg line:", pg.inner_text("#regInfo"))
     res = play_lot(pg, 600); print("reg lot:", res[:60]); pg.wait_for_timeout(4500); close_sheets(pg)
     pg.wait_for_timeout(300)
-    for _ in range(40):
+    for _ in range(20):
         bidtxt = pg.inner_text("#bidBtn")
-        if "NO REGOS" in bidtxt.upper(): break
+        if "BID" in bidtxt.upper() and "NO REGOS" not in bidtxt.upper(): break
         close_sheets(pg); pg.wait_for_timeout(250)
     pg.screenshot(path=str(out / "v15-reg-out.png"))
     print("reg after:", pg.inner_text("#regInfo"), "| bid:", bidtxt)
-    assert "NO REGOS" in bidtxt.upper(), "should be out of registrations"
+    assert "NO REGOS" not in bidtxt.upper(), "registrations are retired: bidding must stay open"
     pg.close()
     b.close()
 

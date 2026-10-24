@@ -141,7 +141,7 @@ function richTop(id, board) {
   const seen = new Map();
   for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; const key = String(e.nick || "").toLowerCase() + "|" + (e.stars || 0) + "|" + (e.dy || 0); const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
   const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
-  const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, score: e.score, rank: r, me: e.k === id });
+  const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, fl: e.fl || 0, score: e.score, rank: r, me: e.k === id });
   const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
   const wkEnds = WEEK0 + (weekNo() + 1) * WEEKMS, sNow = new Date(), sEnds = Date.UTC(sNow.getUTCFullYear(), sNow.getUTCMonth() + 1, 1);
   return { board: b, top: all.slice(0, 50).map((e, j) => pub(e, j + 1)), near, rank: i < 0 ? null : i + 1, total: all.length, weekEnds: wkEnds, seasonEnds: sEnds, season: seasonNo() };
@@ -154,7 +154,7 @@ async function richPost(req, res) {
   const nick = String(b.nick || "").trim(), worth = Number(b.worth);
   if (!NICK.test(nick) || !isFinite(worth) || worth < 0 || worth > 1e15) return send(req, res, 400, "text/plain", "bad entry");
   const old = RICH[b.installId] || {}, wk = weekNo(), n = (v, hi) => Math.max(0, Math.min(hi, Math.floor(Number(v) || 0)));
-  RICH[b.installId] = { nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15),
+  RICH[b.installId] = { nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15), fl: n(b.fl, 1),
     wk, w0: old.wk === wk && old.w0 != null ? old.w0 : Math.round(worth), at: new Date().toISOString() };
   richDirty = true;
   return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId, String(b.board || "worth"))), { "cache-control": "no-store" });
@@ -163,14 +163,14 @@ async function richPost(req, res) {
    (3 or more), then the most value. A dethroned owner gets a notice on their next post. Entries not seen for 14 days drop out. */
 const TURF_FILE = path.join(DATA, "turf.json");
 let TURF = (() => { try { return JSON.parse(fs.readFileSync(TURF_FILE, "utf8")); } catch { return { subs: {}, own: {}, notes: {} }; } })(), turfDirty = false;
-TURF.subs = TURF.subs || {}; TURF.own = TURF.own || {}; TURF.notes = TURF.notes || {};
+TURF.subs = TURF.subs || {}; TURF.own = TURF.own || {}; TURF.notes = TURF.notes || {}; TURF.names = TURF.names || {};
 setInterval(() => { if (turfDirty) { turfDirty = false; try { writeJSON(TURF_FILE, TURF); } catch (e) { console.log("TURF write " + e.message); } } }, 15000);
 const SUB_RX = /^[\p{L}\p{N} .'&()-]{2,40}$/u;
 function turfOwner(sub) { const h = TURF.subs[sub]; if (!h) return null; const cut = Date.now() - 14 * 864e5; let best = null;
   for (const [id, e] of Object.entries(h)) { if (Date.parse(e.t) < cut) { delete h[id]; continue; } if (e.n >= 3 && (!best || e.n > best.e.n || (e.n === best.e.n && e.v > best.e.v))) best = { id, e }; }
   if (!Object.keys(h).length) delete TURF.subs[sub]; return best; }
 function turfView(me) { const owners = {}, counts = {};
-  for (const sub of Object.keys(TURF.subs)) { const o = turfOwner(sub); if (!o) continue; owners[sub] = { nick: o.e.nick, n: o.e.n, me: o.id === me, c: o.e.c || 0 }; counts[o.id] = counts[o.id] || { nick: o.e.nick, n: 0 }; counts[o.id].n++;
+  for (const sub of Object.keys(TURF.subs)) { const o = turfOwner(sub); if (!o) continue; owners[sub] = { nick: o.e.nick, n: o.e.n, me: o.id === me, c: o.e.c || 0, named: TURF.names[sub] === o.id }; counts[o.id] = counts[o.id] || { nick: o.e.nick, n: 0 }; counts[o.id].n++;
     const prev = TURF.own[sub]; if (prev && prev !== o.id) { (TURF.notes[prev] = TURF.notes[prev] || []).push({ sub, by: o.e.nick, t: Date.now() }); TURF.notes[prev] = TURF.notes[prev].slice(-20); turfDirty = true; } if (prev !== o.id) { TURF.own[sub] = o.id; turfDirty = true; } }
   const top = Object.entries(counts).map(([id, x]) => ({ nick: x.nick, n: x.n, me: id === me })).sort((a, b) => b.n - a.n).slice(0, 20);
   const notes = me && TURF.notes[me] ? TURF.notes[me].splice(0) : []; if (notes.length) turfDirty = true;
@@ -185,6 +185,8 @@ async function turfPost(req, res) {
   for (const sub of Object.keys(TURF.subs)) if (TURF.subs[sub][id] && !own[sub]) delete TURF.subs[sub][id];
   let k = 0; for (const [sub, x] of Object.entries(own)) { if (++k > 400 || !SUB_RX.test(sub) || !Array.isArray(x)) continue; const n = Math.max(0, Math.min(99, Math.floor(Number(x[0]) || 0))), v = Math.max(0, Math.min(1e13, Math.round(Number(x[1]) || 0))); if (!n) continue;
     (TURF.subs[sub] = TURF.subs[sub] || {})[id] = { nick, n, v, c, t: now }; }
+  /* v75 naming rights (bought with stars): the name only shows while that player is the owner */
+  if (Array.isArray(b.names)) for (const sub of b.names.slice(0, 40)) { if (typeof sub !== "string" || !SUB_RX.test(sub)) continue; const o = turfOwner(sub); if (o && o.id === id) TURF.names[sub] = id; }
   turfDirty = true;
   return send(req, res, 200, "application/json", JSON.stringify(turfView(id)), { "cache-control": "no-store" });
 }
@@ -520,6 +522,7 @@ a{color:var(--y)}p{color:var(--mu)}.btn{display:inline-block;background:var(--s)
 <div class="wrap">
 <section class="${tab === "overview" ? "on" : ""}">
 <p>${s.players} players · ${s.sessions} sessions · ${fbAll.length} ratings averaging ${fbAvg} · ${img.have}/${img.want} photos · refreshed every 30s · <a href="/admin/export.json">export JSON</a> · backup ${LAST_BACKUP ? LAST_BACKUP.at.slice(0, 16).replace("T", " ") + " UTC, " + Math.round(LAST_BACKUP.bytes / 1024) + " KB" + (LAST_BACKUP.remote ? ", copied to the bucket" : ", local only (set S3_* to copy off the box)") : "none yet"} · <a href="/admin/backup">back up now</a></p>
+<h2>Accounts</h2><div class="g">${(() => { const k = accts.stats(); return tile("Accounts", k.n, k.saved + " with a cloud save · " + k.recent + " seen this week") + tile("Protected with email", k.withEmail, k.n ? Math.round(k.withEmail / k.n * 100) + "% of accounts" : "") + tile("Sign-in email", k.live ? "Live" : "Dry run", k.live ? "Resend" : "set RESEND_API_KEY"); })()}</div>
 <h2>Retention</h2><div class="g">${tile("Day 1 retention", s.d1, s.d1n + " eligible players")}${tile("Day 7 retention", s.d7, s.d7n + " eligible players")}${tile("Median session", s.medSessionMin + " min", "active " + s.medActiveMin + " min")}</div>
 <h2>Daily players (last 14 days)</h2><div class="bars">${s.dau.map(([d, n]) => `<div><i style="height:${Math.max(2, n / max * 90)}%"></i><span>${d.slice(5)} · ${n}</span></div>`).join("") || "<p>No data yet</p>"}</div>
 <h2>Core loop: 3D street vs card layout (v63)</h2><div class="g">${s.loop.map(l => tile(l.d3 ? "3D street" : "Card layout", (l.bidShare) + " of lots bid on", `${l.sessions} sessions (30s+) · ${l.medMin} min/session · ${l.lotsPerMin ?? "–"} lots/min · first bid ${l.firstBid == null ? "–" : l.firstBid + "s"} · new players who never bid ${l.neverBid} · ${l.skips} ceremony skips · ${l.short} short ceremonies`)).join("")}</div>
@@ -581,6 +584,7 @@ function authed(url, req) {
 // ---------- routes ----------
 const social = require("./social")({ DATA, send, readBody, writeJSON, limited, ID, NICK });
 const pusher = require("./push")({ DATA, writeJSON });
+const accts = require("./accounts")({ DATA, send, readBody, writeJSON, ID });
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   try {
@@ -592,6 +596,7 @@ const server = http.createServer(async (req, res) => {
       if (/^(capacitor|ionic):\/\/localhost$|^https?:\/\/localhost(:\d+)?$/.test(o)) { res.setHeader("access-control-allow-origin", o); res.setHeader("access-control-allow-methods", "GET,POST,OPTIONS"); res.setHeader("access-control-allow-headers", "content-type"); res.setHeader("vary", "origin"); }
       if (req.method === "OPTIONS") return send(req, res, 204, "text/plain", "");
     }
+    if (url.pathname.startsWith("/api/acct/") && await accts.handle(req, res, url)) return;
     if (url.pathname.startsWith("/api/") && await social.handle(req, res, url)) return;
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
     if (url.pathname === "/api/rc") { const o = {}; for (const k of ["android", "ios", "amazon", "test"]) if (RC_KEYS[k]) o[k] = RC_KEYS[k]; return send(req, res, 200, "application/json", JSON.stringify(o), { "cache-control": "no-store" }); }
