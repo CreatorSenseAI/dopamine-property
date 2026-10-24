@@ -33,7 +33,7 @@ try {
   registerRoute(local(u => u.pathname === '/img/manifest.json'), new StaleWhileRevalidate({ cacheName: META, plugins: [ok] }));
   registerRoute(local(u => u.pathname.startsWith('/img/')), new CacheFirst({ cacheName: ASSETS, plugins: [ok, new ExpirationPlugin({ maxEntries: 400, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true })] }));
   registerRoute(local(u => u.pathname.startsWith('/icons/')), new CacheFirst({ cacheName: META, plugins: [ok, new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * DAY })] }));
-  registerRoute(local(u => u.pathname.startsWith('/models/') || u.pathname.startsWith('/sfx/')), new CacheFirst({ cacheName: MEDIA, plugins: [ok, new ExpirationPlugin({ maxEntries: 150, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true })] }));
+  registerRoute(local(u => u.pathname.startsWith('/models/') || u.pathname.startsWith('/sfx/') || u.pathname.startsWith('/vendor/')), new CacheFirst({ cacheName: MEDIA, plugins: [ok, new ExpirationPlugin({ maxEntries: 150, maxAgeSeconds: 30 * DAY, purgeOnQuotaError: true })] }));
   /* three.js and other libraries from the CDNs: versioned URLs, so cache-first is safe. Status 0 = opaque response from a plain <script> tag */
   registerRoute(({ url, request }) => request.method === 'GET' && CDN.includes(url.origin), new CacheFirst({ cacheName: LIBS, plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 90 * DAY, purgeOnQuotaError: true })] }));
   wb = workbox;
@@ -49,7 +49,7 @@ if (!wb) {
     if (skip(u)) return;
     if (u.pathname === '/img/manifest.json') { e.respondWith(fetch(req).then(r => { if (r.ok) caches.open(META).then(c => c.put(req, r.clone())); return r; }).catch(() => caches.match(req))); return; }
     if (u.pathname.startsWith('/img/') || u.pathname.startsWith('/icons/')) { e.respondWith(cacheFirst(req, ASSETS)); return; }
-    if (u.pathname.startsWith('/models/') || u.pathname.startsWith('/sfx/')) { e.respondWith(cacheFirst(req, MEDIA)); return; }
+    if (u.pathname.startsWith('/models/') || u.pathname.startsWith('/sfx/') || u.pathname.startsWith('/vendor/')) { e.respondWith(cacheFirst(req, MEDIA)); return; }
     if (isPage(req, u)) { const key = pageKey(u); e.respondWith(fetch(req).then(r => { if (r.ok) { const copy = r.clone(); caches.open(PAGES).then(c => c.put(key, copy)); } return r; }).catch(async () => (await caches.match(key)) || caches.match('/play'))); }
   });
 }

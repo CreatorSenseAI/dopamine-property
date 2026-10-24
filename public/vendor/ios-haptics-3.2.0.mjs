@@ -1,0 +1,8 @@
+/**
+ * Bundled by jsDelivr using Rollup v4.62.2 and esbuild v0.28.1.
+ * Original file: /npm/ios-haptics@3.2.0/dist/index.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+function r(){return typeof navigator>"u"?!1:/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1}function s(t){if(!t||typeof window>"u"||!r()||t.querySelector("[data-haptic-trigger]"))return;let e=document.createElement("input");e.type="checkbox",e.setAttribute("switch",""),e.setAttribute("data-haptic-trigger",""),e.setAttribute("aria-hidden","true"),e.tabIndex=-1,Object.assign(e.style,{position:"absolute",inset:"0",width:"100%",height:"100%",margin:"0",opacity:"0",clipPath:"inset(0 round 999px)",touchAction:"pan-x pan-y"}),e.style.setProperty("-webkit-tap-highlight-color","transparent"),getComputedStyle(t).position==="static"&&(t.style.position="relative");let n=0,i=!1;e.addEventListener("pointerdown",a=>{n=a.clientY,i=!1},{passive:!0}),e.addEventListener("pointermove",a=>{Math.abs(a.clientY-n)>10&&(i=!0,e.checked=!1)},{passive:!0}),e.addEventListener("pointerup",()=>{i&&(e.checked=!1),i=!1},{passive:!0}),e.addEventListener("pointercancel",()=>{i=!1,e.checked=!1},{passive:!0}),t.insertAdjacentElement("beforeend",e)}export{s as hapticTrigger};
+//# sourceMappingURL=/sm/afb58f3e650a4d2532b05bccbde1b8f23d6f5ed9c49869ed83cd7a712d0db8f8.map

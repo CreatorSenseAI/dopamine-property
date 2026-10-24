@@ -27,6 +27,17 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
   }
   const ok = (req, res, o) => send(req, res, 200, "application/json", JSON.stringify(o || { ok: true }), { "cache-control": "no-store" });
   const bad = (req, res, msg, code = 400) => send(req, res, code, "application/json", JSON.stringify({ error: msg }));
+  /* v79 Syndicate Race: every other week (even UTC week numbers from the Monday of 5 Jan 2026), Tuesday to Sunday. A group's points = auction wins its
+     members make during the race (lifetime wins now minus wins when each first synced in it). The last race's total stays on the group as g.lastRace. */
+  const WEEK0 = Date.UTC(2026, 0, 5), WEEKMS = 7 * 864e5, wkN = (t = Date.now()) => Math.floor((t - WEEK0) / WEEKMS), dayN = (t = Date.now()) => Math.floor(((t - WEEK0) % WEEKMS) / 864e5);
+  const raceId = (t = Date.now()) => { const w = wkN(t); return w % 2 === 0 && dayN(t) >= 1 ? "ra" + w : null; };
+  const raceLast = (t = Date.now()) => { const w = wkN(t); return "ra" + (w % 2 === 0 ? w - 2 : w - 1); };
+  const raceEnds = (t = Date.now()) => { const w = wkN(t), e = w % 2 === 0 ? w + 1 : w + 2; return WEEK0 + e * WEEKMS - (w % 2 === 0 ? 0 : 6 * 864e5); };
+  const racePts = g => { if (!g.race) return 0; let p = 0; for (const [iid, m] of Object.entries(g.members)) { const b0 = g.race.base[iid]; if (b0 != null) p += Math.max(0, (m.lw || 0) - b0); } return p; };
+  let RB = { at: 0, id: null, list: [] };
+  function raceBoard(id) { if (RB.id === id && Date.now() - RB.at < 60e3) return RB.list; const list = [];
+    try { for (const f of fs.readdirSync(path.join(DATA, "groups"))) { const g = read(path.join(DATA, "groups", f)); if (!g || !g.members) continue; const pts = g.race && g.race.id === id ? racePts(g) : g.lastRace && g.lastRace.id === id ? g.lastRace.pts : null; if (pts) list.push({ code: g.code || f.replace(".json", ""), name: g.name, pts, n: Object.keys(g.members).length }); } } catch { }
+    list.sort((a, b) => b.pts - a.pts); RB = { at: Date.now(), id, list }; return list; }
   function statsOf(b) {
     const best = b.best && typeof b.best === "object" ? { addr: clean(b.best.addr).slice(0, 40), sub: clean(b.best.sub).slice(0, 30), rarity: num(b.best.rarity, 0, 4), value: Math.round(num(b.best.value, 0, 1e12)) } : null;
     return { worth: Math.round(num(b.worth, -1e12, 1e13)), stars: Math.round(num(b.stars, 0, 999)), title: clean(b.title).slice(0, 16), income: Math.round(num(b.income, -1e10, 1e10)), homes: Math.round(num(b.homes, 0, 9999)), style: ["aggro", "cautious", "sniper"].includes(b.style) ? b.style : "sniper", best };
@@ -141,11 +152,25 @@ module.exports = function social({ DATA, send, readBody, writeJSON, limited, ID,
       const code = newCode(); if (!code) return bad(req, res, "Try again", 503); const old = g.code; g.code = code;
       for (const id of Object.keys(g.members)) writeJSON(mFile(id), myGroups(id).map(c => c === old ? code : c));
       writeJSON(gFile(code), g); try { fs.unlinkSync(gFile(old)); } catch {} ok(req, res, { code, group: view(g, b.installId) }); },
-    async "POST /api/group/sync"(req, res) { const b = await body(req, res); if (!b) return; const st = statsOf(b), nick = clean(b.nick), ws = weekStart(), out = [], rx = [];
+    async "POST /api/group/sync"(req, res) { const b = await body(req, res); if (!b) return; const st = statsOf(b), nick = clean(b.nick), ws = weekStart(), out = [], rx = []; let gifts = 0;
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g || !g.members[b.installId]) continue; const m = g.members[b.installId];
-        Object.assign(m, st); if (NICK.test(nick)) m.nick = nick; if (!m.week || m.week.at !== ws) m.week = { at: ws, worth: st.worth }; m.seen = new Date().toISOString(); if (m.rx && m.rx.length) { rx.push(...m.rx); m.rx = []; } writeJSON(gFile(c), g); out.push({ code: c, name: g.name, n: Object.keys(g.members).length }); }
+        const rid = raceId(); if (g.race && g.race.id !== rid) { g.lastRace = { id: g.race.id, pts: racePts(g) }; g.race = null; }/* freeze the finished race before this sync's wins land */
+        Object.assign(m, st); if (NICK.test(nick)) m.nick = nick; m.lw = Math.round(num(b.lw, 0, 1e7));
+        if (rid) { if (!g.race) g.race = { id: rid, base: {} }; if (g.race.base[b.installId] == null) g.race.base[b.installId] = m.lw; }
+        if (m.gift > 0) { gifts += m.gift; m.gift = 0; } if (!m.week || m.week.at !== ws) m.week = { at: ws, worth: st.worth }; m.seen = new Date().toISOString(); if (m.rx && m.rx.length) { rx.push(...m.rx); m.rx = []; } writeJSON(gFile(c), g); out.push({ code: c, name: g.name, n: Object.keys(g.members).length }); }
       let refs = 0, referred = false; for (const c of myGroups(b.installId)) { const g = read(gFile(c)); const m = g && g.members[b.installId]; if (m) { refs += m.refs || 0; referred = referred || !!m.referred; } }
-      ok(req, res, { groups: out, refs, referred, rx: rx.slice(-10) }); },
+      ok(req, res, { groups: out, refs, referred, rx: rx.slice(-10), gifts }); },
+    /* the race board: current race (top 20 + your groups with members' points) and your groups' places in the last one */
+    async "POST /api/race"(req, res) { const b = await body(req, res); if (!b) return; const rid = raceId(), last = raceLast(), cur = rid ? raceBoard(rid) : [], prev = raceBoard(last), mine = [], lastMine = [];
+      for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g) continue; const i = cur.findIndex(x => x.code === c), j = prev.findIndex(x => x.code === c);
+        if (rid) mine.push({ code: c, name: g.name, pts: g.race && g.race.id === rid ? racePts(g) : 0, rank: i < 0 ? null : i + 1, members: Object.entries(g.members).map(([iid, m]) => ({ nick: m.nick, pts: g.race && g.race.id === rid && g.race.base[iid] != null ? Math.max(0, (m.lw || 0) - g.race.base[iid]) : 0, me: iid === b.installId })).sort((x, y) => y.pts - x.pts).slice(0, 10) });
+        if (j >= 0) lastMine.push({ code: c, name: g.name, rank: j + 1, total: prev.length, pts: prev[j].pts }); }
+      ok(req, res, { id: rid, ends: raceEnds(), total: cur.length, top: cur.slice(0, 20).map((x, k) => ({ name: x.name, pts: x.pts, n: x.n, rank: k + 1, mine: myGroups(b.installId).includes(x.code) })), mine, last: { id: last, mine: lastMine } }); },
+    /* Syndicate gift (the buyer bought the team_gift pack): every other member of the buyer's groups gets 5 stars on their next sync. Once a day per buyer. */
+    async "POST /api/group/gift"(req, res) { const b = await body(req, res); if (!b) return; let n = 0, ok2 = false;
+      for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g || !g.members[b.installId]) continue; const me = g.members[b.installId]; if (me.giftAt && Date.now() - me.giftAt < 20 * 3600e3) continue; me.giftAt = Date.now(); ok2 = true;
+        for (const [iid, m] of Object.entries(g.members)) if (iid !== b.installId) { m.gift = Math.min(20, (m.gift || 0) + 1); n++; } writeJSON(gFile(c), g); }
+      if (ok2) console.log(`GIFT ${b.installId} → ${n}`); ok(req, res, { n }); },
     async "POST /api/group/event"(req, res) { const b = await body(req, res); if (!b) return; if (!KINDS.includes(b.kind)) return bad(req, res, "bad kind");
       const card = b.card && typeof b.card === "object" ? { addr: clean(b.card.addr).slice(0, 40), sub: clean(b.card.sub).slice(0, 30), rarity: num(b.card.rarity, 0, 4), value: Math.round(num(b.card.value, 0, 1e12)), paid: Math.round(num(b.card.paid, 0, 1e12)), style: clean(b.card.style).slice(0, 10), seed: Math.round(num(b.card.seed, -2e9, 2e9)), ti: num(b.card.ti, 0, 4) } : null;
       for (const c of myGroups(b.installId)) { const g = read(gFile(c)); if (!g) continue; post(g, b.installId, b.kind, b.text, card); writeJSON(gFile(c), g); } ok(req, res); },

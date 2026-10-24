@@ -5,6 +5,7 @@
 // - GET  /admin/export.json  every stored session + player, for deeper analysis
 // Logs live in DATA_DIR (default ./data). On Railway, mount a volume at /data and set DATA_DIR=/data.
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
@@ -23,7 +24,7 @@ console.log("RC keys: " + (Object.keys(RC_KEYS).map(k => k === "secret" ? "secre
 const ROOT = path.join(__dirname, "public");
 const DATA = process.env.DATA_DIR || path.join(__dirname, "data");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".glb": "model/gltf-binary", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".wasm": "application/wasm", ".bin": "application/octet-stream" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".webp": "image/webp", ".jpg": "image/jpeg", ".json": "application/json", ".txt": "text/plain", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".glb": "model/gltf-binary", ".ogg": "audio/ogg", ".mp3": "audio/mpeg", ".mp4": "video/mp4", ".wasm": "application/wasm", ".bin": "application/octet-stream", ".mjs": "text/javascript", ".woff": "font/woff", ".woff2": "font/woff2", ".webm": "audio/webm" };
 /* binary game assets (3D models, sounds, wasm): never gzipped (the regex below skips them), cached for 30 days */
 const LONG = /^(model\/|audio\/|application\/(wasm|octet-stream))/;
 const ID = /^[a-z0-9]{6,32}$/i;
@@ -41,6 +42,12 @@ const files = new Map();
     files.set(url, { body, gz: zip ? zlib.gzipSync(body) : null, type });
   }
 })(ROOT, "");
+/* v81 load time: every file gets an ETag (a repeat visit is a 304, not 1.2 MB), and text files get a Brotli copy made in the background after boot
+   (about 20% smaller than gzip for the game page); until it's ready the gzip copy is served. /vendor files are versioned, so they're cached for a year. */
+const etagOf = f => f.etag || (f.etag = '"' + crypto.createHash("sha1").update(f.body).digest("base64").slice(0, 22) + '"');
+function brAll() { const q = [...files.values(), ...SITE.values()].filter(f => f && f.gz && !f.br && f.body.length > 1024); let i = 0;
+  (function step() { const f = q[i++]; if (!f) { console.log("BR ready: " + q.length + " files"); return; } zlib.brotliCompress(f.body, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: f.body.length > 300000 ? 10 : 11, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: f.body.length } }, (e, out) => { if (!e) f.br = out; setImmediate(step); }); })(); }
+setTimeout(brAll, 1500);
 
 /* ---------- marketing site (v68): "/" is the site, "/play" the game ----------
    Old game links keep working: "/" with a game query (?app=, ?src=, ?debug=…) still serves the game, and the site's home
@@ -126,7 +133,19 @@ setInterval(() => { if (richDirty) { richDirty = false; try { writeJSON(RICH_FIL
 const WEEK0 = Date.UTC(2026, 0, 5), WEEKMS = 7 * 864e5;
 const weekNo = (t = Date.now()) => Math.floor((t - WEEK0) / WEEKMS);
 const seasonNo = (t = Date.now()) => { const d = new Date(t); return Math.max(0, (d.getUTCFullYear() - 2026) * 12 + (d.getUTCMonth() - 9)) + 1; };
+/* v79 weekly events (UTC): Street Sprint Mon-Thu = auction wins since you first showed up in it; Weekend Cup Fri-Sun = net worth gained since then.
+   Each entry keeps its base (sp0/cu0) for the current event and, when a new one starts, the last result (spL/cuL) so finished events can still be ranked and paid. */
+const evDay = (t = Date.now()) => Math.floor(((t - WEEK0) % WEEKMS) / 864e5);
+const evId = (k, t = Date.now()) => { const w = weekNo(t), d = evDay(t); return k === "sp" ? (d <= 3 ? "sp" + w : null) : (d >= 4 ? "cu" + w : null); };
+const evLast = (k, t = Date.now()) => { const w = weekNo(t), d = evDay(t); return k === "sp" ? "sp" + (d <= 3 ? w - 1 : w) : "cu" + (w - 1); };
+const evEnds = (k, t = Date.now()) => WEEK0 + weekNo(t) * WEEKMS + (k === "sp" ? 4 : 7) * 864e5;
+const evVal = (e, k, id) => { const cur = k === "sp" ? e.spId : e.cuId; if (cur === id) return k === "sp" ? (e.lw || 0) - (e.sp0 || 0) : (e.worth || 0) - (e.cu0 || 0); const L = k === "sp" ? e.spL : e.cuL; return L && L.id === id ? L.v : null; };
+const EVR = {};/* finished event → {at, ranks: Map installId → [rank, total, value]} (cached 10 min) */
+function evRanks(k, id) { const c = EVR[id]; if (c && Date.now() - c.at < 600e3) return c; const rows = []; for (const [iid, e] of Object.entries(RICH)) { const v = evVal(e, k, id); if (v != null && v > 0) rows.push([iid, v]); }
+  rows.sort((a, b) => b[1] - a[1]); const ranks = new Map(); rows.forEach(([iid, v], i) => ranks.set(iid, [i + 1, rows.length, v])); return (EVR[id] = { at: Date.now(), ranks }); }
 const BOARDS = {
+  sprint: e => { const id = evId("sp"); return id && e.spId === id ? (e.lw || 0) - (e.sp0 || 0) : null; },
+  cup: e => { const id = evId("cu"); return id && e.cuId === id ? (e.worth || 0) - (e.cu0 || 0) : null; },
   worth: e => e.worth,
   week: e => e.wk === weekNo() ? e.worth - (e.w0 || 0) : null,
   level: e => (e.pr || 0) * 100 + (e.lv || 0),
@@ -140,11 +159,11 @@ function richTop(id, board) {
   /* one player on two devices (a moved game, or the app and a browser) shows once: same name, stars and dynasty = the same player; yours wins, else the most recent */
   const seen = new Map();
   for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; const key = String(e.nick || "").toLowerCase() + "|" + (e.stars || 0) + "|" + (e.dy || 0); const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
-  const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
+  const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || b === "cup" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
   const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, fl: e.fl || 0, score: e.score, rank: r, me: e.k === id });
   const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
   const wkEnds = WEEK0 + (weekNo() + 1) * WEEKMS, sNow = new Date(), sEnds = Date.UTC(sNow.getUTCFullYear(), sNow.getUTCMonth() + 1, 1);
-  return { board: b, top: all.slice(0, 50).map((e, j) => pub(e, j + 1)), near, rank: i < 0 ? null : i + 1, total: all.length, weekEnds: wkEnds, seasonEnds: sEnds, season: seasonNo() };
+  return { board: b, top: all.slice(0, 50).map((e, j) => pub(e, j + 1)), near, rank: i < 0 ? null : i + 1, total: all.length, weekEnds: wkEnds, seasonEnds: sEnds, season: seasonNo(), evEnds: b === "sprint" || b === "cup" ? evEnds(b === "sprint" ? "sp" : "cu") : null };
 }
 async function richPost(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
@@ -154,11 +173,48 @@ async function richPost(req, res) {
   const nick = String(b.nick || "").trim(), worth = Number(b.worth);
   if (!NICK.test(nick) || !isFinite(worth) || worth < 0 || worth > 1e15) return send(req, res, 400, "text/plain", "bad entry");
   const old = RICH[b.installId] || {}, wk = weekNo(), n = (v, hi) => Math.max(0, Math.min(hi, Math.floor(Number(v) || 0)));
-  RICH[b.installId] = { nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15), fl: n(b.fl, 1),
+  const lw = n(b.lw, 9999999), spI = evId("sp"), cuI = evId("cu");
+  const ev = { spId: old.spId, sp0: old.sp0, spL: old.spL, cuId: old.cuId, cu0: old.cu0, cuL: old.cuL };
+  /* an event that has ended is frozen from the last numbers seen inside it, before this post's numbers land */
+  if (ev.spId && ev.spId !== spI) { ev.spL = { id: ev.spId, v: (old.lw || 0) - (ev.sp0 || 0) }; ev.spId = null; }
+  if (ev.cuId && ev.cuId !== cuI) { ev.cuL = { id: ev.cuId, v: (old.worth || 0) - (ev.cu0 || 0) }; ev.cuId = null; }
+  if (spI && !ev.spId) { ev.spId = spI; ev.sp0 = lw; }
+  if (cuI && !ev.cuId) { ev.cuId = cuI; ev.cu0 = Math.round(worth); }
+  RICH[b.installId] = { ...ev, lw, nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15), fl: n(b.fl, 1),
     wk, w0: old.wk === wk && old.w0 != null ? old.w0 : Math.round(worth), at: new Date().toISOString() };
   richDirty = true;
   return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId, String(b.board || "worth"))), { "cache-control": "no-store" });
 }
+/* v80 web store: the player's RevenueCat purchases (app user id = install id), read with the secret key, for the web game to grant. Off without RC_KEYS.secret. */
+const WEBB = new Map();
+function webBuys(req, res, url) { const id = url.searchParams.get("id") || ""; if (!ID.test(id)) return send(req, res, 400, "text/plain", "bad id");
+  if (!RC_KEYS.secret) return send(req, res, 200, "application/json", '{"buys":[],"off":true}', { "cache-control": "no-store" });
+  const c = WEBB.get(id); if (c && Date.now() - c.at < 10e3) return send(req, res, 200, "application/json", c.body, { "cache-control": "no-store" });
+  const r = https.request({ hostname: "api.revenuecat.com", path: "/v1/subscribers/" + encodeURIComponent(id), method: "GET", headers: { authorization: "Bearer " + RC_KEYS.secret, accept: "application/json" }, timeout: 8000 }, rs => {
+    let out = ""; rs.on("data", d => out += d); rs.on("end", () => { let body = '{"buys":[]}';
+      try { const j = JSON.parse(out).subscriber || {}, buys = []; for (const [pid, list] of Object.entries(j.non_subscriptions || {})) for (const t of list || []) buys.push({ id: pid, tx: String(t.id || t.store_transaction_id || pid + t.purchase_date), at: t.purchase_date });
+        const e = (j.entitlements || {}).auction_empire_pro, pro = e ? { on: !e.expires_date || Date.parse(e.expires_date) > Date.now(), until: e.expires_date ? Date.parse(e.expires_date) : 0, life: !e.expires_date, prod: e.product_identifier || "" } : null;
+        body = JSON.stringify({ buys, pro }); } catch { }
+      WEBB.set(id, { at: Date.now(), body }); if (WEBB.size > 2000) WEBB.clear(); send(req, res, 200, "application/json", body, { "cache-control": "no-store" }); }); });
+  r.on("error", () => send(req, res, 200, "application/json", '{"buys":[]}')); r.on("timeout", () => r.destroy(new Error("timeout"))); r.end(); }
+/* v79 event results: rank in the last finished Sprint and Cup, for the prize claim */
+function evClaim(req, res, url) { const id = url.searchParams.get("id") || ""; if (!ID.test(id)) return send(req, res, 400, "text/plain", "bad id");
+  const out = {}; for (const k of ["sp", "cu"]) { const eid = evLast(k), r = evRanks(k, eid).ranks.get(id); out[k] = r ? { id: eid, rank: r[0], total: r[1], v: r[2] } : { id: eid, rank: null }; }
+  out.now = { sp: evId("sp"), cu: evId("cu"), spEnds: evEnds("sp"), cuEnds: evEnds("cu"), week: weekNo(), day: evDay() };
+  return send(req, res, 200, "application/json", JSON.stringify(out), { "cache-control": "no-store" }); }
+/* v79 invites: a new player who came from someone's link and reaches level 5 pays both of them once (max 20 paid invites per inviter a month) */
+const INV_FILE = path.join(DATA, "invites.json");
+let INV = (() => { try { return JSON.parse(fs.readFileSync(INV_FILE, "utf8")); } catch { return { by: {}, q: {}, n: {} }; } })();
+async function invPost(req, res) { const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim(); if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
+  let b; try { b = JSON.parse(await readBody(req, 1024)); } catch { return send(req, res, 400, "text/plain", "bad body"); }
+  const me = String(b && b.installId || ""), by = String(b && b.by || ""); if (!ID.test(me) || !ID.test(by) || me === by) return send(req, res, 400, "text/plain", "bad");
+  if (INV.by[me]) return send(req, res, 200, "application/json", JSON.stringify({ ok: true, dup: true }));
+  const mk = new Date().toISOString().slice(0, 7), cnt = INV.n[by] && INV.n[by].m === mk ? INV.n[by].c : 0;
+  INV.by[me] = { by, at: Date.now() }; if (cnt < 20) { INV.n[by] = { m: mk, c: cnt + 1 }; (INV.q[by] = INV.q[by] || []).push(String(b.nick || "").replace(/[^A-Za-z0-9 _.-]/g, "").slice(0, 16)); }
+  try { writeJSON(INV_FILE, INV); } catch { } console.log(`INV ${me} via ${by}`); return send(req, res, 200, "application/json", JSON.stringify({ ok: true })); }
+function invGet(req, res, url) { const id = url.searchParams.get("id") || ""; if (!ID.test(id)) return send(req, res, 400, "text/plain", "bad id");
+  const q = INV.q[id] || []; if (q.length) { delete INV.q[id]; try { writeJSON(INV_FILE, INV); } catch { } }
+  const sent = Object.values(INV.by).filter(x => x.by === id).length; return send(req, res, 200, "application/json", JSON.stringify({ paid: q, sent }), { "cache-control": "no-store" }); }
 /* v72 global suburb ownership: every player posts how many homes they hold in each suburb; the owner of a suburb is whoever holds the most
    (3 or more), then the most value. A dethroned owner gets a notice on their next post. Entries not seen for 14 days drop out. */
 const TURF_FILE = path.join(DATA, "turf.json");
@@ -601,6 +657,9 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/board") return req.method === "POST" ? await boardPost(req, res) : boardGet(req, res, url);
     if (url.pathname === "/api/rc") { const o = {}; for (const k of ["android", "ios", "amazon", "test"]) if (RC_KEYS[k]) o[k] = RC_KEYS[k]; return send(req, res, 200, "application/json", JSON.stringify(o), { "cache-control": "no-store" }); }
     if (url.pathname === "/api/turf") return req.method === "POST" ? await turfPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(turfView(String(url.searchParams.get("id") || ""))), { "cache-control": "no-store" });
+    if (url.pathname === "/api/evclaim") return evClaim(req, res, url);
+    if (url.pathname === "/api/webbuys") return webBuys(req, res, url);
+    if (url.pathname === "/api/inv") return req.method === "POST" ? await invPost(req, res) : invGet(req, res, url);
     if (url.pathname === "/api/rich") return req.method === "POST" ? await richPost(req, res) : send(req, res, 200, "application/json", JSON.stringify(richTop(String(url.searchParams.get("id") || ""), String(url.searchParams.get("b") || "worth"))), { "cache-control": "no-store" });
     if (url.pathname === "/api/feedback") return req.method === "POST" ? await feedbackPost(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname === "/api/save") return req.method === "POST" ? await savePost(req, res) : saveGet(req, res, url);
@@ -640,19 +699,23 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(206, { ...base, "content-range": `bytes ${a0}-${b0}/${size}`, "content-length": b0 - a0 + 1 }); return res.end(req.method === "HEAD" ? undefined : f.body.subarray(a0, b0 + 1)); }
       res.writeHead(200, { ...base, "content-length": size }); return res.end(req.method === "HEAD" ? undefined : f.body);
     }
-    const gzip = !!f.gz && /\bgzip\b/.test(req.headers["accept-encoding"] || "");
+    const ae = req.headers["accept-encoding"] || "", br = !!f.br && /\bbr\b/.test(ae), gzip = !br && !!f.gz && /\bgzip\b/.test(ae), et = etagOf(f);
+    const cc = f.type.startsWith("text/html") || f.type === "application/json" ? "no-cache" : url.pathname.startsWith("/vendor/") ? "public, max-age=31536000, immutable" : LONG.test(f.type) ? "public, max-age=2592000" : "public, max-age=604800";
+    if (req.headers["if-none-match"] === et) { res.writeHead(304, { etag: et, "cache-control": cc, vary: "accept-encoding" }); return res.end(); }
     res.writeHead(200, {
-      "content-type": f.type,
-      "cache-control": f.type.startsWith("text/html") || f.type === "application/json" ? "no-cache" : LONG.test(f.type) ? "public, max-age=2592000" : "public, max-age=604800",
+      "content-type": f.type, "cache-control": cc, etag: et,
       "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin", vary: "accept-encoding",
-      ...(gzip ? { "content-encoding": "gzip" } : {}),
+      ...(br ? { "content-encoding": "br" } : gzip ? { "content-encoding": "gzip" } : {}),
+      ...(url.pathname.startsWith("/vendor/") ? { "access-control-allow-origin": "*" } : {}),
     });
-    res.end(req.method === "HEAD" ? undefined : gzip ? f.gz : f.body);
+    res.end(req.method === "HEAD" ? undefined : br ? f.br : gzip ? f.gz : f.body);
   } catch (e) {
     console.error(e);
     if (!res.headersSent) send(req, res, 500, "text/plain", "error");
   }
 });
+/* v79: a deploy stops the old container with SIGTERM: write the boards that are only flushed every 15s, so nobody's event progress is lost */
+for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => { try { writeJSON(RICH_FILE, RICH); } catch { } try { writeJSON(TURF_FILE, TURF); } catch { } console.log("flushed boards on " + sig); process.exit(0); });
 /* v76: keep connections open longer than the proxy's idle timeout, so requests don't land on a socket the server just closed */
 server.keepAliveTimeout = 65000; server.headersTimeout = 66000;
 server.listen(PORT, () => console.log(`Auction Empires on :${PORT} · logs in ${DATA}${ADMIN_KEY ? " · /admin on" : " · /admin off (set ADMIN_KEY)"}`));

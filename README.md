@@ -93,6 +93,7 @@ v75: stars are the store's currency. Sell these (create the same ids in App Stor
 | `star_1600` | consumable | ★ 1,600 (A$149.99), tagged Best value |
 | `starter_299` | non-consumable | Starter pack, once per account: ★ 80, a 7-day extra builder crew, Tycoon gavel paddle + frame (A$2.99) |
 | `vault` | consumable | Opens the star vault: every star saved in it (half a star per auction win, up to 60; offered from 10) goes to the wallet (A$4.99) |
+| `team_gift` | consumable | Syndicate gift: ★ 40 for the buyer and ★ 5 for every other member of their friend groups, once a day (A$4.99) |
 | `annual` | subscription | Dynasty Club yearly, A$79.99 (entitlement `auction_empire_pro`, add to the `default` offering) |
 | `founder` | non-consumable | Founder's deed, launch window only: ★ 30, one free naming right, the Founder frame, paddle and title (A$2.99) |
 | `season_pass` | consumable | this season's pass row |
