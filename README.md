@@ -85,10 +85,15 @@ v75: stars are the store's currency. Sell these (create the same ids in App Stor
 | `monthly` | subscription | Dynasty Club, A$9.99 a month (entitlement `auction_empire_pro`) |
 | `lifetime` | non-consumable | Dynasty Club for life (entitlement `auction_empire_pro`) |
 | `star_10` | consumable | ★ 10 to spend (A$1.49 guide) |
-| `star_35` | consumable | ★ 35 (A$4.49) |
-| `star_80` | consumable | ★ 80 (A$8.99) |
-| `star_180` | consumable | ★ 180 (A$17.99) |
-| `star_500` | consumable | ★ 500 (A$44.99) |
+| `star_36` | consumable | ★ 36 (A$4.99) |
+| `star_80` | consumable | ★ 80 (A$9.99), tagged Most popular; the A$-per-star shown in game comes from this pack |
+| `star_170` | consumable | ★ 170 (A$19.99) |
+| `star_420` | consumable | ★ 420 (A$44.99) |
+| `star_1000` | consumable | ★ 1,000 (A$99.99) |
+| `star_1600` | consumable | ★ 1,600 (A$149.99), tagged Best value |
+| `starter_299` | non-consumable | Starter pack, once per account: ★ 80, a 7-day extra builder crew, Tycoon gavel paddle + frame (A$2.99) |
+| `vault` | consumable | Opens the star vault: every star saved in it (half a star per auction win, up to 60; offered from 10) goes to the wallet (A$4.99) |
+| `annual` | subscription | Dynasty Club yearly, A$79.99 (entitlement `auction_empire_pro`, add to the `default` offering) |
 | `founder` | non-consumable | Founder's deed, launch window only: ★ 30, one free naming right, the Founder frame, paddle and title (A$2.99) |
 | `season_pass` | consumable | this season's pass row |
 | `remove_ads` | non-consumable | no ads |
