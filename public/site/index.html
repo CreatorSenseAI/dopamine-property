@@ -24,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Familjen+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="/site/img/hero-poster.webp">
-<link rel="stylesheet" href="/site/site.css">
+<link rel="stylesheet" href="/site/site.css?v=86b">
 <script>/* returning players see the site too; their Play buttons say Continue (no redirect: it hid the site from anyone with a save) */
 document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getItem('dopamine-property-v1'))document.querySelectorAll('a.btn[href^="/play"]').forEach(function(b){b.textContent=b.closest('.top')?'Continue':'Continue your game';});}catch(e){}
  /* the hero clip plays muted and loops; reduced motion gets the still */
@@ -125,9 +125,9 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
    <p class="lead">The camera cuts live to the home that's hit. Insure the risky ones, then cash in on the rebuild boom.</p>
   </header>
   <ul class="reel">
-   <li><img src="/site/img/event-flood-sm.webp?v=86" width="420" height="909" loading="lazy" alt="A house surrounded by floodwater: Flash flood in Ipswich"><span class="live">Live</span></li>
-   <li><img src="/site/img/event-bushfire-sm.webp?v=86" width="420" height="909" loading="lazy" alt="A house in flames: Bushfire on the ridge"><span class="live">Live</span></li>
-   <li><img src="/site/img/event-koala-sm.webp?v=86" width="420" height="909" loading="lazy" alt="A koala in a house's roof"><span class="live">Live</span></li>
+   <li><img src="/site/img/event-flood-sm.webp?v=86" width="420" height="909" loading="eager" alt="A house surrounded by floodwater: Flash flood in Ipswich"><span class="live">Live</span></li>
+   <li><img src="/site/img/event-bushfire-sm.webp?v=86" width="420" height="909" loading="eager" alt="A house in flames: Bushfire on the ridge"><span class="live">Live</span></li>
+   <li><img src="/site/img/event-koala-sm.webp?v=86" width="420" height="909" loading="eager" alt="A koala in a house's roof"><span class="live">Live</span></li>
   </ul>
  </div>
 </section>
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded',function(){try{if(localStorage.getI
     </tbody>
    </table>
   </div>
-  <div class="phone"><img src="/site/img/bidding-war-sm.webp?v=86" srcset="/site/img/bidding-war-sm.webp?v=86 420w, /site/img/bidding-war.webp?v=86 780w" sizes="300px" width="390" height="844" loading="lazy" alt="A heated bidding war at dusk on a suburban street"></div>
+  <div class="phone"><img src="/site/img/bidding-war-sm.webp?v=86" srcset="/site/img/bidding-war-sm.webp?v=86 420w, /site/img/bidding-war.webp?v=86 780w" sizes="300px" width="390" height="844" loading="eager" alt="A heated bidding war at dusk on a suburban street"></div>
  </div>
 </section>
 

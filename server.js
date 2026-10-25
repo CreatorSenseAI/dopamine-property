@@ -702,7 +702,8 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { ...base, "content-length": size }); return res.end(req.method === "HEAD" ? undefined : f.body);
     }
     const ae = req.headers["accept-encoding"] || "", br = !!f.br && /\bbr\b/.test(ae), gzip = !br && !!f.gz && /\bgzip\b/.test(ae), et = etagOf(f);
-    const cc = f.type.startsWith("text/html") || f.type === "application/json" ? "no-cache" : url.pathname.startsWith("/vendor/") ? "public, max-age=31536000, immutable" : LONG.test(f.type) ? "public, max-age=2592000" : "public, max-age=604800";
+    /* v86b: CSS and scripts outside /vendor/ always revalidate (ETag makes that a cheap 304): a 7-day cache kept Matt's phone on the first site.css under a new page */
+    const cc = f.type.startsWith("text/html") || f.type === "application/json" || (/(css|javascript)/.test(f.type) && !url.pathname.startsWith("/vendor/")) ? "no-cache" : url.pathname.startsWith("/vendor/") ? "public, max-age=31536000, immutable" : LONG.test(f.type) ? "public, max-age=2592000" : "public, max-age=604800";
     if (req.headers["if-none-match"] === et) { res.writeHead(304, { etag: et, "cache-control": cc, vary: "accept-encoding" }); return res.end(); }
     res.writeHead(200, {
       "content-type": f.type, "cache-control": cc, etag: et,
