@@ -500,3 +500,13 @@ Players were confused about why to bid, which stats matter, and how a lot affect
 - `body.phup` hides the street overlays (`.d3ov:not(.tov)`: bubbles, name tags), the auction toprow (Featured countdown) and `#lvCount`, which peeked out above the phone.
 - Tests: scratchpad `d3/v84.py tag light|dark "js || js || wait ms"` (Matt-like save: level 44, 100 legacy stars, 20 to spend; helpers `__oa(app)` and `__sc(sel,y)`).
 
+
+## Bug sweep (v85, 25 Oct: Matt "test all again, fix all bugs")
+- Full sweep script: scratchpad `d3/sweep.py light|dark [prefixes]` walks every phone app, group tab, dock app, store tab and ~33 sheets with a Matt-like save, screenshots each into `sw/`, and flags overflow past the screen, ellipsis-cut text, clipped text and JS errors. `d3/oa2.js` opens an app from the phone home (closes pages first, ignores badge digits). `d3/one.py "js || js" tag` runs steps against the same save; `d3/fresh.py` plays a brand-new player through onboarding and 150s of bidding.
+- `EAT_DEBUG.ev(src)` (debug only) evaluates inside the game closure, so tests can call any sheet; phone helpers are on `D3` (`D3.phClose`).
+- `storeClose()` hid the store with an unconditional 200ms timer: reopening inside that window left a blank phone page. Open/close now bump `#store.dataset.sq` and the timer only hides a store that is still closed.
+- `rarityInfo(c,fromAlbum)` was called from every card's "What does X mean?" link but no longer existed (tap threw). Rebuilt: rarity list with odds, what moves it, this card's reasons, Back to the card.
+- Player JS errors: `jsErr()` (window `error` + `unhandledrejection`) counts `T.c.jsErr` and logs up to 6 `js_err` lines a session (`m`, `at`); admin Game tab "Player errors (v85)" shows the count and most common messages.
+- Overview tiles `#oFinds`/`#oStars` shrink (`.sm`/`.xs`) when long; `.hstats2 small` wraps; offer pills `nowrap`; `.upg button.crewln` beats the `.upg button` restyle (sixth class clash).
+- Stale copy fixed: level ladder (crews at 10/25/40, no Market meter), How to play levels step, Season XP list (no takeovers), "No streak yet" instead of "0-day streak", account hello toast asks for a username and password.
+- The `OPENAI_API_KEY` on Railway is rejected (401) since at least 24 Oct; photo generation stops at once each boot. Matt needs to replace or remove it.
