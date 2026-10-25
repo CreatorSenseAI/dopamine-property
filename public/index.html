@@ -6369,7 +6369,7 @@ function mountFull(){const app=$('#app');if(!app)return;if(cv.parentNode!==app){
  cv.addEventListener('pointerdown',e=>{cdrag={x:e.clientX,y0:uYaw};try{cv.setPointerCapture(e.pointerId);}catch(x){}});cv.addEventListener('pointermove',e=>{if(cdrag)uYaw=Math.max(-.7,Math.min(.8,cdrag.y0-(e.clientX-cdrag.x)/240));});
  const up=()=>{cdrag=null;};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);}}
 const phoneOpen=()=>view==='e'||view==='m'||phHomeOpen||!!PHP;
-let PACE=0;function frame(now){requestAnimationFrame(frame);if(Q.pace){if(now-PACE<30)return;PACE=now;}const dt=Math.min(.05,(now-(lastT||now))/1000);lastT=now;if(document.hidden||st!=='ready')return;if(R&&R.info){if(R.info.autoReset)R.info.autoReset=false;RINFO={calls:R.info.render.calls,tris:R.info.render.triangles};R.info.reset();}if(MOB&&R){R.shadowMap.autoUpdate=false;SHF=(SHF+1)%45;if(SHD>0||REV||SHF===0){if(SHD>0)SHD--;R.shadowMap.needsUpdate=true;}}/* v76: on phones nothing that moves casts a shadow, so the shadow map is redrawn after a new lot is built (3 frames), during a reveal, and every 45 frames for weather; it used to redraw every other frame */
+let PACE=0;function frame(){const now=performance.now();requestAnimationFrame(frame);if(Q.pace){if(now-PACE<30)return;PACE=now;}const dt=Math.min(.05,(now-(lastT||now))/1000);lastT=now;if(document.hidden||st!=='ready')return;if(R&&R.info){if(R.info.autoReset)R.info.autoReset=false;RINFO={calls:R.info.render.calls,tris:R.info.render.triangles};R.info.reset();}if(MOB&&R){R.shadowMap.autoUpdate=false;SHF=(SHF+1)%45;if(SHD>0||REV||SHF===0){if(SHD>0)SHD--;R.shadowMap.needsUpdate=true;}}/* v76: on phones nothing that moves casts a shadow, so the shadow map is redrawn after a new lot is built (3 frames), during a reveal, and every 45 frames for weather; it used to redraw every other frame */
  const PT=window.__PT,pt=PT?performance.now():0;mountFull();if(now-layT>350){layT=now;layout();syncPhone();}if(PT){PT.lay=(PT.lay||0)+performance.now()-pt;}
  if(view==='e'&&eSec==='town')townFrame(dt,now);
  if(!A||A.bg)return;events();if(!lot)return;const t=now/1000,dtS=hamScale(dt);crowdTick(dtS);specTick(A);if(!REC&&cur===A&&!A.ended&&(A.heatLv||0)>=2&&A.st&&A.st.hand+A.st.auto+A.st.big>0&&view==='a'&&!phoneOpen())recStart(A);
@@ -7223,7 +7223,7 @@ else awayCredit(since);
    in the frame. When frames stop (hidden tab, app in the background) a 1s timer keeps the old pace of one tick a second. */
 const TK={acc:0,last:0,raf:0};
 function aucStep(){const pt=window.__PT?performance.now():0;auctionTick(0.1);liveTick(0.1);if(pt)__PT.tick=(__PT.tick||0)+performance.now()-pt;}
-function tickLoop(now){requestAnimationFrame(tickLoop);TK.raf=now;if(!TK.last){TK.last=now;return;}TK.acc=Math.min(400,TK.acc+now-TK.last);TK.last=now;let n=0;while(TK.acc>=100&&n<4){TK.acc-=100;n++;aucStep();}}
+function tickLoop(){const now=performance.now();requestAnimationFrame(tickLoop);/* v86c: performance.now(), not the rAF timestamp: same in browsers, and it follows fake clocks (the site clip is rendered frame by frame) */TK.raf=now;if(!TK.last){TK.last=now;return;}TK.acc=Math.min(400,TK.acc+now-TK.last);TK.last=now;let n=0;while(TK.acc>=100&&n<4){TK.acc-=100;n++;aucStep();}}
 requestAnimationFrame(tickLoop);
 setInterval(()=>{const now=performance.now();if(now-TK.raf<600)return;TK.last=0;TK.acc=0;aucStep();},1000);
 setInterval(()=>{const pt=window.__PT?performance.now():0;econTick();if(pt)__PT.econ=(__PT.econ||0)+performance.now()-pt;},1000);
