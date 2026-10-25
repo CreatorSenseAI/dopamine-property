@@ -219,3 +219,56 @@ p{margin:0 0 1em}
 .vs td:last-child{font-weight:700;color:var(--lawn-d)}
 @media (max-width:560px){.vs{font-size:15px}.vs th,.vs td{padding:11px 6px}.vs thead th{font-size:18px}}
 .call .callsub{margin:12px 0 0;font-size:19px;opacity:.92;max-width:30em}
+
+/* ---------- v86 refresh (Matt: "the website looks so bad; the store icons are just black") ---------- */
+/* hero: a street behind the board instead of a flat green strip: rooftops on the horizon, a picket fence on the lawn */
+.hero{background:linear-gradient(#bcdcf8 0%,#d9ecfc 55%,#eaf5ff 100%)}
+.hero::before{content:"";position:absolute;left:0;right:0;bottom:clamp(64px,9vw,104px);height:clamp(90px,12vw,150px);pointer-events:none;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 150' preserveAspectRatio='xMidYMax slice'%3E%3Cg fill='%23a9cbea'%3E%3Cpath d='M0 150V96l40-30 40 30v54zM92 150V80l56-42 56 42v70zM218 150V102l34-26 34 26v48zM300 150V70l70-40 70 40v80zM452 150V92l42-32 42 32v58zM546 150V84l27-20 27 20v66z'/%3E%3C/g%3E%3Cg fill='%2394bde3'%3E%3Crect x='112' y='96' width='16' height='16' rx='2'/%3E%3Crect x='164' y='96' width='16' height='16' rx='2'/%3E%3Crect x='330' y='90' width='18' height='18' rx='2'/%3E%3Crect x='392' y='90' width='18' height='18' rx='2'/%3E%3Crect x='476' y='108' width='14' height='14' rx='2'/%3E%3C/g%3E%3C/svg%3E") bottom/600px 100% repeat-x}
+.hero::after{background:linear-gradient(#3cae6b,#2a9358);box-shadow:none}
+.hero .fence{position:absolute;left:0;right:0;bottom:clamp(64px,9vw,104px);height:30px;z-index:0;pointer-events:none;
+ background:linear-gradient(#fff,#fff) 0 9px/100% 4px no-repeat,linear-gradient(#fff,#fff) 0 21px/100% 4px no-repeat,
+ linear-gradient(90deg,transparent 0 6px,#fff 6px 16px,transparent 16px 22px) 0 4px/22px 26px repeat-x;filter:drop-shadow(0 2px 0 rgba(19,32,58,.12))}
+.hero .fence::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:linear-gradient(135deg,transparent 50%,#fff 50%) 6px 0/11px 8px repeat-x,linear-gradient(225deg,transparent 50%,#fff 50%) 0 0/11px 8px repeat-x;
+ -webkit-mask:linear-gradient(90deg,transparent 0 6px,#000 6px 16px,transparent 16px 22px) 0 0/22px 8px repeat-x;mask:linear-gradient(90deg,transparent 0 6px,#000 6px 16px,transparent 16px 22px) 0 0/22px 8px repeat-x}
+.posts i{position:relative;z-index:1}
+/* store buttons: light, badge-sized, a coloured tile each; our own marks (the official badges are only allowed once the apps are live) */
+.soon{gap:12px;margin-top:18px}
+.store{gap:12px;min-height:56px;padding:7px 18px 7px 7px;border-radius:14px;background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink),0 3px 0 var(--ink)}
+.store i{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;flex:none}
+.store svg{width:24px;height:24px;stroke:#fff;stroke-width:1.9;fill:none}
+.st-ios i{background:linear-gradient(160deg,#4d8ef0,#1d4fb8)}
+.st-and i{background:linear-gradient(160deg,#3fcf7d,#1f8f4e)}
+.st-and svg{fill:#fff;stroke:#fff;stroke-linejoin:round}
+.store small{font:600 12px/1.15 var(--f-b);opacity:1;color:var(--muted)}
+.store b{font:400 22px/1.05 var(--f-d);letter-spacing:.01em}
+@media (max-width:420px){.store{flex:1 1 0;min-width:0;padding-right:10px}.store b{font-size:19px}.store i{width:36px;height:36px}}
+/* meter: the bid marker and the walk-away line each get their own lane so the labels never collide */
+.meter{padding-top:78px}
+.meter .wa{top:62px}
+.meter .wa b{font-size:14px;margin-bottom:4px;color:var(--ink);background:#fff;padding:0 4px}
+.meter .mk{top:4px}
+@media (prefers-reduced-motion:no-preference){.meter .mk{animation:creep 6s ease-in-out infinite alternate}@keyframes creep{from{left:18%}to{left:64%}}}
+@media (max-width:560px){.meter .wa b{left:auto;right:-6px;transform:none}}
+/* screens: an app-store style strip that swipes on phones and pages with buttons on desktop */
+.window .strip{position:relative}
+.shots{list-style:none;margin:0 calc(var(--gut)*-1);padding:6px var(--gut) 28px;display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gut);scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.shots::-webkit-scrollbar{display:none}
+.shot{flex:0 0 clamp(250px,72vw,290px);scroll-snap-align:start;display:flex;flex-direction:column;border-radius:26px;overflow:hidden;color:#fff;min-height:560px;box-shadow:0 20px 40px rgba(0,0,0,.35)}
+.shot.c-red{background:linear-gradient(170deg,#e23a50,#a8182b)}
+.shot.c-navy{background:linear-gradient(170deg,#2a4478,#14203a)}
+.shot.c-lawn{background:linear-gradient(170deg,#38b56d,#1e7a46)}
+.shot.c-gold{background:linear-gradient(170deg,#f7cf68,#d9a12b);color:var(--navy)}
+.shot .sh-t{padding:22px 22px 14px}
+.shot .sh-k{display:inline-block;font:700 13px/1 var(--f-b);padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.18);margin-bottom:12px}
+.shot.c-gold .sh-k{background:rgba(19,32,58,.12)}
+.shot h3{font-size:30px;line-height:1.02;margin-bottom:8px}
+.shot p{font-size:15px;line-height:1.45;margin:0;opacity:.92}
+.shot figure{margin:auto 22px 0;padding:8px 8px 0;background:#06090f;border-radius:30px 30px 0 0;box-shadow:inset 0 0 0 2px #2a3346}
+.shot figure img{border-radius:23px 23px 0 0;width:100%;aspect-ratio:390/600;object-fit:cover;object-position:top}
+.sbtn{position:absolute;top:44%;z-index:2;width:52px;height:52px;border-radius:50%;border:0;background:#fff;color:var(--navy);font:400 34px/1 var(--f-b);cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.35);display:grid;place-items:center;padding-bottom:4px}
+.sbtn.prev{left:-10px}.sbtn.next{right:-10px}
+.sbtn[hidden]{display:none}
+@media (hover:none),(max-width:700px){.sbtn{display:none}}
+.window header{margin-bottom:clamp(24px,3vw,36px)}
+.reel li{box-shadow:0 14px 30px rgba(11,19,36,.18)}
