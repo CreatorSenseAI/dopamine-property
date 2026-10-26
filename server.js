@@ -156,9 +156,9 @@ const BOARDS = {
 };
 function richTop(id, board) {
   const b = BOARDS[board] ? board : "worth", f = BOARDS[b], cut = Date.now() - 14 * 864e5;
-  /* one player on two devices (a moved game, the app and a browser, an old copy) shows once: the same name (or the same account for auto names); yours wins, else the most recent. v89: names were matched with stars too, so Matt's app and web games (different stars) showed twice. Admin/test games (t) only show to themselves. */
+  /* one player on two devices (a moved game, the app and a browser, an old copy) shows once: the same account (v89b: never by name: one person can run several accounts, and two players can share a name); yours wins, else the most recent. v89: names were matched with stars too, so Matt's app and web games (different stars) showed twice. Admin/test games (t) only show to themselves. */
   const seen = new Map();
-  for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; if (e.t && k !== id) continue; const nk = String(e.nick || "").toLowerCase(), key = /^bidder \d+$/.test(nk) || nk === "you" || !nk ? (e.ac ? "a|" + e.ac : "i|" + k) : "n|" + nk; const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
+  for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; if (e.t && k !== id) continue; const key = e.ac ? "a|" + e.ac : "i|" + k; const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
   const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || b === "cup" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
   const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, fl: e.fl || 0, score: e.score, rank: r, me: e.k === id });
   const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
