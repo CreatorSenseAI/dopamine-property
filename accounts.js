@@ -24,6 +24,10 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
   const IDX = path.join(DATA, "acct-email.json"), UIDX = path.join(DATA, "acct-user.json");
   const RESEND = process.env.RESEND_API_KEY || "", FROM = process.env.MAIL_FROM || "Auction Empires <play@creatorsenseai.com>";
   console.log("ACCT email: " + (RESEND ? "live" : "dry run (set RESEND_API_KEY)"));
+  /* v89 admin: an account whose email is in ADMIN_EMAILS and that has a password gets the in-game admin tools and a one-time link into /admin */
+  const ADMINS = String(process.env.ADMIN_EMAILS || "info@creatorsenseai.com").toLowerCase().split(/[,\s]+/).filter(Boolean);
+  const isAdmin = a => !!(a && a.email && a.pw && ADMINS.includes(String(a.email).toLowerCase()));
+  const ADMTOK = new Map();
   const read = f => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
   const aFile = id => path.join(AD, id + ".json"), sFile = (id, n) => path.join(SD, id + (n == null ? "" : "." + n) + ".json");
   const sha = s => crypto.createHash("sha256").update(String(s)).digest("hex");
@@ -124,6 +128,7 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
       }
     } catch (e) { console.log("ACCT import error " + e.message); }
     console.log(`ACCT store: postgres · import: ${files} account files, ${n} new in the db, ${s} saves, ${dupe} with a duplicate email/username`);
+    for (const em of ADMINS) { try { const a = await st.byEmail(em); console.log(`ACCT admin ${mask(em)}: ${a ? a.id + (a.pw ? " (password set)" : " (no password yet)") : "no account has this email yet"}`); } catch { } }
     refreshStats();
   })();
   async function db(res, req) { if (!READY) { await Promise.race([ready, new Promise(r => setTimeout(r, 8000))]); } if (!READY) { bad(req, res, "Accounts are down for a moment. Your game is still saved on this device.", 503); return false; } return true; }
@@ -153,7 +158,7 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
   async function auth(b) { const id = String(b.acct || ""); if (!AID.test(id)) return null; const a = await st.get(id); if (!a) return null; const h = sha(b.tok || ""); return (a.toks || []).some(t => t.h === h) ? a : null; }
   const newTok = a => { const tok = crypto.randomBytes(24).toString("hex"); a.toks = (a.toks || []).filter(t => Date.now() - t.at < 400 * 864e5).slice(-9); a.toks.push({ h: sha(tok), at: Date.now() }); return tok; };
   const resetOpen = a => !!(a.reset && Date.now() - a.reset < 15 * 60e3);
-  const meta = a => ({ acct: a.id, iid: a.iid, email: a.email ? mask(a.email) : null, hasEmail: !!a.email, hasPw: !!a.pw, prot: !!(a.email && a.pw), reset: resetOpen(a), rev: a.rev || 0, at: a.at || 0, dev: a.dev || null, worth: a.worth || 0, nick: a.nick || "", mail: !!RESEND, user: a.user || null });
+  const meta = a => ({ acct: a.id, iid: a.iid, email: a.email ? mask(a.email) : null, hasEmail: !!a.email, hasPw: !!a.pw, prot: !!(a.email && a.pw), reset: resetOpen(a), rev: a.rev || 0, at: a.at || 0, dev: a.dev || null, worth: a.worth || 0, nick: a.nick || "", mail: !!RESEND, user: a.user || null, admin: isAdmin(a) });
   function mail(to, subject, text, html) {
     if (!RESEND) { console.log(`ACCT dry-run mail to ${mask(to)}: ${text.replace(/\s+/g, " ").slice(0, 120)}`); return Promise.resolve({ dry: true }); }
     const data = JSON.stringify({ from: FROM, to: [to], subject, text, html });
@@ -181,6 +186,8 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
       let id; do { id = "a" + crypto.randomBytes(12).toString("base64").replace(/[^a-z0-9]/gi, "").toLowerCase().padEnd(15, "x").slice(0, 15); } while (await st.exists(id));
       const a = { id, iid: String(b.installId), created: new Date().toISOString(), rev: 0, at: 0 }; const tok = newTok(a); await st.put(a);
       console.log(`ACCT new ${id} for ${a.iid}`); ok(req, res, Object.assign(meta(a), { tok })); },
+    async "POST /api/acct/admin"(req, res) { const b = await body(req, res); if (!b) return; const a = await auth(b); if (!a) return bad(req, res, "Signed out", 401); if (!isAdmin(a)) return bad(req, res, "Not an admin account", 403);
+      const t = crypto.randomBytes(24).toString("hex"); ADMTOK.set(t, Date.now() + 120e3); for (const [k, v] of ADMTOK) if (v < Date.now()) ADMTOK.delete(k); console.log("ACCT admin link for " + a.id); ok(req, res, { link: "/admin/auth?t=" + t }); },
     async "POST /api/acct/me"(req, res) { const b = await body(req, res); if (!b) return; const a = await auth(b); if (!a) return bad(req, res, "Signed out", 401); ok(req, res, meta(a)); },
     /* the save: newer (by the client's save time) wins; an older save is refused with the account's numbers so the device can choose */
     async "POST /api/acct/save"(req, res) { const b = await body(req, res, 1600000); if (!b) return; const id = String(b.acct || "");
@@ -256,5 +263,5 @@ module.exports = function accounts({ DATA, send, readBody, writeJSON, ID }) {
   function stats() { return Object.assign({}, STATS, { live: !!RESEND, store: st.kind, ready: READY, fail: FAIL }); }
   /* nightly copy of every account and its current save, for DATA/backups (Railway's Postgres volume is the primary) */
   async function exportGz() { if (!READY) return null; const all = await st.all(), out = []; for (const a of all) out.push({ a, s: await st.getSave(a.id) }); return zlib.gzipSync(JSON.stringify({ at: new Date().toISOString(), store: st.kind, accounts: out })); }
-  return { async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; try { await r(req, res); } catch (e) { console.log("ACCT error " + url.pathname + " " + e.message); if (!res.headersSent) bad(req, res, "Something went wrong. Try again.", 500); } return true; }, stats, exportGz, ready, kind: () => st.kind };
+  return { async handle(req, res, url) { const r = routes[req.method + " " + url.pathname]; if (!r) return false; try { await r(req, res); } catch (e) { console.log("ACCT error " + url.pathname + " " + e.message); if (!res.headersSent) bad(req, res, "Something went wrong. Try again.", 500); } return true; }, stats, exportGz, ready, kind: () => st.kind, adminTok(t) { const v = ADMTOK.get(String(t || "")); if (!v) return false; ADMTOK.delete(String(t)); return v > Date.now(); } };
 };

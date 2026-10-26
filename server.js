@@ -156,9 +156,9 @@ const BOARDS = {
 };
 function richTop(id, board) {
   const b = BOARDS[board] ? board : "worth", f = BOARDS[b], cut = Date.now() - 14 * 864e5;
-  /* one player on two devices (a moved game, or the app and a browser) shows once: same name, stars and dynasty = the same player; yours wins, else the most recent */
+  /* one player on two devices (a moved game, the app and a browser, an old copy) shows once: the same name (or the same account for auto names); yours wins, else the most recent. v89: names were matched with stars too, so Matt's app and web games (different stars) showed twice. Admin/test games (t) only show to themselves. */
   const seen = new Map();
-  for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; const key = String(e.nick || "").toLowerCase() + "|" + (e.stars || 0) + "|" + (e.dy || 0); const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
+  for (const [k, e] of Object.entries(RICH)) { if (!(Date.parse(e.at) > cut)) continue; if (e.t && k !== id) continue; const nk = String(e.nick || "").toLowerCase(), key = /^bidder \d+$/.test(nk) || nk === "you" || !nk ? (e.ac ? "a|" + e.ac : "i|" + k) : "n|" + nk; const o = seen.get(key); if (!o || k === id || (o.k !== id && Date.parse(e.at) > Date.parse(o.e.at))) seen.set(key, { k, e }); }
   const all = Array.from(seen.values()).map(({ k, e }) => ({ k, ...e, score: f(e) })).filter(e => e.score != null && (b === "worth" || b === "week" || b === "cup" || e.score > 0)).sort((a, c) => c.score - a.score || c.worth - a.worth);
   const i = all.findIndex(e => e.k === id), pub = (e, r) => ({ nick: e.nick, worth: e.worth, stars: e.stars, homes: e.homes, lv: e.lv || 0, pr: e.pr || 0, sx: e.sid === seasonNo() ? e.sx || 0 : 0, aw: e.aw || 0, wins: e.wins || 0, dy: e.dy || 0, c: e.c || 0, fl: e.fl || 0, score: e.score, rank: r, me: e.k === id });
   const near = i >= 50 ? all.slice(Math.max(50, i - 2), i + 3).map((e, j) => pub(e, Math.max(50, i - 2) + j + 1)) : [];
@@ -180,7 +180,7 @@ async function richPost(req, res) {
   if (ev.cuId && ev.cuId !== cuI) { ev.cuL = { id: ev.cuId, v: (old.worth || 0) - (ev.cu0 || 0) }; ev.cuId = null; }
   if (spI && !ev.spId) { ev.spId = spI; ev.sp0 = lw; }
   if (cuI && !ev.cuId) { ev.cuId = cuI; ev.cu0 = Math.round(worth); }
-  RICH[b.installId] = { ...ev, lw, nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 50), pr: n(b.pr, 99), sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15), fl: n(b.fl, 1),
+  RICH[b.installId] = { ...ev, lw, nick, worth: Math.round(worth), stars: n(b.stars, 9999), homes: n(b.homes, 999), lv: n(b.lv, 100), pr: n(b.pr, 99), ac: /^a[a-z0-9]{15}$/.test(String(b.ac || "")) ? String(b.ac) : old.ac || null, t: b.t ? 1 : 0, sx: n(b.sx, 100), sid: n(b.sid, 999), aw: n(b.aw, 99999), wins: n(b.wins, 999999), dy: n(b.dy, 99), c: n(b.c, 15), fl: n(b.fl, 1),
     wk, w0: old.wk === wk && old.w0 != null ? old.w0 : Math.round(worth), at: new Date().toISOString() };
   richDirty = true;
   return send(req, res, 200, "application/json", JSON.stringify(richTop(b.installId, String(b.board || "worth"))), { "cache-control": "no-store" });
@@ -668,6 +668,8 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/play") return req.method === "POST" ? await ingest(req, res) : send(req, res, 405, "text/plain", "POST only");
     if (url.pathname.startsWith("/img/") && await serveImg(req, res, url)) return;
     if (url.pathname === "/admin/backup") { if (!authed(url, req)) return send(req, res, 401, "text/plain", "admin key?"); await backupNow("manual"); return send(req, res, 302, "text/plain", "", { location: "/admin" }); }
+    /* v89: the game's admin button opens this with a one-time token from /api/acct/admin; it sets the same cookie as ?key= */
+    if (url.pathname === "/admin/auth") { if (ADMIN_KEY && accts.adminTok(url.searchParams.get("t"))) return send(req, res, 302, "text/plain", "", { location: "/admin" + (url.searchParams.get("tab") ? "?tab=" + encodeURIComponent(url.searchParams.get("tab")) : ""), "set-cookie": "ak=" + encodeURIComponent(ADMIN_KEY) + "; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000", "cache-control": "no-store" }); return send(req, res, 403, "text/plain", "Link expired. Open the dashboard from the game again."); }
     if (url.pathname === "/admin/logout") return send(req, res, 200, "text/html", "<p>Logged out. <a href=\"/\">Game</a></p>", { "set-cookie": "ak=; Path=/admin; Max-Age=0" });
     if (url.pathname === "/admin/gen-images") {
       if (!authed(url, req)) return send(req, res, 404, "text/plain", "not found");
