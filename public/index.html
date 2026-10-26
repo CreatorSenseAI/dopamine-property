@@ -3352,7 +3352,7 @@ const STREET_RG={nz:[['Kowhai','Rimu','Totara','Pohutukawa','Manuka','Kauri','Tu
  tyo:[['Sakura','Hikawa','Daikanyama','Shirokane','Azabu','Aoyama','Hiroo','Kamiyama','Moto'],['dori','zaka','cho'],2],
  mc:[['Princesse Grace','du Larvotto','de la Costa','Grimaldi','des Moulins',"d'Ostende",'Princesse Caroline','Saint-Michel'],['Avenue','Boulevard','Rue'],1]};
 const wmOfSt=st=>{try{return WM_ST[st]||null;}catch(e){return null;}};
-function streetsFor(sub,st){let h=7;for(const ch of sub)h=(h*31+ch.charCodeAt(0))|0;const rr=mulberry(h),out=[],rg=STREET_RG[wmOfSt(st)];let g=0;while(out.length<3&&g++<40){let s;
+function streetsFor(sub,st){let h=7;for(const ch of String(sub||''))h=(h*31+ch.charCodeAt(0))|0;const rr=mulberry(h),out=[],rg=STREET_RG[wmOfSt(st)];let g=0;while(out.length<3&&g++<40){let s;
  if(!rg)s=STREETS[Math.floor(rr()*STREETS.length)]+' '+STYPES[Math.floor(rr()*STYPES.length)];else{const n=rg[0][Math.floor(rr()*rg[0].length)],t=rg[1][Math.floor(rr()*rg[1].length)];s=rg[2]===1?t+' '+n:rg[2]===2?n+'-'+t:n+' '+t;}
  if(!out.includes(s))out.push(s);}return out;}
 function makeLot(ti,o={}){const T=TIERS[ti];let styles=T.styles;if(o.type)styles=styles.filter(x=>(o.type==='apt')===(x==='unit'||x==='tower'));if(!styles.length)return null;
@@ -3379,7 +3379,7 @@ const RMETA={
  'Black Swan Partners':{ini:'BS',short:'Black Swan',col:'#111827',bid:['Black Swan.','Unexpected, isn’t it?'],think:['Black Swan is modelling…'],out:['Not our risk.'],win:['Priced in.'],counter:['Black Swan counters.']},
  'The Syndicate':{ini:'SY',short:'Syndicate',col:'#7f1d1d',bid:['The Syndicate.','We were always going to win this.','Again.'],think:['The Syndicate pauses…'],out:['…Impossible.'],win:['As foretold.'],counter:['The Syndicate answers.']},
  'Aurelian Sovereign Fund':{ini:'AF',short:'Aurelian',col:'#2c7a7b',bid:['Mandate approved.','Deep pockets.'],think:['Aurelian is checking the mandate…'],out:['Outside our mandate.'],win:['Acquired.'],counter:['The Fund responds.']}};
-const FMETA={};function friendMeta(n){if(FMETA[n])return FMETA[n];let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))|0;const parts=n.split(/\s+/);return FMETA[n]={ini:(parts.length>1?parts[0][0]+parts[1][0]:n.slice(0,2)).toUpperCase(),short:n,col:`hsl(${Math.abs(h)%360} 55% 42%)`,bid:['Mine, mate.','Back off!','Not today, friend.','Ha. Again.'],think:[n+' is thinking…'],out:['Fine. Take it.','Too rich for me.'],win:['Too slow!','Thanks for the bump.'],counter:['Nice try.']};}
+const FMETA={};function friendMeta(n){n=String(n||'Friend');if(FMETA[n])return FMETA[n];let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))|0;const parts=n.split(/\s+/);return FMETA[n]={ini:(parts.length>1?parts[0][0]+parts[1][0]:n.slice(0,2)).toUpperCase(),short:n,col:`hsl(${Math.abs(h)%360} 55% 42%)`,bid:['Mine, mate.','Back off!','Not today, friend.','Ha. Again.'],think:[n+' is thinking…'],out:['Fine. Take it.','Too rich for me.'],win:['Too slow!','Thanks for the bump.'],counter:['Nice try.']};}
 const rm=r=>RMETA[r.name]||friendMeta(r.name);
 const GRUDGE=['You again.','Not this time.','I remember you.','This one’s personal.'],BOSS=['Let’s finish this.','You’ve had your run.','Everything I’ve got.'];
 function rivalSay(r,kind){A.say={r,kind,text:pick(kind==='grudge'?GRUDGE:kind==='boss'?BOSS:rm(r)[kind]),t:kind==='think'?6:2.8};renderChat();}
@@ -3412,6 +3412,9 @@ function startAuction(){if(S.grace>0)S.grace--;
  while(SELLQ.length){const q=SELLQ.shift(),sp=S.props.find(x=>x.id===q.pid);if(sp){A=newSellAuction(sp,q.reserve);renderLot();return;}}
  if(SDQ){SDQ=false;if(S.sdDay!==sdDay()){A=newShowdown();renderLot();drawSd();sfx('rare');return;}}
  if(RUN&&RUN.i<RUN.n){A=runLot(RUN);renderLot();return;}
+ /* v90 (log review: Matt at $50B on a manual Starter tier let 25 lots pass without a bid): four focused lots in a row with no bid while your cash buys two tiers up puts the tier back on Auto by itself */
+ if(A&&!A.bg&&!A.sell&&!A.arena&&!RUN&&A.st){const st=A.st;S.idle=(st.hand+st.auto+st.big)?0:(S.idle||0)+1;}
+ if(S.tierAuto===false&&!AUC_CITY&&(S.idle||0)>=4&&affordTier()>=S.tier+2){const from=S.tier;S.tierAuto=true;S.idle=0;T.c.tierAutoIdle=(T.c.tierAutoIdle||0)+1;tlog('tier_auto_idle',{from,to:affordTier()});setTimeout(()=>toast(`Lots now match your cash: ${TIERS[affordTier()].name}. Pick a tier again any time in Tiers and cities.`,'up',()=>mkSheet()),1600);}
  if(S.tierAuto!==false&&!AUC_CITY)S.tier=pickTier(false);buildChips();
  const feat=S.props.length>0&&S.featAt&&Date.now()>=S.featAt,daily=false;/* v73: Today's lot retired, the daily run is the one daily thing */
  if(feat){S.featAt=Date.now()+FEAT_EVERY;S.featWarned=false;T.c.featured++;}
@@ -5872,8 +5875,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=89;
+const APPV=90;
 const PATCH=[
+ {v:90,d:'26 Oct 2026',t:'Lots that match your cash',items:['If your empire has outgrown the tier you picked and you let four lots in a row go by, the auction moves you back to lots your cash can buy. Pick a tier again any time in Tiers and cities.']},
  {v:89,d:'26 Oct 2026',t:'One you on the boards',items:['Leaderboards show each account once, even when the same account plays on the app and in a browser. Different accounts always show separately, even with the same name.','When your Property manager fixes repairs, you now get a message saying what it fixed and what it cost. Tap it to see requests or turn the manager off.']},
  {v:88,d:'26 Oct 2026',t:'Bigger things for your stars',items:['Dynasty HQ: build your own tower in My town, five floors from 150 to 1,200 stars. Each floor adds +2% rent on every home, and it stays through cash-outs. The top floor makes you Chairman.','Double XP for 1 or 6 hours: levels and season tiers twice as fast, on the way to your next dynasty mark.','Treasury: turn stars into cash sized to your markets.','Skip season tiers, one or ten at a time, with the rewards landing at once.','Finish a Precinct or Landmark now, the same as works.','Three new paddle and frame finishes: Obsidian, Aurora and Platinum.','Star prices went up across the board as the list grew.']},
  {v:87,d:'26 Oct 2026',t:'The dynasty is your level',items:['Levels now go to 100, and your level is the dynasty ladder: titles from Newcomer at level 1 to Immortal at 100.','Level 100 is the next dynasty mark: Gold, Diamond, Adamantium, Mythril, Eternal, then Infinite. Each one adds +25% rent for good, a Legendary estate, its paddle and card frame and 5 slots, and the climb starts again at level 1.','Stars at levels 25, 50, 75 and 100. Stars you have stay yours, still raise your rent and are still yours to spend.','Your marks and level are kept. Slots and crews from levels stay when a new climb starts.']},
