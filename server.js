@@ -775,4 +775,4 @@ function logDigest() {
 setTimeout(logDigest, 8000);
 setInterval(logDigest, 30 * 60e3);
 /* photos: with OPENAI_API_KEY set, fill the set on boot (6 exteriors per style, 3 per room); re-runs only for what is missing */
-if (OPENAI_KEY) setTimeout(() => { const st = imgStatus(); console.log(`IMG key set, ${st.have}/${st.want} photos in place (${st.onVolume} on the volume, ${st.quality} quality)`); if (st.have < st.want && process.env.IMG_AUTO !== "0") genImages(); }, 15000); setInterval(logDigest, 30 * 60e3);
+if (OPENAI_KEY) setTimeout(() => { const st = imgStatus(); console.log(`IMG key set, ${st.have}/${st.want} photos in place (${st.onVolume} on the volume, ${st.quality} quality)`); if (st.have < st.want && process.env.IMG_AUTO !== "0") genImages(); }, 15000); /* v92: a second setInterval(logDigest) here wrote every 30-minute digest twice */

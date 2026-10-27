@@ -3105,7 +3105,12 @@ const depositFor=(n,ti)=>n*(1-LVR+DUTY[ti]);
 /* v53 cash floor: in the honeymoon the bank keeps a deposit for your next home in your hand (it lends more) so a beginner never spends down to $0 */
 function keepCash(ti){try{if(!honeymoon()&&!(S.grace>0))return 0;return depositFor(typicalWin(ti||0),ti||0);}catch(e){return 0;}}
 const needsLoan=(n,ti)=>S.cash-keepCash(ti)<n*(1+DUTY[ti]);
-const canPay=(n,ti)=>S.cash>=n*(1+DUTY[ti])||(S.cash>=depositFor(n,ti)&&debt()+n*LVR<=LVR*(holdings()+n)+1);
+const canPay0=(n,ti)=>S.cash>=n*(1+DUTY[ti])||(S.cash>=depositFor(n,ti)&&debt()+n*LVR<=LVR*(holdings()+n)+1);
+/* v92: the tier picker counted equity-loan room but the Bid button didn't, so a new player who unlocked Family with $120K cash got three "Need $X" lots
+   in a row and left. You can now bid when cash plus what your homes can borrow covers the deposit; the equity loan is drawn only if you win (eqTop). */
+const eqNeed=(n,ti)=>{const dep=depositFor(n,ti);if(S.cash>=dep)return 0;const a=Math.ceil((dep-S.cash)*(1+EQ_FEE)/1e4)*1e4+1e4;return a<=borrowable()?a:Infinity;};
+const canPay=(n,ti)=>canPay0(n,ti)||(S.props.length>0&&eqNeed(n,ti)<Infinity&&debt()+eqNeed(n,ti)+n*LVR<=LVR*(holdings()+n)+1);
+function eqTop(n,ti,src){if(canPay0(n,ti))return 0;const a=eqNeed(n,ti);if(!(a<Infinity))return 0;const got=borrowEquity(a,src||'auction');if(got){T.c.eqAuto=(T.c.eqAuto||0)+1;tlog('eq_auto',{amt:Math.round(got),src:src||'auction'});}return got;}
 const loanFor=(n,ti)=>{const full=n*(1+DUTY[ti]),c=Math.max(0,S.cash-keepCash(ti));if(c>=full)return 0;const room=Math.max(0,LVR*(holdings()+n)-debt());return Math.max(full-Math.max(0,S.cash),Math.min(n*LVR,room,full-c));};
 function payFor(n,ti){const duty=(S.dutyFree||0)>0?0:n*DUTY[ti],loan=loanFor(n,ti);return{out:n+duty-loan,loan,duty};}
 function bills(){let council=0,strata=0,upkeep=0,h=0;for(const p of S.props){h+=p.value;council+=p.value*COUNCIL;upkeep+=p.value*UPKEEP;if(isStrata(p))strata+=p.value*STRATA;}
@@ -3688,7 +3693,7 @@ function endAuction(){if(A.sell){endSell();return;}if(!A.bg&&!A.passin&&!A.walke
  if(A.boss&&A.leader!=='you'){tlog('boss',{rival:A.boss,won:false});if(ui)toast(`${rm({name:A.boss}).short} won the final showdown. Beat them 3 more times to get another shot.`,'down');}
  SESS.lots+=youBidAny||ui?1:0;
  const res=ui?$('#result'):null,stp=ui?document.createElement('div'):null;
- if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
+ if(A.leader==='you'){T.c.wins++;SESS.wins++;if(T.firstWinSec==null)T.firstWinSec=tnow();if(L.rare)T.c.rareWon++;eqTop(A.bid,L.ti,A.bg?'auction_bg':'auction');const pay=payFor(A.bid,L.ti),duty=pay.duty,prem=A.bid/L.guide-1,heat=heatOf(A.bid,L.guide);S.cash-=pay.out;S.paidOut+=duty;if(pay.loan){T.c.loans++;S.borrowed=1;tlog('loan',{src:'auction',tier:L.ti,amt:Math.round(pay.loan),cashAfter:Math.round(S.cash)});}S.wins++;
   const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:L.rare,paid:A.bid,duty,prem,heat,age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan};S.props.unshift(p);
   const fnd=A.forceFind?{kind:'jackpot',label:pick(FINDS.jackpot),pct:0.3}:A.showdown||A.run?seeded(A.sdSeed+7,()=>inspect(true)):A.find0!==undefined?A.find0:inspect(A.featured),fAmt=fnd?p.value*fnd.pct:0;if(fnd){p.value+=fAmt;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(fAmt);T.c['find_'+fnd.kind]++;if(fnd.kind==='jackpot')award('jackpot');}tlog('inspection',{kind:fnd?fnd.kind:'clean',pct:fnd?+(fnd.pct*100).toFixed(1):0,featured:!!A.featured});A.find=fnd?fnd.kind:'clean';
   if(A.featured){T.c.featuredWon++;award('headliner');}
@@ -3961,7 +3966,7 @@ function updAuction(){if(!A||A.bg)return;const nb=nextBid(),L=A.lot;
  else if(regOut(A)){bb.disabled=true;wH(bb,'No regos');}
  else if(pfFull()){bb.disabled=false;bb.classList.add('need');wH(bb,'Full<small>'+S.props.length+' of '+slotsOf()+' homes</small>');}
  else if(!canPay(nb,L.ti)){bb.disabled=false;bb.classList.add('need');wH(bb,'Need<small>'+money(depositFor(nb,L.ti))+'</small>');}
- else{bb.disabled=false;/* v63: the bid button is the hero; it glows while the next bid is a Steal or Good deal */const zz=A.est?zoneOf(nb,L,A.est):'';if(zz==='steal'||zz==='good')bb.classList.add('z'+zz);wH(bb,(zz==='steal'?'Steal':'Bid')+'<small>'+money(nb)+'</small>');bb.setAttribute('aria-label','Bid '+full(nb)+(needsLoan(nb,L.ti)?' with a loan':''));}
+ else{bb.disabled=false;/* v63: the bid button is the hero; it glows while the next bid is a Steal or Good deal */const zz=A.est?zoneOf(nb,L,A.est):'';if(zz==='steal'||zz==='good')bb.classList.add('z'+zz);wH(bb,(zz==='steal'?'Steal':'Bid')+'<small>'+money(nb)+(canPay0(nb,L.ti)?'':' · on equity')+'</small>');bb.setAttribute('aria-label','Bid '+full(nb)+(needsLoan(nb,L.ti)?' with a loan':''));}
  bb.classList.toggle('nudge',A.nudged===1&&!A.ended&&!A.sell&&A.leader!=='you');
  const ga=nb+L.inc*4;$('#bigBtn').disabled=!!A.sell||A.ended||A.leader==='you'||!canPay(ga,L.ti)||regOut(A)||pfFull();$('.auto').hidden=!!A.sell;$('#bigBtn').hidden=!!A.sell;
  {const ri=$('#regInfo'),on=regOn()&&!A.ended&&!A.daily&&!A.featured&&!A.sell&&(S.reg.n<=2||A.joined&&S.reg.n<=1);ri.hidden=!on;if(on){regRefill();const n=S.reg.n,nx=n<REG_MAX?' · next in '+mmss(regNext()):'';ri.className='reginfo'+(n<=0&&!A.joined?' out':'');ri.textContent=A.joined?`Registered for this lot · ${n} left${nx}`:n>0?`Bidding uses 1 of your ${n} registration${n===1?'':'s'}${nx}`:`Next registration in ${mmss(regNext())}. Watching is free.`;}}$('#bigAmt').textContent=A.ended?'':money(ga);
@@ -4714,7 +4719,7 @@ async function arenaBid(amt,src){const X=A;if(!X||!X.arena||X.ended)return;if(!X
 function arenaResult(j,on){const w=j.winner,lot=j.lot;if(!lot)return;if(w&&w.me&&!(S.arenaWon||{})[j.id]){arenaWin(j);return;}if(on)return;
  if(j.bid){pxp(15,'arena');toast(`${w?w.nick:'Nobody'} took ${lot.addr} at ${money(j.price)}. +15 XP for the fight.`,'down');}else if(ARN.noted[j.id])toast(`Live auction: ${w?w.nick+' took '+lot.addr+' at '+money(j.price):lot.addr+' was passed in'}.`,'');}
 /* fallback: you led, moved on to another lot, and still won on the server */
-function arenaWin(j){const L=arenaLot(j),price=j.price,pay=payFor(price,L.ti);S.arenaWon=S.arenaWon||{};S.arenaWon[j.id]=1;S.cash-=pay.out;S.paidOut+=pay.duty;if(pay.loan){S.borrowed=1;T.c.loans++;}S.wins++;T.c.wins++;T.c.arenaWins=(T.c.arenaWins||0)+1;
+function arenaWin(j){const L=arenaLot(j),price=j.price;eqTop(price,L.ti,'arena');const pay=payFor(price,L.ti);S.arenaWon=S.arenaWon||{};S.arenaWon[j.id]=1;S.cash-=pay.out;S.paidOut+=pay.duty;if(pay.loan){S.borrowed=1;T.c.loans++;}S.wins++;T.c.wins++;T.c.arenaWins=(T.c.arenaWins||0)+1;
  const p={id:S.nextId++,addr:L.addr,street:L.street,sub:L.sub,st:L.st,ti:L.ti,style:L.style,land:L.land,beds:L.beds,feats:L.feats,seed:L.seed,rare:true,paid:price,duty:pay.duty,prem:price/L.guide-1,heat:heatOf(price,L.guide),age:0,value:L.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,arena:true,feat:true,rivals:(j.rivals||[]).length+Math.max(0,(j.players||1)-1)};S.props.unshift(p);
  const fnd=seeded(j.seed+7,()=>inspect(true));if(fnd){const a=p.value*fnd.pct;p.value+=a;p.find=fnd.kind;p.findLabel=fnd.label;p.findAmt=Math.round(a);}
  p.rarity=Math.max(2,rarityOf(p,{find:fnd?fnd.kind:'clean',featured:true,nem:false,combo:1,showdown:false,mystery:false}));T.c['rar_'+p.rarity]++;lifeWin(p);addAlbum(p);checkSets(p);award('arena');sxp(60,'arena');if(p.rarity===4)award('legendary');if(p.rarity>=3)award('epic');
@@ -5137,7 +5142,7 @@ function renderWatch(){const live=LST.filter(l=>WATCH.has(l.mid));for(const id o
 $('#wlist').onclick=e=>{const b=e.target.closest('[data-wbuy]');if(!b)return;const l=LST.find(x=>x.mid===+b.dataset.wbuy);if(l&&buyListing(l)){WATCH.delete(l.mid);deckId=null;renderMarket();}};
 let qT=null;$('#mQ').addEventListener('input',e=>{clearTimeout(qT);qT=setTimeout(()=>{MK.q=e.target.value.trim().toLowerCase();if(MK.q)T.c.searches=(T.c.searches||0)+1;mFilter();},180);});
 $('#wmapBtn').onclick=()=>{const g=$('#globeSec'),open=g.hidden;g.hidden=!open;$('#wmapBtn').setAttribute('aria-expanded',open);$('#wmapBtn').textContent=open?'Hide world map':'World map: shop by city';if(open){gstart();g.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}else gstop();};
-function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(pfFull()){slotsSheet();return false;}if(mktLeft()<=0){mktSheet();return false;}if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}
+function buyListing(l){const i=LST.indexOf(l);if(i<0&&!l.offmkt)return false;if(pfFull()){slotsSheet();return false;}if(mktLeft()<=0){mktSheet();return false;}if(!canPay(l.ask,l.ti)){toast('You need '+money(depositFor(l.ask,l.ti))+' for the deposit and duty.','down');return false;}eqTop(l.ask,l.ti,'market');
  const pay=payFor(l.ask,l.ti);S.cash-=pay.out;S.paidOut+=pay.duty;if(i>=0)LST.splice(i,1);
  S.props.unshift({id:S.nextId++,addr:l.addr,street:l.street,sub:l.sub,st:l.st,ti:l.ti,style:l.style,land:l.land,beds:l.beds,feats:l.feats,seed:l.seed,rare:false,paid:l.ask,duty:pay.duty,prem:l.ask/l.value-1,heat:0,age:0,value:l.value,vacant:0,boughtAt:Date.now(),loan:pay.loan,src:l.offmkt?'offmarket':'market'});
  {const m=mktMeter();if(m.n>=mktMax())m.at=Date.now();m.n=Math.max(0,m.n-1);}T.c.mktBuys++;if(l.deal)T.c.mktDeals++;if(pay.loan){T.c.loans++;S.borrowed=1;}checkSets(S.props[0]);/* v51: Market homes count for sets, nothing else: no rarity, album, missions, badges or season XP */
@@ -5894,8 +5899,9 @@ function lookSheet(from,tab){LKTAB=tab||LKTAB;const a=av(),onb=from==='onb';T.c.
  $('#lkDone').onclick=()=>{if(onb){S.onb=1.5;save();homeSheet('onb');}else $('#modal').hidden=true;};
  try{D3.preview($('#lkPrev'));}catch(e){}}
 /* ---------- v54 versions and patch notes: shown once after every update, and from the menu ---------- */
-const APPV=91;
+const APPV=92;
 const PATCH=[
+ {v:92,d:'27 Oct 2026',t:'Bid on your equity',items:['When your cash is short of a deposit but your homes can cover it, the Bid button now lets you bid (it says "on equity"). The loan against your homes is only taken if you win.']},
  {v:91,d:'26 Oct 2026',t:'Smoother with a big empire',items:['The game does far less work every second while you bid, so phones with a lot of homes stutter less. The Empire screens only refresh while you are looking at them.','New bidders: when a lot is still a steal with 5 seconds left and you have not put your hand up, the auctioneer gives you a moment and the Bid button lights up.']},
  {v:90,d:'26 Oct 2026',t:'Lots that match your cash',items:['If your empire has outgrown the tier you picked and you let four lots in a row go by, the auction moves you back to lots your cash can buy. Pick a tier again any time in Tiers and cities.']},
  {v:89,d:'26 Oct 2026',t:'One you on the boards',items:['Leaderboards show each account once, even when the same account plays on the app and in a browser. Different accounts always show separately, even with the same name.','When your Property manager fixes repairs, you now get a message saying what it fixed and what it cost. Tap it to see requests or turn the manager off.']},

@@ -561,3 +561,8 @@ Players were confused about why to bid, which stats matter, and how a lot affect
   - `sets()` returns the cache when the count and first/last ids match and it's under 300 ms old (it hashed every home on each `rentOf`/`natOn`/`myN` call); `rentOf` uses `holdR()` (300 ms memo); `incomeNow()` 400 ms memo keyed on count and cash.
   - `wT(el,v)`/`wH(el,v)` write text/markup only when it changed (`updAuction` at 10 Hz, skip button countdown).
   - Every renderer sets `debug.checkShaderErrors=false` (`noChk`, D3 top) unless `?debug=1`: the link-status check forced a synchronous shader compile per new material.
+
+## Bid on equity (v92, 27 Oct log review)
+- The only v91 session: a new desktop player bid at 56s, won 4 of 4, then unlocked Family with ~$120K cash and got three "Need $X" lots in a row (`afford=false`), skipped them and left. `affordTier()` counted half the equity-loan room; `canPay()` counted none.
+- `canPay0` is the old cash-only test. `canPay` = `canPay0` or (you own a home and `eqNeed(n,ti)` fits in `borrowable()`); `eqNeed` = deposit shortfall + the 0.5% fee, rounded up to $10K, +$10K. `eqTop(n,ti,src)` draws it with `borrowEquity` only at settlement (`endAuction` win, `arenaWin`, `buyListing`), so a lost lot costs nothing. The Bid button reads "$X · on equity" while it would need the loan. Counter `T.c.eqAuto`, log line `eq_auto`.
+- `server.js` ran `setInterval(logDigest)` twice (once after the photo check), so every 30-minute digest was written twice; one is gone.
