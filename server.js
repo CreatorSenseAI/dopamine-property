@@ -103,6 +103,9 @@ function readBody(req, max) {
     req.on("error", reject);
   });
 }
+const JE_SEEN = {};
+/* v94: at boot, the most common player JS errors of the last 7 days (JE7 lines in the Railway log) */
+setTimeout(() => { try { const since = Date.now() - 7 * 864e5, m = {}; let n = 0; for (const x of loadAll().sessions) { if (Date.parse(x.lastSeen || x.start || 0) < since) continue; n += (x.counters || {}).jsErr || 0; for (const e of (x.log || [])) if (e.type === "js_err") { const k = `${x.version || ""} ${String(e.m || "").slice(0, 160)} @${e.at || ""}`; m[k] = (m[k] || 0) + 1; } } console.log(`JE7 total ${n}`); Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 25).forEach(([k, c]) => console.log(`JE7 ${c}x ${k}`)); } catch (e) { console.log("JE7 error " + e.message); } }, 12000);
 async function ingest(req, res) {
   const ip = (req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   if (limited(ip)) return send(req, res, 429, "text/plain", "slow down");
@@ -112,6 +115,8 @@ async function ingest(req, res) {
   if (!s || !p || !ID.test(String(s.sid)) || !ID.test(String(p.installId)) || s.installId !== p.installId) return send(req, res, 400, "text/plain", "bad ids");
   const now = new Date().toISOString();
   s.receivedAt = now; p.receivedAt = now;
+  /* v94: player JS errors go straight to the Railway log (JE lines), once per message per session */
+  try { JE_SEEN[s.sid] = JE_SEEN[s.sid] || {}; for (const e of (s.log || [])) if (e.type === "js_err") { const k = (e.m || "") + "@" + (e.at || ""); if (JE_SEEN[s.sid][k]) continue; JE_SEEN[s.sid][k] = 1; console.log(`JE ${s.version || ""} ${String(p.installId).slice(0, 9)} ${String(e.m || "").slice(0, 160)} @${e.at || ""}`); } } catch {}
   writeJSON(path.join(DATA, "sessions", s.sid + ".json"), s);
   writeJSON(path.join(DATA, "players", p.installId + ".json"), p);
   cache = null;
