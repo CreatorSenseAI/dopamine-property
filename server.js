@@ -648,6 +648,34 @@ function authed(url, req) {
 const social = require("./social")({ DATA, send, readBody, writeJSON, limited, ID, NICK });
 const pusher = require("./push")({ DATA, writeJSON });
 const accts = require("./accounts")({ DATA, send, readBody, writeJSON, ID });
+/* v95: the admin numbers in the Railway log at boot (ADM lines), so they can be read without the admin key */
+function admLog() {
+  try {
+    const { sessions: S, players: P } = loadAll(), now = Date.now(), D = 864e5, today = new Date().toISOString().slice(0, 10);
+    const w = (days) => S.filter(s => now - Date.parse(s.lastSeen || s.start || 0) < days * D);
+    const firstOf = p => (p.days || [])[0];
+    let d1n = 0, d1d = 0, d7n = 0, d7d = 0;
+    for (const p of P) { const f = firstOf(p); if (!f) continue; if (dayDiff(f, today) >= 1) { d1d++; if ((p.days || []).some(d => dayDiff(f, d) === 1)) d1n++; } if (dayDiff(f, today) >= 7) { d7d++; if ((p.days || []).some(d => dayDiff(f, d) === 7)) d7n++; } }
+    for (const days of [7, 30]) {
+      const ss = w(days), ids = new Set(ss.map(s => s.installId)), news = P.filter(p => { const f = firstOf(p); return f && dayDiff(f, today) < days; });
+      const byInst = {}; for (const s of ss) byInst[s.installId] = (byInst[s.installId] || 0) + (s.playSec || 0);
+      const newIds = new Set(news.map(p => p.installId)), bounced = [...newIds].filter(i => (byInst[i] || 0) < 60).length;
+      const src = {}; for (const s of ss) for (const k of Object.keys(s.counters || {})) if (k.startsWith("src_") && newIds.has(s.installId)) src[k.slice(4)] = (src[k.slice(4)] || 0) + 1;
+      const dev = { android: 0, ios: 0, desktop: 0 }; for (const s of ss) { const ua = JSON.stringify(s.device || s.meta || {}); /iphone|ipad|ios/i.test(ua) ? dev.ios++ : /android/i.test(ua) ? dev.android++ : dev.desktop++; }
+      const c = k => ss.reduce((n, s) => n + ((s.counters || {})[k] || 0), 0);
+      console.log(`ADM ${days}d players=${ids.size} sessions=${ss.length} new=${news.length} bounced<60s=${bounced} medSessMin=${(med(ss.map(s => (s.playSec || 0) / 60)) || 0).toFixed(1)} totalHours=${(ss.reduce((n, s) => n + (s.playSec || 0), 0) / 3600).toFixed(1)} wins=${c("wins")} joined=${c("auctionsJoined")}/${c("auctionsSeen")} jsErr=${c("jsErr")} tradeUps=${c("tradeUps")} eqAuto=${c("eqAuto")} nudges=${c("bidNudges")}/${c("nudgeBids")} sellRequeued=${c("sellRequeued")} src=${JSON.stringify(src)} devices=${JSON.stringify(dev)}`);
+    }
+    const dau = {}; for (const s of w(14)) { const d = (s.localDate || s.start || "").slice(0, 10); (dau[d] = dau[d] || new Set()).add(s.installId); }
+    console.log(`ADM dau ${Object.keys(dau).sort().map(d => d.slice(5) + ":" + dau[d].size).join(" ")}`);
+    console.log(`ADM retention all-time d1=${pct(d1n, d1d)} (${d1n}/${d1d}) d7=${pct(d7n, d7d)} (${d7n}/${d7d}) installs=${P.length}`);
+    const top = Object.entries(S.reduce((m, s) => { m[s.installId] = (m[s.installId] || 0) + (s.playSec || 0); return m; }, {})).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    console.log(`ADM top players (hours, all time) ${top.map(([i, t]) => i.slice(0, 9) + ":" + (t / 3600).toFixed(1)).join(" ")}`);
+    const fb = feedbackList(500), fbAvg = fb.length ? (fb.reduce((a, x) => a + x.stars, 0) / fb.length).toFixed(2) : "-";
+    console.log(`ADM feedback n=${fb.length} avg=${fbAvg}`); fb.slice(0, 8).forEach(x => console.log(`ADM fb ${(x.at || x.ts || "").toString().slice(0, 10)} ${"★".repeat(x.stars || 0)} ${String(x.text || x.msg || x.comment || "").replace(/\s+/g, " ").slice(0, 200)}`));
+    try { const a = accts.stats(); console.log(`ADM accounts ${JSON.stringify(a)}`); } catch (e) {}
+  } catch (e) { console.log("ADM error " + e.message); }
+}
+setTimeout(admLog, 25000);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://x");
   try {
